@@ -15,8 +15,8 @@ function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    course: '',
     institute: '',
+    studentId: '',
     password: '',
     confirmPassword: '',
     role: 'voter'
@@ -72,8 +72,8 @@ function Register() {
       await set(ref(db, `users/${userCredential.user.uid}`), {
         name: formData.name,
         email: formData.email,
-        course: formData.course,
         institute: formData.institute,
+        studentId: formData.studentId,
         role: formData.role,
         emailVerified: false,
         createdAt: new Date().toISOString()
@@ -187,52 +187,44 @@ function Register() {
                       </div>
                     </div>
 
-                    {/* Institute Field */}
+                    {/* Student ID Field */}
                     <div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0v6" />
-                          </svg>
-                        </div>
-                        <input
-                          type="text"
-                          name="institute"
-                          placeholder="Institute"
-                          value={formData.institute}
-                          onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
-                          required
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        name="studentId"
+                        placeholder="Student ID"
+                        value={formData.studentId}
+                        onChange={handleChange}
+                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
+                        required
+                      />
                     </div>
 
-                    {/* Course Field */}
+                    {/* Institute Field (Dropdown) */}
                     <div>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                          </svg>
-                        </div>
-                        <input
-                          type="text"
-                          name="course"
-                          placeholder="Course"
-                          value={formData.course}
-                          onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
-                          required
-                        />
-                      </div>
+                      <select
+                        name="institute"
+                        value={formData.institute}
+                        onChange={handleChange}
+                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
+                        required
+                      >
+                        <option value="" disabled>Select Institute</option>
+                        <option value="INSTITUTE OF ARTS AND SCIENCES">INSTITUTE OF ARTS AND SCIENCES</option>
+                        <option value="INSTITUTE OF BUSINESS AND COMPUTING EDUCATION">INSTITUTE OF BUSINESS AND COMPUTING EDUCATION</option>
+                        <option value="INSTITUTE OF TEACHER EDUCATION">INSTITUTE OF TEACHER EDUCATION</option>
+                        <option value="INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT">INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT</option>
+                      </select>
                     </div>
+
+                    
 
                     {/* Email Field */}
                     <div>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
                         </div>
                         <input
