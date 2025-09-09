@@ -12,7 +12,7 @@ function About() {
           <div className="grid lg:grid-cols-5 gap-8 items-start">
             {/* Left: 60% heading + text */}
             <div className="lg:col-span-3 text-gray-800 space-y-6">
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide text-red-900 mb-10 whitespace-nowrap">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide text-red-900 mb-10">
                 PEACE. HONESTY. ORDERLY
               </h1>
               <h2 className="text-xl font-semibold text-red-900 mb-2">About</h2>
@@ -40,7 +40,7 @@ function About() {
             </div>
 
             {/* Right: 40% visuals (statue on top, fingerprint beneath) */}
-            <div className="lg:col-span-2 relative min-h-[680px] -mt-20 hidden lg:block mt-6">
+            <div className="lg:col-span-2 relative min-h-[680px] -mt-20 hidden lg:block">
               {/* Statue */}
               <img
                 src={statue}
