@@ -4,7 +4,6 @@ import NavBar from './NavBar'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
-import iconHeader from '../assets/icon.png'
 import iconCard from '../assets/icon2.png'
 import fingerprintImage from '../assets/fingerprint.png'
 import mccLogo from '../assets/mcclogo.png'
@@ -16,7 +15,7 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  // const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navigate = useNavigate()
   const { isEmailVerified, startVerificationPolling } = useAuth()
 
@@ -190,9 +189,9 @@ function Login() {
                         </label>
                       </div>
                       <div className="text-sm">
-                        <a href="#" className="font-medium text-red-600 hover:text-red-500">
+                        <Link to="/forgot-password" className="font-medium text-red-600 hover:text-red-500">
                           Forgot Password?
-                        </a>
+                        </Link>
                       </div>
                     </div>
 

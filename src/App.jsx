@@ -13,6 +13,7 @@ import EmailVerification from './components/EmailVerification'
 import About from './components/About'
 import Result from './components/Result'
 import Vote from './components/Vote'
+import ForgotPassword from './components/ForgotPassword'
 
 function App() {
   return (
@@ -39,6 +40,14 @@ function App() {
               element={
                 <PublicRoute>
                   <Register />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/forgot-password" 
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
                 </PublicRoute>
               } 
             />
