@@ -10,6 +10,7 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from './components/Dashboard'
 import EmailVerification from './components/EmailVerification'
+import About from './components/About'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <div className="App">
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<About />} />
             
             {/* Public routes - redirect authenticated users */}
             <Route 
