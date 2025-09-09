@@ -14,6 +14,10 @@ import About from './components/About'
 import Result from './components/Result'
 import Vote from './components/Vote'
 import ForgotPassword from './components/ForgotPassword'
+import CandidacyApplication from './components/CandidacyApplication'
+import CandidacyThankYou from './components/CandidacyThankYou'
+import ManageCandidates from './components/ManageCandidates'
+import ManageUsers from './components/ManageUsers'
 
 function App() {
   return (
@@ -49,6 +53,38 @@ function App() {
                 <PublicRoute>
                   <ForgotPassword />
                 </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/candidacy-application" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <CandidacyApplication />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/candidacy-application/thank-you" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <CandidacyThankYou />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-candidates" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageCandidates />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-users" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageUsers />
+                </ProtectedRoute>
               } 
             />
             

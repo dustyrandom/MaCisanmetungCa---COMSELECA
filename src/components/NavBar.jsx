@@ -59,6 +59,9 @@ function NavBar() {
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-20">
                     <div className="py-1 text-sm">
+                      <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-600">
+                        Role: {userData?.role?.toUpperCase() || 'VOTER'}
+                      </div>
                       <button onClick={() => { setIsProfileOpen(false); logout() }} className="w-full text-left px-4 py-2 text-red-700 hover:bg-red-50">Sign out</button>
                     </div>
                   </div>
