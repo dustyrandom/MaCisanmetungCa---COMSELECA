@@ -52,12 +52,22 @@ function NavBar() {
         </div>
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden px-2 pt-2 pb-3 space-y-1">
-            <Link to="/" className={`block px-3 py-2 rounded-md text-base ${isActive('/') ? 'font-semibold text-red-900 border-b border-red-900' : 'text-red-800 hover:bg-red-50'}`}>HOME</Link>
-            <Link to="/about" className={`block px-3 py-2 rounded-md text-base ${isActive('/about') ? 'font-semibold text-red-900 border-b border-red-900' : 'text-red-800 hover:bg-red-50'}`}>ABOUT</Link>
-            <Link to="/result" className={`block px-3 py-2 rounded-md text-base ${isActive('/result') ? 'font-semibold text-red-900 border-b border-red-900' : 'text-red-800 hover:bg-red-50'}`}>RESULT</Link>
-            <Link to="/vote" className={`block px-3 py-2 rounded-md text-base ${isActive('/vote') ? 'font-semibold text-red-900 border-b border-red-900' : 'text-red-800 hover:bg-red-50'}`}>VOTE</Link>
-            <Link to="/login" className={`block px-3 py-2 rounded-md text-base ${isActive('/login') ? 'font-semibold text-red-900 border-b border-red-900' : 'text-red-800 hover:bg-red-50'}`}>LOG IN</Link>
+          <div className="md:hidden px-4 pb-3 space-y-1">
+            <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/') ? 'inline-block border-b border-red-900' : ''}`}>HOME</span>
+            </Link>
+            <Link to="/about" className={`block py-2 text-base ${isActive('/about') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/about') ? 'inline-block border-b border-red-900' : ''}`}>ABOUT</span>
+            </Link>
+            <Link to="/result" className={`block py-2 text-base ${isActive('/result') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/result') ? 'inline-block border-b border-red-900' : ''}`}>RESULT</span>
+            </Link>
+            <Link to="/vote" className={`block py-2 text-base ${isActive('/vote') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>
+            </Link>
+            <Link to="/login" className={`block py-2 text-base ${isActive('/login') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
+            </Link>
           </div>
         )}
       </div>
