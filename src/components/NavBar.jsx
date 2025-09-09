@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import iconHeader from '../assets/icon.png'
 
 function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const location = useLocation()
+  const { user, userData, isEmailVerified, logout } = useAuth()
 
   const isActive = (path) => location.pathname === path
 
@@ -26,12 +29,43 @@ function NavBar() {
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8 relative">
             <Link to="/" className={`${baseLink} ${isActive('/') ? activeClasses : inactiveClasses}`}>HOME</Link>
             <Link to="/about" className={`${baseLink} ${isActive('/about') ? activeClasses : inactiveClasses}`}>ABOUT</Link>
             <Link to="/result" className={`${baseLink} ${isActive('/result') ? activeClasses : inactiveClasses}`}>RESULT</Link>
             <Link to="/vote" className={`${baseLink} ${isActive('/vote') ? activeClasses : inactiveClasses}`}>VOTE</Link>
-            <Link to="/login" className={`${baseLink} ${isActive('/login') ? activeClasses : inactiveClasses}`}>LOG IN</Link>
+            {!user && (
+              <Link to="/login" className={`${baseLink} ${isActive('/login') ? activeClasses : inactiveClasses}`}>LOG IN</Link>
+            )}
+            {user && (
+              <>
+                {isEmailVerified() && (
+                  <Link to="/dashboard" className={`${baseLink} ${isActive('/dashboard') ? activeClasses : inactiveClasses}`}>DASHBOARD</Link>
+                )}
+              <div className="ml-2 relative">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-2 focus:outline-none"
+                  aria-haspopup="menu"
+                  aria-expanded={isProfileOpen}
+                >
+                  <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
+                    {(userData?.name || user.email).slice(0,2).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-gray-700 font-medium hidden lg:inline">{userData?.name || user.email}</span>
+                  <svg className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
+                </button>
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-20">
+                    <div className="py-1 text-sm">
+                      <button onClick={() => { setIsProfileOpen(false); logout() }} className="w-full text-left px-4 py-2 text-red-700 hover:bg-red-50">Sign out</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              </>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -65,9 +99,22 @@ function NavBar() {
             <Link to="/vote" className={`block py-2 text-base ${isActive('/vote') ? 'text-red-900' : 'text-red-800'}`}>
               <span className={`${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>
             </Link>
-            <Link to="/login" className={`block py-2 text-base ${isActive('/login') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
-            </Link>
+            {!user && (
+              <Link to="/login" className={`block py-2 text-base ${isActive('/login') ? 'text-red-900' : 'text-red-800'}`}>
+                <span className={`${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
+              </Link>
+            )}
+            {user && (
+              <>
+                {isEmailVerified() && (
+                  <Link to="/dashboard" className={`block py-2 text-base ${isActive('/dashboard') ? 'text-red-900' : 'text-red-800'}`}>
+                    <span className={`${isActive('/dashboard') ? 'inline-block border-b border-red-900' : ''}`}>DASHBOARD</span>
+                  </Link>
+                )}
+                <div className="py-2 text-sm text-gray-700">{userData?.name || user.email}</div>
+                <button onClick={logout} className="py-2 text-red-700 font-semibold">LOG OUT</button>
+              </>
+            )}
           </div>
         )}
       </div>
