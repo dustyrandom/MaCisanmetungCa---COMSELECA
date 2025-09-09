@@ -114,7 +114,10 @@ function NavBar() {
                     <span className={`${isActive('/dashboard') ? 'inline-block border-b border-red-900' : ''}`}>DASHBOARD</span>
                   </Link>
                 )}
-                <div className="py-2 text-sm text-gray-700">{userData?.name || user.email}</div>
+                <div className="py-2 flex justify-between items-center">
+                  <span className="text-sm text-gray-700">{userData?.name || 'User'}</span>
+                  <span className="text-xs text-gray-500">Role: {userData?.role?.toUpperCase() || 'VOTER'}</span>
+                </div>
                 <button onClick={logout} className="py-2 text-red-700 font-semibold">LOG OUT</button>
               </>
             )}
