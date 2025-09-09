@@ -11,6 +11,8 @@ import Register from './components/Register'
 import Dashboard from './components/Dashboard'
 import EmailVerification from './components/EmailVerification'
 import About from './components/About'
+import Result from './components/Result'
+import Vote from './components/Vote'
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/result" element={<Result />} />
+            <Route path="/vote" element={<Vote />} />
             
             {/* Public routes - redirect authenticated users */}
             <Route 
