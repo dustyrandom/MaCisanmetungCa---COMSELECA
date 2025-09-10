@@ -31,20 +31,14 @@ function ScheduleAppointment() {
           const histSnap = await get(histRef)
           const decisions = histSnap.exists() ? Object.values(histSnap.val()) : []
           const normalized = decisions.map(d => ({
-            kind: 'decision',
+            kind: d.decision === 'submitted' ? 'submitted' : 'decision',
             decision: d.decision,
             decidedAt: d.decidedAt,
             dateTime: d.dateTime,
-            venue: d.venue
+            venue: d.venue,
+            status: d.decision === 'submitted' ? 'pending' : undefined
           }))
-          const submission = latest.appointment ? [{
-            kind: 'submitted',
-            decidedAt: latest.appointment.createdAt || latest.createdAt,
-            dateTime: latest.appointment.dateTime,
-            venue: latest.appointment.venue,
-            status: 'pending'
-          }] : []
-          const out = [...submission, ...normalized].sort((a, b) => new Date(b.decidedAt) - new Date(a.decidedAt))
+          const out = normalized.sort((a, b) => new Date(b.decidedAt) - new Date(a.decidedAt))
           setHistory(out)
 
           // Reschedule allowed if latest decision is rejected
@@ -104,7 +98,7 @@ function ScheduleAppointment() {
       setApplication(prev => prev ? { ...prev, appointment: appt } : prev)
       setCanReschedule(false)
 
-      // Add a history record for immediate display
+      // Add a history record for immediate display and persistence
       const histRef = dbRef(db, `candidacyApplications/${user.uid}/${application.id}/appointmentHistory/${Date.now()}`)
       await set(histRef, {
         decision: 'submitted',
@@ -113,7 +107,7 @@ function ScheduleAppointment() {
         venue: appt.venue
       })
       setHistory(prev => [
-        { kind: 'submitted', decidedAt: appt.createdAt, dateTime: appt.dateTime, venue: appt.venue, status: 'pending' },
+        { kind: 'submitted', decision: 'submitted', decidedAt: appt.createdAt, dateTime: appt.dateTime, venue: appt.venue, status: 'pending' },
         ...prev
       ])
     } catch (e) {
