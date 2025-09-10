@@ -30,12 +30,12 @@ function LandingPage() {
       <BannerCarousel />
 
       {/* News and Announcements Section */}
-      <section className="py-16 bg-gray-100">
+      <section className="py-8 sm:py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12">
             {/* News Section */}
             <div className="bg-white rounded-lg shadow-md p-8">
-              <div className="flex items-center space-x-3 mb-6">
+              <div className="flex items-center space-x-3 mb-4">
                 <div className="w-8 h-8 bg-red-800 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm">📰</span>
                 </div>
