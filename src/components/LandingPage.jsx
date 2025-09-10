@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import bannerImage from '../assets/banner.png'
-import iconImage from '../assets/icon.png'
 import NavBar from './NavBar'
+import BannerCarousel from './BannerCarousel'
 
 function LandingPage() {
   const { user, userData, loading, isEmailVerified, logout } = useAuth()
@@ -28,15 +27,7 @@ function LandingPage() {
       <NavBar />
 
       {/* Hero Banner Section */}
-      <section className="relative bg-gray-100 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <img 
-            src={bannerImage} 
-            alt="Student Elections 2025 Banner" 
-            className="w-full h-auto max-h-[500px] object-contain rounded-lg shadow-lg"
-          />
-        </div>
-      </section>
+      <BannerCarousel />
 
       {/* News and Announcements Section */}
       <section className="py-16 bg-gray-100">
