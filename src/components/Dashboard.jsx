@@ -1,68 +1,13 @@
-import { useEffect, useState } from 'react'
+import React from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
-import { ref as dbRef, get, set } from 'firebase/database'
-import { db } from '../firebase'
 
 function Dashboard() {
-  const { user, userData, loading } = useAuth()
-  const [myApplication, setMyApplication] = useState(null)
-  const [apptDateTime, setApptDateTime] = useState('')
-  const apptVenue = 'MB201 (MCC Dolores Campus)'
-  const [apptMessage, setApptMessage] = useState('')
+  const { userData, loading } = useAuth()
 
-  useEffect(() => {
-    const fetchMyApplication = async () => {
-      if (!user) return
-      try {
-        const appsRef = dbRef(db, `candidacyApplications/${user.uid}`)
-        const snapshot = await get(appsRef)
-        if (snapshot.exists()) {
-          const data = snapshot.val()
-          const apps = Object.keys(data).map(id => ({ id, ...data[id] }))
-          // Pick the latest by createdAt
-          const latest = apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
-          setMyApplication(latest)
-        } else {
-          setMyApplication(null)
-        }
-      } catch (e) {
-        console.error('Failed to load your application', e)
-      }
-    }
-    fetchMyApplication()
-  }, [user])
+  // Scheduling moved to dedicated page; no need to load application here
 
-  const canSchedule = myApplication && myApplication.status === 'reviewed'
-
-  const submitAppointment = async (e) => {
-    e.preventDefault()
-    if (!apptDateTime) {
-      setApptMessage('Please select date and time')
-      return
-    }
-    const now = new Date()
-    const selected = new Date(apptDateTime)
-    if (selected < now) {
-      setApptMessage('Please choose a future date and time')
-      return
-    }
-    try {
-      const appt = {
-        dateTime: apptDateTime,
-        venue: apptVenue,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        createdBy: user.uid
-      }
-      const apptRef = dbRef(db, `candidacyApplications/${user.uid}/${myApplication.id}/appointment`)
-      await set(apptRef, appt)
-      setApptMessage('Appointment submitted. Awaiting admin approval.')
-    } catch (err) {
-      console.error('Failed to submit appointment', err)
-      setApptMessage('Failed to submit appointment')
-    }
-  }
+  // const canSchedule = myApplication && myApplication.status === 'reviewed'
 
   const renderAdminDashboard = () => (
     <div className="space-y-6">
@@ -116,29 +61,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {canSchedule && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Schedule Screening Appointment</h3>
-          {myApplication?.appointment ? (
-            <div className="text-sm text-gray-700">
-              <p><span className="font-medium">Status:</span> {myApplication.appointment.status}</p>
-              <p><span className="font-medium">Date & Time:</span> {new Date(myApplication.appointment.dateTime).toLocaleString()}</p>
-              <p><span className="font-medium">Venue:</span> {myApplication.appointment.venue}</p>
-              <p className="text-gray-500 mt-2">Appointment already submitted.</p>
-            </div>
-          ) : (
-            <form onSubmit={submitAppointment} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                <input type="datetime-local" value={apptDateTime} onChange={(e) => setApptDateTime(e.target.value)} min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0,16)} className="w-full border rounded px-3 py-2" />
-              </div>
-              <p className="text-sm text-gray-600">Venue: <span className="font-medium">{apptVenue}</span></p>
-              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Appointment</button>
-              {apptMessage && <p className="text-sm text-gray-600">{apptMessage}</p>}
-            </form>
-          )}
-        </div>
-      )}
+      {/* Scheduling moved to dedicated page; use Go to Schedule */}
     </div>
   )
 
@@ -172,29 +95,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {canSchedule && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Schedule Screening Appointment</h3>
-          {myApplication?.appointment ? (
-            <div className="text-sm text-gray-700">
-              <p><span className="font-medium">Status:</span> {myApplication.appointment.status}</p>
-              <p><span className="font-medium">Date & Time:</span> {myApplication.appointment.dateTime}</p>
-              <p><span className="font-medium">Venue:</span> {myApplication.appointment.venue}</p>
-              <p className="text-gray-500 mt-2">Appointment already submitted.</p>
-            </div>
-          ) : (
-            <form onSubmit={submitAppointment} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                <input type="datetime-local" value={apptDateTime} onChange={(e) => setApptDateTime(e.target.value)} className="w-full border rounded px-3 py-2" />
-              </div>
-              <p className="text-sm text-gray-600">Venue: <span className="font-medium">{apptVenue}</span></p>
-              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Appointment</button>
-              {apptMessage && <p className="text-sm text-gray-600">{apptMessage}</p>}
-            </form>
-          )}
-        </div>
-      )}
+      {/* Scheduling moved to dedicated page; use Go to Schedule */}
     </div>
   )
 
