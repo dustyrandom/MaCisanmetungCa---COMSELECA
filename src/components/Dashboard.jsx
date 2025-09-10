@@ -21,9 +21,12 @@ function Dashboard() {
           <a href="/admin/manage-users" className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-center">
             Manage Users
           </a>
-          <button className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
-            System Settings
-          </button>
+          <a href="/admin/manage-news" className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 text-center">
+            Manage News
+          </a>
+          <a href="/admin/manage-announcements" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">
+            Manage Announcements
+          </a>
         </div>
       </div>
     </div>

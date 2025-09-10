@@ -18,6 +18,8 @@ import CandidacyApplication from './components/CandidacyApplication'
 import CandidacyThankYou from './components/CandidacyThankYou'
 import ManageCandidates from './components/ManageCandidates'
 import ManageUsers from './components/ManageUsers'
+import ManageNews from './components/ManageNews'
+import ManageAnnouncements from './components/ManageAnnouncements'
 
 function App() {
   return (
@@ -84,6 +86,22 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ManageUsers />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-news" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageNews />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-announcements" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageAnnouncements />
                 </ProtectedRoute>
               } 
             />
