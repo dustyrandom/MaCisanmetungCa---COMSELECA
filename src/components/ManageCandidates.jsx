@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { ref as dbRef, get, update } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
-import { sendCandidacyStatusEmail } from '../services/emailService'
 import NavBar from './NavBar'
 
 function ApplicationCard({ app, onUpdateStatus, showActions }) {
@@ -157,26 +156,7 @@ function ManageCandidates() {
       }
       
       // Send email notification
-      const application = applications.find(app => app.uid === uid && app.id === appId)
-      if (application) {
-        const emailData = {
-          name: application.name,
-          position: application.position || 'Student Council Representative'
-        }
-        
-        const emailResult = await sendCandidacyStatusEmail(
-          application.email, 
-          emailData.name, 
-          status, 
-          emailData.position
-        )
-        
-        if (emailResult.success) {
-          console.log('Email sent successfully')
-        } else {
-          console.error('Failed to send email:', emailResult.error)
-        }
-      }
+      await sendStatusEmail(uid, status)
       
       setApplications(prev => 
         prev.map(app => 
@@ -186,11 +166,65 @@ function ManageCandidates() {
         )
       )
       
-      setMessage(`Application ${status} successfully.${status === 'approved' ? ' User role updated to candidate.' : ''} Email notification sent.`)
+      setMessage(`Application ${status} successfully! Email notification sent.${status === 'approved' ? ' User role updated to candidate.' : ''}`)
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       console.error('Error updating application:', error)
       setMessage('Failed to update application status.')
+    }
+  }
+
+  const sendStatusEmail = async (uid, status) => {
+    try {
+      // Get user data
+      const userRef = dbRef(db, `users/${uid}`)
+      const userSnapshot = await get(userRef)
+      
+      if (!userSnapshot.exists()) {
+        console.error('User not found for email notification')
+        return
+      }
+      
+      const userData = userSnapshot.val()
+      
+      // Map status to email status
+      let emailStatus = status
+      let position = null
+      
+      if (status === 'approved') {
+        emailStatus = 'passed'
+        // You can customize position based on your needs
+        position = 'Student Council Representative'
+      } else if (status === 'rejected') {
+        emailStatus = 'failed'
+      }
+      
+      // Call email server
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
+      
+      const response = await fetch(`${emailServerUrl}/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: userData.email,
+          status: emailStatus,
+          name: userData.name,
+          position: position
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Email server responded with status: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      console.log('Email sent successfully:', result)
+      
+    } catch (error) {
+      console.error('Error sending email notification:', error)
+      // Don't throw error here - we don't want email failures to break the status update
     }
   }
 
