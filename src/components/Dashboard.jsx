@@ -5,10 +5,6 @@ import NavBar from './NavBar'
 function Dashboard() {
   const { userData, loading } = useAuth()
 
-  // Scheduling moved to dedicated page; no need to load application here
-
-  // const canSchedule = myApplication && myApplication.status === 'reviewed'
-
   const renderAdminDashboard = () => (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">

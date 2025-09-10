@@ -227,9 +227,11 @@ function ManageCandidates() {
       const historyRef = dbRef(db, `candidacyApplications/${uid}/${appId}/appointmentHistory/${Date.now()}`)
       await set(historyRef, historyItem)
 
-      // Send appointment confirmation email only when approved
+      // Send email on decision
       if (decision === 'approved') {
         await sendAppointmentEmail(uid, appointment)
+      } else if (decision === 'rejected') {
+        await sendAppointmentRejectedEmail(uid)
       }
 
       setApplications(prev => prev.map(app => app.uid === uid && app.id === appId ? {
@@ -237,7 +239,7 @@ function ManageCandidates() {
         appointment: { ...app.appointment, status: decision }
       } : app))
 
-      setMessage(`Appointment ${decision}. Email ${decision === 'approved' ? 'sent' : 'not sent'}.`)
+      setMessage(`Appointment ${decision}. Email ${decision === 'approved' || decision === 'rejected' ? 'sent' : 'not sent'}.`)
       setTimeout(() => setMessage(''), 3000)
     } catch (e) {
       console.error('Failed to decide appointment', e)
@@ -266,6 +268,29 @@ function ManageCandidates() {
       if (!response.ok) throw new Error('Email server error')
     } catch (e) {
       console.error('Error sending appointment email', e)
+    }
+  }
+
+  const sendAppointmentRejectedEmail = async (uid) => {
+    try {
+      const userRef = dbRef(db, `users/${uid}`)
+      const userSnapshot = await get(userRef)
+      if (!userSnapshot.exists()) return
+      const candidate = userSnapshot.val()
+
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
+      const response = await fetch(`${emailServerUrl}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: candidate.email,
+          status: 'appointmentRejected',
+          name: candidate.name
+        })
+      })
+      if (!response.ok) throw new Error('Email server error')
+    } catch (e) {
+      console.error('Error sending appointment rejected email', e)
     }
   }
 
