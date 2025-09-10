@@ -2,7 +2,7 @@ import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 
 function Dashboard() {
-  const { userData } = useAuth()
+  const { userData, loading } = useAuth()
 
   const renderAdminDashboard = () => (
     <div className="space-y-6">
@@ -88,7 +88,24 @@ function Dashboard() {
   )
 
   const renderDashboardContent = () => {
-    if (!userData) return null
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      )
+    }
+
+    if (!userData) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-600">Unable to load user data. Please try refreshing the page.</p>
+        </div>
+      )
+    }
 
     switch (userData.role) {
       case 'admin':

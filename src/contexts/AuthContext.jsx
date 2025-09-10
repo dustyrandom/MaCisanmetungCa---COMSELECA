@@ -83,10 +83,19 @@ export const AuthProvider = ({ children }) => {
     }
     
     const interval = setInterval(async () => {
-      const isVerified = await checkVerificationStatus()
-      if (isVerified) {
-        clearInterval(interval)
-        setVerificationCheckInterval(null)
+      if (user) {
+        try {
+          await user.reload()
+          if (user.emailVerified) {
+            clearInterval(interval)
+            setVerificationCheckInterval(null)
+            // Update user data to reflect verification
+            const data = await fetchUserData(user)
+            setUserData(data)
+          }
+        } catch (error) {
+          console.error('Error during verification polling:', error)
+        }
       }
     }, 3000) // Check every 3 seconds
     
@@ -140,16 +149,27 @@ export const AuthProvider = ({ children }) => {
       setUser(user)
       
       if (user) {
-        const data = await fetchUserData(user)
-        setUserData(data)
+        let data = await fetchUserData(user)
         
-        // Check if user is verified and start/stop polling accordingly
-        const verified = user.emailVerified || (data && data.emailVerified)
-        if (!verified) {
-          startVerificationPolling()
-        } else {
-          stopVerificationPolling()
+        // If no user data exists, create basic user data
+        if (!data) {
+          try {
+            const basicUserData = {
+              name: user.displayName || user.email?.split('@')[0] || 'User',
+              email: user.email,
+              role: 'voter',
+              emailVerified: user.emailVerified,
+              createdAt: new Date().toISOString()
+            }
+            
+            await set(ref(db, `users/${user.uid}`), basicUserData)
+            data = basicUserData
+          } catch (error) {
+            console.error('Error creating user data:', error)
+          }
         }
+        
+        setUserData(data)
       } else {
         setUserData(null)
         stopVerificationPolling()
@@ -162,7 +182,7 @@ export const AuthProvider = ({ children }) => {
       unsubscribe()
       stopVerificationPolling()
     }
-  }, [startVerificationPolling, stopVerificationPolling])
+  }, [])
 
   const value = {
     user,

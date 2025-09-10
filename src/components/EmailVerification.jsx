@@ -8,22 +8,26 @@ function EmailVerification() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const navigate = useNavigate()
-  const { user, isEmailVerified, checkVerificationStatus, startVerificationPolling, logout } = useAuth()
+  const { user, logout, updateEmailVerificationStatus } = useAuth()
 
   useEffect(() => {
-    // Start polling for verification status when component mounts
-    if (user && !isEmailVerified()) {
-      startVerificationPolling()
-    }
-
-    // Check verification status immediately
+    // Check verification status immediately on component mount
     const checkStatus = async () => {
-      if (user && await checkVerificationStatus()) {
-        navigate('/dashboard', { replace: true })
+      if (user) {
+        try {
+          await user.reload()
+          if (user.emailVerified) {
+            // Update the database to reflect the verification status
+            await updateEmailVerificationStatus(true)
+            navigate('/dashboard', { replace: true })
+          }
+        } catch (error) {
+          console.error('Error checking initial verification status:', error)
+        }
       }
     }
     checkStatus()
-  }, [user, isEmailVerified, startVerificationPolling, checkVerificationStatus, navigate])
+  }, [user, navigate, updateEmailVerificationStatus])
 
   const handleResendVerification = async () => {
     if (!user) return
@@ -49,8 +53,14 @@ function EmailVerification() {
     setMessage('')
 
     try {
-      const isVerified = await checkVerificationStatus()
-      if (isVerified) {
+      // Force reload the user to get the latest verification status
+      await user.reload()
+      
+      // Check if email is verified
+      if (user.emailVerified) {
+        // Update the database to reflect the verification status
+        await updateEmailVerificationStatus(true)
+        
         setMessage('Email verified successfully! Redirecting...')
         setTimeout(() => {
           navigate('/dashboard', { replace: true })
