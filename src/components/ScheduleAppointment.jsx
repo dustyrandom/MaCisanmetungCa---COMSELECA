@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ref as dbRef, get, set } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
@@ -6,6 +7,7 @@ import NavBar from './NavBar'
 
 function ScheduleAppointment() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [application, setApplication] = useState(null)
   const [history, setHistory] = useState([])
@@ -44,6 +46,12 @@ function ScheduleAppointment() {
           // Reschedule allowed if latest decision is rejected
           const lastDecision = normalized.sort((a, b) => new Date(b.decidedAt) - new Date(a.decidedAt))[0]
           setCanReschedule(lastDecision?.decision === 'rejected')
+
+          // Guard: only reviewed users can access this page
+          if (!latest || latest.status !== 'reviewed') {
+            navigate('/dashboard', { replace: true })
+            return
+          }
         }
       } catch (e) {
         console.error('Failed to load appointment data', e)
@@ -52,9 +60,9 @@ function ScheduleAppointment() {
       }
     }
     load()
-  }, [user])
+  }, [user, navigate])
 
-  const canSchedule = application && application.status === 'reviewed'
+  // Access is guarded by redirect; no need for local canSchedule flag
   const existingAppt = application?.appointment
 
   const formatDateTime = (value) => {
@@ -136,10 +144,6 @@ function ScheduleAppointment() {
         {!application ? (
           <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
             <p className="text-gray-600">No candidacy application found.</p>
-          </div>
-        ) : !canSchedule ? (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-            <p className="text-gray-600">You can schedule an appointment once your application is reviewed.</p>
           </div>
         ) : (
           <div className="space-y-6">

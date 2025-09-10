@@ -1,9 +1,33 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { ref as dbRef, get } from 'firebase/database'
+import { db } from '../firebase'
 import NavBar from './NavBar'
 
 function Dashboard() {
-  const { userData, loading } = useAuth()
+  const { user, userData, loading } = useAuth()
+  const [canSeeSchedule, setCanSeeSchedule] = useState(false)
+
+  useEffect(() => {
+    const fetchLatestStatus = async () => {
+      if (!user) return
+      try {
+        const appsRef = dbRef(db, `candidacyApplications/${user.uid}`)
+        const snapshot = await get(appsRef)
+        if (!snapshot.exists()) {
+          setCanSeeSchedule(false)
+          return
+        }
+        const appsObj = snapshot.val()
+        const apps = Object.keys(appsObj).map(id => ({ id, ...appsObj[id] }))
+        const latest = apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+        setCanSeeSchedule(latest?.status === 'reviewed')
+      } catch {
+        setCanSeeSchedule(false)
+      }
+    }
+    fetchLatestStatus()
+  }, [user])
 
   const renderAdminDashboard = () => (
     <div className="space-y-6">
@@ -53,7 +77,9 @@ function Dashboard() {
         <p className="text-gray-600 text-sm mb-3">Apply to become a candidate by submitting the required documents.</p>
         <div className="flex flex-wrap gap-3">
           <a href="/candidacy-application" className="inline-block bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800">Apply for Candidacy</a>
-          <a href="/schedule-appointment" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Go to Schedule</a>
+          {canSeeSchedule && (
+            <a href="/schedule-appointment" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Go to Schedule</a>
+          )}
         </div>
       </div>
 
