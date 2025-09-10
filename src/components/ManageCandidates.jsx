@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
-import { ref as dbRef, get, update } from 'firebase/database'
+import { ref as dbRef, get, update, set } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 
-function ApplicationCard({ app, onUpdateStatus, showActions }) {
+function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment }) {
+  const formatDateTime = (value) => {
+    try {
+      return value ? new Date(value).toLocaleString() : ''
+    } catch {
+      return value || ''
+    }
+  }
   const getStatusBadge = (status) => {
     switch (status) {
       case 'submitted':
@@ -75,8 +82,39 @@ function ApplicationCard({ app, onUpdateStatus, showActions }) {
           </button>
         </div>
       )}
+      {showAppointment && app.status === 'reviewed' && (
+        <div className="space-y-3">
+          {app.appointment ? (
+            <div className="border rounded p-3 text-sm">
+              <p className="font-medium mb-1">Appointment</p>
+              <p><span className="text-gray-600">Status:</span> {app.appointment.status}</p>
+              <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(app.appointment.dateTime)}</p>
+              <p><span className="text-gray-600">Venue:</span> {app.appointment.venue}</p>
+              {app.appointment.status === 'pending' && (
+                <div className="flex gap-3 mt-3">
+                  <button
+                    onClick={() => onAppointmentDecision(app.uid, app.id, 'approved', app.appointment)}
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+                  >
+                    Approve Appointment
+                  </button>
+                  <button
+                    onClick={() => onAppointmentDecision(app.uid, app.id, 'rejected', app.appointment)}
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+                  >
+                    Reject Appointment
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600">No appointment submitted yet.</p>
+          )}
+        </div>
+      )}
+
       {showActions && app.status === 'reviewed' && (
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-3">
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
@@ -100,6 +138,7 @@ function ManageCandidates() {
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [activeTab, setActiveTab] = useState('candidacy') // 'candidacy' | 'appointments'
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -171,6 +210,62 @@ function ManageCandidates() {
     } catch (error) {
       console.error('Error updating application:', error)
       setMessage('Failed to update application status.')
+    }
+  }
+
+  const decideAppointment = async (uid, appId, decision, appointment) => {
+    try {
+      const apptRef = dbRef(db, `candidacyApplications/${uid}/${appId}/appointment`)
+      const historyItem = {
+        decision,
+        decidedAt: new Date().toISOString(),
+        decidedBy: user.uid,
+        dateTime: appointment?.dateTime,
+        venue: appointment?.venue
+      }
+      await update(apptRef, { status: decision })
+      const historyRef = dbRef(db, `candidacyApplications/${uid}/${appId}/appointmentHistory/${Date.now()}`)
+      await set(historyRef, historyItem)
+
+      // Send appointment confirmation email only when approved
+      if (decision === 'approved') {
+        await sendAppointmentEmail(uid, appointment)
+      }
+
+      setApplications(prev => prev.map(app => app.uid === uid && app.id === appId ? {
+        ...app,
+        appointment: { ...app.appointment, status: decision }
+      } : app))
+
+      setMessage(`Appointment ${decision}. Email ${decision === 'approved' ? 'sent' : 'not sent'}.`)
+      setTimeout(() => setMessage(''), 3000)
+    } catch (e) {
+      console.error('Failed to decide appointment', e)
+      setMessage('Failed to update appointment')
+    }
+  }
+
+  const sendAppointmentEmail = async (uid, appointment) => {
+    try {
+      const userRef = dbRef(db, `users/${uid}`)
+      const userSnapshot = await get(userRef)
+      if (!userSnapshot.exists()) return
+      const candidate = userSnapshot.val()
+
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
+      const response = await fetch(`${emailServerUrl}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: candidate.email,
+          status: 'appointment',
+          name: candidate.name,
+          details: { dateTime: appointment?.dateTime, venue: appointment?.venue }
+        })
+      })
+      if (!response.ok) throw new Error('Email server error')
+    } catch (e) {
+      console.error('Error sending appointment email', e)
     }
   }
 
@@ -255,8 +350,25 @@ function ManageCandidates() {
       <NavBar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Manage Candidacy Applications</h1>
-          <p className="text-gray-600 mt-1">Review and approve/reject candidate applications</p>
+          <h1 className="text-2xl font-bold text-red-900">Admin Management</h1>
+          <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
+        </div>
+
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex gap-6" aria-label="Tabs">
+            <button
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'candidacy' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('candidacy')}
+            >
+              Candidacy
+            </button>
+            <button
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'appointments' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('appointments')}
+            >
+              Appointments
+            </button>
+          </nav>
         </div>
 
         {message && (
@@ -265,7 +377,7 @@ function ManageCandidates() {
           </div>
         )}
 
-        {applications.length === 0 ? (
+        {activeTab === 'candidacy' && (applications.length === 0 ? (
           <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
             <p className="text-gray-600">No candidacy applications found.</p>
           </div>
@@ -302,7 +414,9 @@ function ManageCandidates() {
                       key={`${app.uid}-${app.id}`} 
                       app={app} 
                       onUpdateStatus={updateApplicationStatus}
+                      onAppointmentDecision={decideAppointment}
                       showActions={true}
+                      showAppointment={false}
                     />
                   ))}
                 </div>
@@ -355,7 +469,84 @@ function ManageCandidates() {
               )}
             </div>
           </div>
-        )}
+        ))}
+
+        {activeTab === 'appointments' && (() => {
+          const withAppointments = applications.filter(app => app.appointment)
+          const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
+          return (
+            <div className="space-y-8">
+              {/* Pending Appointments */}
+              <div>
+                <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Appointments</h2>
+                {byStatus('pending').length > 0 ? (
+                  <div className="space-y-4">
+                    {byStatus('pending').map(app => (
+                      <ApplicationCard
+                        key={`${app.uid}-${app.id}`}
+                        app={app}
+                        onUpdateStatus={updateApplicationStatus}
+                        onAppointmentDecision={decideAppointment}
+                        showActions={false}
+                        showAppointment={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                    <p className="text-gray-500">No pending appointments.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Approved Appointments */}
+              <div>
+                <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Appointments</h2>
+                {byStatus('approved').length > 0 ? (
+                  <div className="space-y-4">
+                    {byStatus('approved').map(app => (
+                      <ApplicationCard
+                        key={`${app.uid}-${app.id}`}
+                        app={app}
+                        onUpdateStatus={updateApplicationStatus}
+                        onAppointmentDecision={decideAppointment}
+                        showActions={false}
+                        showAppointment={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                    <p className="text-gray-500">No approved appointments.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Rejected Appointments */}
+              <div>
+                <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Appointments</h2>
+                {byStatus('rejected').length > 0 ? (
+                  <div className="space-y-4">
+                    {byStatus('rejected').map(app => (
+                      <ApplicationCard
+                        key={`${app.uid}-${app.id}`}
+                        app={app}
+                        onUpdateStatus={updateApplicationStatus}
+                        onAppointmentDecision={decideAppointment}
+                        showActions={false}
+                        showAppointment={true}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                    <p className="text-gray-500">No rejected appointments.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   )

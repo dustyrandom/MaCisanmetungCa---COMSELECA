@@ -20,6 +20,7 @@ import ManageCandidates from './components/ManageCandidates'
 import ManageUsers from './components/ManageUsers'
 import ManageNews from './components/ManageNews'
 import ManageAnnouncements from './components/ManageAnnouncements'
+import ScheduleAppointment from './components/ScheduleAppointment'
 
 function App() {
   return (
@@ -70,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <CandidacyThankYou />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/schedule-appointment" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ScheduleAppointment />
                 </ProtectedRoute>
               } 
             />

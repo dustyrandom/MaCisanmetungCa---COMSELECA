@@ -180,12 +180,22 @@ function CandidacyApplication() {
             <p className="text-gray-600 mb-6">
               {statusDisplay.message}
             </p>
-            <Link 
-              to="/dashboard" 
-              className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-800"
-            >
-              Go to Dashboard
-            </Link>
+            <div className="flex items-center justify-center gap-3">
+              <Link 
+                to="/dashboard" 
+                className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-800"
+              >
+                Go to Dashboard
+              </Link>
+              {applicationStatus === 'reviewed' && (
+                <Link 
+                  to="/schedule-appointment" 
+                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700"
+                >
+                  Go to Schedule
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
