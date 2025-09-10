@@ -1,4 +1,19 @@
-// Email service using your Gmail account via API endpoint
+const nodemailer = require('nodemailer');
+
+// Your Gmail configuration
+const EMAIL_CONFIG = {
+  user: 'macisanmetungca@gmail.com',
+  pass: 'otri xnfq mmmc mpdl'
+};
+
+// Create transporter
+const transporter = nodemailer.createTransporter({
+  service: 'gmail',
+  auth: {
+    user: EMAIL_CONFIG.user,
+    pass: EMAIL_CONFIG.pass
+  }
+});
 
 // Email templates
 const emailTemplates = {
@@ -75,83 +90,64 @@ const emailTemplates = {
       </div>
     `
   })
-}
+};
 
-// Send email function using your Gmail account
-export const sendEmail = async (to, templateType, data) => {
-  try {
-    // Try to send via API endpoint first
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to,
-          templateType,
-          data
-        })
-      })
+export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-      const result = await response.json()
-      
-      if (result.success) {
-        console.log('Email sent successfully via Gmail:', result.messageId)
-        return { success: true, messageId: result.messageId }
-      } else {
-        throw new Error(result.error)
-      }
-    } catch (apiError) {
-      console.log('API not available, falling back to manual email')
-      
-      // Fallback: create mailto link for manual sending
-      let emailContent
-      switch (templateType) {
-        case 'reviewed':
-          emailContent = emailTemplates.reviewed(data.name)
-          break
-        case 'approved':
-          emailContent = emailTemplates.approved(data.name, data.position)
-          break
-        case 'rejected':
-          emailContent = emailTemplates.rejected(data.name)
-          break
-        default:
-          throw new Error('Invalid template type')
-      }
-
-      // Convert HTML to plain text for email body
-      const plainTextBody = emailContent.html
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-        .trim()
-
-      // Create mailto link
-      const subject = encodeURIComponent(emailContent.subject)
-      const body = encodeURIComponent(plainTextBody)
-      const mailtoLink = `mailto:${to}?subject=${subject}&body=${body}`
-
-      // Open email client
-      window.open(mailtoLink, '_blank')
-
-      // Also show in console for reference
-      console.log('=== EMAIL FALLBACK ===')
-      console.log('To:', to)
-      console.log('Subject:', emailContent.subject)
-      console.log('Body:', plainTextBody)
-      console.log('======================')
-
-      return { success: true, messageId: 'mailto-opened' }
-    }
-  } catch (error) {
-    console.error('Error sending email:', error)
-    return { success: false, error: error.message }
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-}
 
-// Send candidacy status email
-export const sendCandidacyStatusEmail = async (email, name, status, position = null) => {
-  const data = { name, position }
-  return await sendEmail(email, status, data)
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { to, templateType, data } = req.body;
+
+    if (!to || !templateType || !data) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    let emailContent;
+    switch (templateType) {
+      case 'reviewed':
+        emailContent = emailTemplates.reviewed(data.name);
+        break;
+      case 'approved':
+        emailContent = emailTemplates.approved(data.name, data.position);
+        break;
+      case 'rejected':
+        emailContent = emailTemplates.rejected(data.name);
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid template type' });
+    }
+
+    const mailOptions = {
+      from: `"MCC - COMSELECA" <${EMAIL_CONFIG.user}>`,
+      to: to,
+      subject: emailContent.subject,
+      html: emailContent.html
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    
+    console.log('Email sent successfully:', result.messageId);
+    
+    res.status(200).json({ 
+      success: true, 
+      messageId: result.messageId 
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
 }
