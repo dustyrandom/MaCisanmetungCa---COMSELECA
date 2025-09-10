@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ref as dbRef, get, update } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
+import { sendCandidacyStatusEmail } from '../services/emailService'
 import NavBar from './NavBar'
 
 function ApplicationCard({ app, onUpdateStatus, showActions }) {
@@ -155,6 +156,28 @@ function ManageCandidates() {
         await update(userRef, { role: 'candidate' })
       }
       
+      // Send email notification
+      const application = applications.find(app => app.uid === uid && app.id === appId)
+      if (application) {
+        const emailData = {
+          name: application.name,
+          position: application.position || 'Student Council Representative'
+        }
+        
+        const emailResult = await sendCandidacyStatusEmail(
+          application.email, 
+          emailData.name, 
+          status, 
+          emailData.position
+        )
+        
+        if (emailResult.success) {
+          console.log('Email sent successfully')
+        } else {
+          console.error('Failed to send email:', emailResult.error)
+        }
+      }
+      
       setApplications(prev => 
         prev.map(app => 
           app.uid === uid && app.id === appId 
@@ -163,7 +186,7 @@ function ManageCandidates() {
         )
       )
       
-      setMessage(`Application ${status} successfully.${status === 'approved' ? ' User role updated to candidate.' : ''}`)
+      setMessage(`Application ${status} successfully.${status === 'approved' ? ' User role updated to candidate.' : ''} Email notification sent.`)
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
       console.error('Error updating application:', error)
