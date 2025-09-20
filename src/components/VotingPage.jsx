@@ -148,8 +148,7 @@ function VotingPage() {
         voterName: userData.name,
         voterEmail: user.email,
         votes: votes,
-        submittedAt: new Date().toISOString(),
-        electionType: currentPage === 1 ? 'SSC' : 'ISC'
+        submittedAt: new Date().toISOString()
       }
       
       const voteRef = dbRef(db, `electionVotes/${user.uid}`)

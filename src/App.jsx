@@ -23,6 +23,7 @@ import ManageAnnouncements from './components/ManageAnnouncements'
 import ScheduleAppointment from './components/ScheduleAppointment'
 import ManageElections from './components/ManageElections'
 import VotingPage from './components/VotingPage'
+import ViewResults from './components/ViewResults'
 
 function App() {
   return (
@@ -121,6 +122,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ManageElections />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/view-results" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ViewResults />
                 </ProtectedRoute>
               } 
             />
