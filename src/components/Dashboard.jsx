@@ -34,9 +34,9 @@ function Dashboard() {
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4">Admin Controls</h3>
         <div className="grid md:grid-cols-2 gap-4">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">
             Manage Elections
-          </button>
+          </a>
           <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             View Results
           </button>

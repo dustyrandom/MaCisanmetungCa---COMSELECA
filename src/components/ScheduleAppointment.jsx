@@ -28,7 +28,6 @@ function ScheduleAppointment() {
           const latest = apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
           setApplication(latest)
 
-          // Build history: include submission as first entry if appointment exists
           const histRef = dbRef(db, `candidacyApplications/${user.uid}/${latest.id}/appointmentHistory`)
           const histSnap = await get(histRef)
           const decisions = histSnap.exists() ? Object.values(histSnap.val()) : []
@@ -47,7 +46,6 @@ function ScheduleAppointment() {
           const lastDecision = normalized.sort((a, b) => new Date(b.decidedAt) - new Date(a.decidedAt))[0]
           setCanReschedule(lastDecision?.decision === 'rejected')
 
-          // Guard: only reviewed users can access this page
           if (!latest || latest.status !== 'reviewed') {
             navigate('/dashboard', { replace: true })
             return
@@ -62,7 +60,6 @@ function ScheduleAppointment() {
     load()
   }, [user, navigate])
 
-  // Access is guarded by redirect; no need for local canSchedule flag
   const existingAppt = application?.appointment
 
   const formatDateTime = (value) => {

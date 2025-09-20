@@ -21,6 +21,8 @@ import ManageUsers from './components/ManageUsers'
 import ManageNews from './components/ManageNews'
 import ManageAnnouncements from './components/ManageAnnouncements'
 import ScheduleAppointment from './components/ScheduleAppointment'
+import ManageElections from './components/ManageElections'
+import VotingPage from './components/VotingPage'
 
 function App() {
   return (
@@ -111,6 +113,22 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ManageAnnouncements />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-elections" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageElections />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/voting" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <VotingPage />
                 </ProtectedRoute>
               } 
             />

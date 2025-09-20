@@ -51,13 +51,12 @@ function Vote() {
           </div>
 
           <div className="pt-4 text-center">
-            <button
-              type="button"
-              disabled
-              className="cursor-not-allowed inline-flex items-center justify-center px-10 py-4 rounded-full bg-blue-600 text-white font-extrabold shadow-lg hover:bg-blue-700 disabled:opacity-60"
+            <a
+              href="/voting"
+              className="inline-flex items-center justify-center px-10 py-4 rounded-full bg-blue-600 text-white font-extrabold shadow-lg hover:bg-blue-700"
             >
               VOTE NOW
-            </button>
+            </a>
           </div>
         </div>
       </div>
