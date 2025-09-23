@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react'
 import { ref as dbRef, get, remove, set } from 'firebase/database'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell
-} from 'recharts'
 import { db } from '../firebase'
 import NavBar from './NavBar'
+import PublicResultsContent from './PublicResultsContent'
 
 function ViewResults() {
   const [votes, setVotes] = useState([])
@@ -24,13 +15,7 @@ function ViewResults() {
   const [expandedVotes, setExpandedVotes] = useState({})
   const [publicVisible, setPublicVisible] = useState(false)
   const [savingPublish, setSavingPublish] = useState(false)
-  const [barData, setBarData] = useState([
-    { name: 'SSC', value: 0, color: '#991b1b' },
-    { name: 'IAS', value: 0, color: '#10b981' },
-    { name: 'IBCE', value: 0, color: '#f59e0b' },
-    { name: 'IHTM', value: 0, color: '#ec4899' },
-    { name: 'ITE', value: 0, color: '#3b82f6' }
-  ])
+  
 
   const sscRoles = [
     'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
@@ -84,39 +69,7 @@ function ViewResults() {
           setPublicVisible(!!pubSnap.val())
         }
 
-        // Compute bar data from voters only
-        if (votesSnapshot.exists()) {
-          const voteVals = votesSnapshot.val()
-          const votedUids = Object.keys(voteVals)
-          const usersSnap = await get(dbRef(db, 'users'))
-          const users = usersSnap.exists() ? usersSnap.val() : {}
-          const counts = { SSC: 0, IAS: 0, IBCE: 0, IHTM: 0, ITE: 0 }
-          votedUids.forEach(uid => {
-            const u = users[uid] || {}
-            const role = (u.role || '').toLowerCase()
-            const inst = (u.institute || '').toUpperCase()
-            if (role === 'admin') counts.SSC += 1
-            else if (inst === 'INSTITUTE OF ARTS AND SCIENCES') counts.IAS += 1
-            else if (inst === 'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION') counts.IBCE += 1
-            else if (inst === 'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT') counts.IHTM += 1
-            else if (inst === 'INSTITUTE OF TEACHER EDUCATION') counts.ITE += 1
-          })
-          setBarData([
-            { name: 'SSC', value: counts.SSC, color: '#991b1b' },
-            { name: 'IAS', value: counts.IAS, color: '#10b981' },
-            { name: 'IBCE', value: counts.IBCE, color: '#f59e0b' },
-            { name: 'IHTM', value: counts.IHTM, color: '#ec4899' },
-            { name: 'ITE', value: counts.ITE, color: '#3b82f6' }
-          ])
-        } else {
-          setBarData([
-            { name: 'SSC', value: 0, color: '#991b1b' },
-            { name: 'IAS', value: 0, color: '#10b981' },
-            { name: 'IBCE', value: 0, color: '#f59e0b' },
-            { name: 'IHTM', value: 0, color: '#ec4899' },
-            { name: 'ITE', value: 0, color: '#3b82f6' }
-          ])
-        }
+        // No bar data computation here; the public content component will handle it
       } catch (error) {
         console.error('Failed to load results:', error)
       } finally {
@@ -637,142 +590,8 @@ function ViewResults() {
                 </div>
               </div>
 
-              {/* Voter count by group chart (same as public) */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
-                  {barData.map((d) => (
-                    <div key={d.name} className="flex items-center gap-2">
-                      <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />
-                      <span className="text-sm font-medium text-gray-800">{d.name}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="h-[380px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barData} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} />
-                      <YAxis tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'RESPONSES', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
-                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const p = payload[0].payload
-                          return (
-                            <div className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm shadow">
-                              <div className="font-medium text-gray-800">{p.name}</div>
-                              <div className="text-gray-600">Responses: {p.value}</div>
-                            </div>
-                          )
-                        }
-                        return null
-                      }} />
-                      <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                        {barData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Public sections mirrored: Partylists and Individuals */}
-              <div className="mt-2">
-                <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Partylists</h3>
-                {(() => {
-                  const teams = Array.from(new Set(candidates.filter(c => (c.team || '').trim() !== '').map(c => c.team.trim())))
-                  if (teams.length === 0) return <div className="text-center text-gray-500">No teams to display.</div>
-                  const groups = []
-                  for (let i = 0; i < teams.length; i += 3) groups.push(teams.slice(i, i + 3))
-                  const combinedRoleOrder = [
-                    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer','Gov','Vice Gov','BM','Records','Finance','Audit','Publication','Public Relation','Resources'
-                  ]
-                  const colorByIndex = (i) => i % 3 === 0 ? { title: 'text-blue-700', badge: 'bg-blue-200 text-blue-800' } : i % 3 === 1 ? { title: 'text-amber-600', badge: 'bg-amber-200 text-amber-800' } : { title: 'text-green-700', badge: 'bg-green-200 text-green-800' }
-                  return (
-                    <div className="space-y-8">
-                      {groups.map((group, groupIdx) => (
-                        <div key={groupIdx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {group.map((teamName, innerIdx) => {
-                              const { title, badge } = colorByIndex(innerIdx)
-                              const teamCandidates = candidates.filter(c => ((c.team || '').trim().toUpperCase()) === teamName.toUpperCase())
-                              const roleToNames = teamCandidates.reduce((acc, c) => {
-                                const role = c.role || ''
-                                if (!acc[role]) acc[role] = []
-                                acc[role].push(c.name)
-                                return acc
-                              }, {})
-                              const rolesForTeam = Object.keys(roleToNames).sort((a, b) => {
-                                const order = combinedRoleOrder
-                                const ia = order.indexOf(a); const ib = order.indexOf(b)
-                                if (ia === -1 && ib === -1) return a.localeCompare(b)
-                                if (ia === -1) return 1
-                                if (ib === -1) return -1
-                                return ia - ib
-                              })
-                              return (
-                                <div key={`${teamName}-${innerIdx}`}>
-                                  <h4 className={`text-center font-semibold mb-4 ${title}`}>{teamName}</h4>
-                                  {rolesForTeam.length > 0 ? (
-                                    <div className="space-y-3 text-center text-sm">
-                                      {rolesForTeam.map((role) => (
-                                        <div key={role} className="space-y-1">
-                                          <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{role}</div>
-                                          <div className="text-gray-800">
-                                            {roleToNames[role].map((name, i) => (
-                                              <div key={`${role}-${i}`}>{name}</div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="text-center text-gray-500">No roles for this team.</div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                })()}
-              </div>
-
-              <div className="mt-8">
-                <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Individual Candidates</h3>
-                {(() => {
-                  const combinedRoleOrder = [
-                    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer','Gov','Vice Gov','BM','Records','Finance','Audit','Publication','Public Relation','Resources'
-                  ]
-                  const individuals = candidates.filter(c => !c.team || c.team.trim() === '')
-                  if (individuals.length === 0) return <div className="text-center text-gray-500">No individuals to display.</div>
-                  const roleToNames = individuals.reduce((acc, c) => { const r = c.role || ''; if (!acc[r]) acc[r] = []; acc[r].push(c.name); return acc }, {})
-                  const roles = Object.keys(roleToNames).sort((a, b) => {
-                    const ia = combinedRoleOrder.indexOf(a); const ib = combinedRoleOrder.indexOf(b)
-                    if (ia === -1 && ib === -1) return a.localeCompare(b)
-                    if (ia === -1) return 1
-                    if (ib === -1) return -1
-                    return ia - ib
-                  })
-                  return (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {roles.map(role => (
-                          <div key={role}>
-                            <h4 className="text-center font-semibold mb-4 text-gray-800">{role}</h4>
-                            <div className="space-y-2 text-center text-sm">
-                              {roleToNames[role].map((name, i) => (
-                                <div key={`${role}-${i}`} className="text-gray-800">{name}</div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
-              </div>
+              {/* Public results content reused */}
+              <PublicResultsContent forceVisible={true} />
             </div>
           )}
         </div>
