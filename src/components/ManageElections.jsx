@@ -25,6 +25,9 @@ function ManageElections() {
   })
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('candidates')
+  const [showVoteModal, setShowVoteModal] = useState(false)
+  const [voteModalMessage, setVoteModalMessage] = useState('')
+  const [voteModalError, setVoteModalError] = useState('')
 
   const sscRoles = [
     'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
@@ -247,10 +250,14 @@ function ManageElections() {
       const statusRef = dbRef(db, 'votingStatus')
       await set(statusRef, newStatus)
       setVotingStatus(newStatus)
-      alert(`Voting ${newStatus.isActive ? 'started' : 'stopped'} successfully!`)
+      setVoteModalError('')
+      setVoteModalMessage(`Voting ${newStatus.isActive ? 'started' : 'stopped'} successfully!`)
+      setShowVoteModal(true)
     } catch (error) {
       console.error('Failed to toggle voting:', error)
-      alert('Failed to update voting status. Please try again.')
+      setVoteModalMessage('')
+      setVoteModalError('Failed to update voting status. Please try again.')
+      setShowVoteModal(true)
     } finally {
       setSaving(false)
     }
@@ -264,10 +271,14 @@ function ManageElections() {
       
       const statusRef = dbRef(db, 'votingStatus')
       await set(statusRef, votingStatus)
-      alert('Voting settings saved successfully!')
+      setVoteModalError('')
+      setVoteModalMessage('Voting settings saved successfully!')
+      setShowVoteModal(true)
     } catch (error) {
       console.error('Failed to save voting status:', error)
-      alert('Failed to save voting settings. Please try again.')
+      setVoteModalMessage('')
+      setVoteModalError('Failed to save voting settings. Please try again.')
+      setShowVoteModal(true)
     } finally {
       setSaving(false)
     }
@@ -511,6 +522,36 @@ function ManageElections() {
         )}
       </div>
 
+      {/* Voting Status Modal */}
+      {showVoteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${voteModalError ? 'bg-red-100' : 'bg-green-100'}`}>
+                  <svg className={`w-5 h-5 ${voteModalError ? 'text-red-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={voteModalError ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'} />
+                  </svg>
+                </div>
+                <div>
+                  {voteModalMessage && <h4 className="text-lg font-semibold text-gray-900 mb-1">Success</h4>}
+                  {voteModalError && <h4 className="text-lg font-semibold text-gray-900 mb-1">Update Failed</h4>}
+                  <p className="text-gray-700">{voteModalMessage || voteModalError}</p>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowVoteModal(false)}
+                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add/Edit Candidate Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -568,7 +609,6 @@ function ManageElections() {
                       placeholder="e.g., Team Alpha, Blue Party, etc."
                       className="w-full border rounded px-3 py-2"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Optional: Team name for organization purposes</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>

@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import { get, ref, set } from 'firebase/database'
+import { get, ref, set, onValue } from 'firebase/database'
 import { auth, db } from '../firebase'
 
 const AuthContext = createContext()
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (!context) {
@@ -77,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   // Start polling for verification status
-  const startVerificationPolling = () => {
+  const startVerificationPolling = useCallback(() => {
     if (verificationCheckInterval) {
       clearInterval(verificationCheckInterval)
     }
@@ -100,15 +101,15 @@ export const AuthProvider = ({ children }) => {
     }, 3000) // Check every 3 seconds
     
     setVerificationCheckInterval(interval)
-  }
+  }, [user, verificationCheckInterval])
 
   // Stop polling for verification status
-  const stopVerificationPolling = () => {
+  const stopVerificationPolling = useCallback(() => {
     if (verificationCheckInterval) {
       clearInterval(verificationCheckInterval)
       setVerificationCheckInterval(null)
     }
-  }
+  }, [verificationCheckInterval])
 
   // Logout function with better error handling and cleanup
   const logout = async () => {
@@ -145,44 +146,62 @@ export const AuthProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user)
-      
-      if (user) {
-        let data = await fetchUserData(user)
-        
-        // If no user data exists, create basic user data
+    let unsubscribeUser = null
+    const unsubscribeAuth = onAuthStateChanged(auth, async (authUser) => {
+      setUser(authUser)
+
+      if (authUser) {
+        // Seed initial data once
+        let data = await fetchUserData(authUser)
         if (!data) {
           try {
             const basicUserData = {
-              name: user.displayName || user.email?.split('@')[0] || 'User',
-              email: user.email,
+              name: authUser.displayName || authUser.providerData?.[0]?.displayName || authUser.email?.split('@')[0] || 'User',
+              email: authUser.email,
               role: 'voter',
-              emailVerified: user.emailVerified,
+              emailVerified: authUser.emailVerified,
               createdAt: new Date().toISOString()
             }
-            
-            await set(ref(db, `users/${user.uid}`), basicUserData)
+            await set(ref(db, `users/${authUser.uid}`), basicUserData)
             data = basicUserData
           } catch (error) {
             console.error('Error creating user data:', error)
           }
         }
-        
-        setUserData(data)
+        // Prefer Firebase Auth displayName if present; fall back to DB value
+        const resolved = { ...data }
+        if (authUser.displayName && authUser.displayName !== data.name) {
+          resolved.name = authUser.displayName
+          try {
+            await set(ref(db, `users/${authUser.uid}/name`), authUser.displayName)
+          } catch {
+            // ignore
+          }
+        }
+        setUserData(resolved)
+
+        // Live-listen to user node so UI updates without refresh when data changes (e.g., name written after register)
+        const userRef = ref(db, `users/${authUser.uid}`)
+        unsubscribeUser = onValue(userRef, (snapshot) => {
+          const latest = snapshot.val()
+          if (latest) {
+            setUserData(latest)
+          }
+        })
       } else {
         setUserData(null)
         stopVerificationPolling()
       }
-      
+
       setLoading(false)
     })
 
     return () => {
-      unsubscribe()
+      if (typeof unsubscribeUser === 'function') unsubscribeUser()
+      unsubscribeAuth()
       stopVerificationPolling()
     }
-  }, [])
+  }, [stopVerificationPolling])
 
   const value = {
     user,

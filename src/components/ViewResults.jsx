@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ref as dbRef, get } from 'firebase/database'
+import { ref as dbRef, get, remove } from 'firebase/database'
 import { db } from '../firebase'
 import NavBar from './NavBar'
 
@@ -8,6 +8,10 @@ function ViewResults() {
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('voters')
+  const [deletingVotes, setDeletingVotes] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [expandedVotes, setExpandedVotes] = useState({})
 
   const sscRoles = [
     'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
@@ -82,18 +86,28 @@ function ViewResults() {
     return new Date(dateString).toLocaleString()
   }
 
-  const getRoleCategory = (role) => {
-    if (sscRoles.includes(role)) return 'SSC'
-    if (iscRoles.includes(role)) return 'ISC'
-    return ''
-  }
+  // getRoleCategory not used
 
   const getFilteredVotes = () => {
     return votes
   }
 
-  const getFilteredCandidates = () => {
-    return candidates
+  // getFilteredCandidates not used
+
+  const handleDeleteAllVotes = async () => {
+    try {
+      setDeleteError('')
+      setDeletingVotes(true)
+      const votesRef = dbRef(db, 'electionVotes')
+      await remove(votesRef)
+      setVotes([])
+      setShowDeleteModal(false)
+    } catch (error) {
+      console.error('Failed to delete all votes:', error)
+      setDeleteError('Failed to delete votes. Please try again.')
+    } finally {
+      setDeletingVotes(false)
+    }
   }
 
 
@@ -117,10 +131,56 @@ function ViewResults() {
       <NavBar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Election Results</h1>
-            <p className="text-gray-600 mt-2">View detailed voting results and voter information</p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Election Results</h1>
+              <p className="text-gray-600 mt-2">View detailed voting results and voter information</p>
+            </div>
+            <div className="ml-4">
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                disabled={deletingVotes || votes.length === 0}
+                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-600 text-white border-red-700 hover:bg-red-700'}`}
+                title={votes.length === 0 ? 'No votes to delete' : 'Delete all votes'}
+              >
+                {deletingVotes ? 'Deleting…' : 'Delete All Votes'}
+              </button>
+            </div>
           </div>
+
+          {/* Delete All Votes Modal */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => !deletingVotes && setShowDeleteModal(false)}></div>
+              <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+                <div className="px-6 py-5">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete all votes?</h3>
+                  <p className="text-sm text-gray-600 mb-4">This action cannot be undone. All voter submissions will be permanently removed.</p>
+                  {deleteError && (
+                    <div className="mb-3 text-sm text-red-600">{deleteError}</div>
+                  )}
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(false)}
+                      disabled={deletingVotes}
+                      className={`px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteAllVotes}
+                      disabled={deletingVotes}
+                      className={`px-4 py-2 rounded-md text-sm font-medium ${deletingVotes ? 'bg-red-300 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
+                    >
+                      {deletingVotes ? 'Deleting…' : 'Delete Votes'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
 
           {/* Tabs */}
@@ -173,13 +233,25 @@ function ViewResults() {
                         <p className="text-gray-600">{vote.voterEmail}</p>
                         <p className="text-sm text-gray-500">Voted on: {formatDate(vote.submittedAt)}</p>
                       </div>
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                        Vote #{index + 1}
-                      </span>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedVotes(prev => ({ ...prev, [vote.uid]: !prev[vote.uid] }))}
+                          className="px-3 py-1 rounded-md text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          aria-expanded={!!expandedVotes[vote.uid]}
+                          aria-controls={`votes-${vote.uid}`}
+                        >
+                          {expandedVotes[vote.uid] ? 'Hide Votes' : 'Show Votes'}
+                        </button>
+                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                          Vote #{index + 1}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="border-t pt-4">
+                    <div className="border-t pt-4" id={`votes-${vote.uid}`}> 
                       <h4 className="font-medium text-gray-900 mb-3">Votes Cast:</h4>
+                      {expandedVotes[vote.uid] && (
                       <div className="space-y-6">
                         {/* SSC Votes */}
                         <div>
@@ -318,6 +390,7 @@ function ViewResults() {
                           </div>
                         </div>
                       </div>
+                      )}
                     </div>
                   </div>
                 ))
@@ -452,6 +525,54 @@ function ViewResults() {
                         </div>
                       )
                     })}
+                  </div>
+
+                  {/* Teams (Partylists) Overview */}
+                  <div>
+                    <h2 className="text-xl font-semibold text-red-900 mb-6">Teams (Partylists)</h2>
+                    {(() => {
+                      const teams = Array.from(new Set(candidates.filter(c => c.team && c.team.trim() !== '').map(c => c.team.trim())))
+                      if (teams.length === 0) {
+                        return <p className="text-gray-500 italic">No teams defined.</p>
+                      }
+                      return (
+                        <div className="space-y-8">
+                          {teams.map(teamName => {
+                            const teamCandidates = candidates.filter(c => (c.team || '').trim() === teamName)
+                            // Group by role -> candidate names
+                            const roleToCandidates = teamCandidates.reduce((acc, c) => {
+                              if (!acc[c.role]) acc[c.role] = []
+                              acc[c.role].push(c)
+                              return acc
+                            }, {})
+                            const roles = Object.keys(roleToCandidates).sort()
+                            return (
+                              <div key={teamName} className="bg-white rounded-lg shadow p-5">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">{teamName}</h3>
+                                {roles.length > 0 ? (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {roles.map(role => (
+                                      <div key={role} className="border rounded-lg p-3">
+                                        <div className="font-semibold text-gray-800 mb-2">{role}</div>
+                                        <ul className="space-y-1">
+                                          {roleToCandidates[role].map(candidate => (
+                                            <li key={candidate.id} className="text-gray-700">
+                                              {candidate.name}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-gray-500 italic">No roles for this team.</p>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </>

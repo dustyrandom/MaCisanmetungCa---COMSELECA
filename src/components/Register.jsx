@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import NavBar from './NavBar'
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
 import { set, ref } from 'firebase/database'
 import { auth, db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
-import iconHeader from '../assets/icon.png'
 import iconCard from '../assets/icon2.png'
 import fingerprintImage from '../assets/fingerprint.png'
 import mccLogo from '../assets/mcclogo.png'
@@ -66,6 +65,13 @@ function Register() {
         formData.email,
         formData.password
       )
+
+      // Ensure Firebase Auth profile has the full name immediately
+      try {
+        await updateProfile(userCredential.user, { displayName: formData.name })
+      } catch (e) {
+        console.warn('Unable to set displayName:', e)
+      }
 
       await sendEmailVerification(userCredential.user)
 
