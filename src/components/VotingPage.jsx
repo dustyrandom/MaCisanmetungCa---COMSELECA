@@ -155,6 +155,24 @@ function VotingPage() {
       await set(voteRef, voteData)
       setSubmitted(true)
       setHasVoted(true)
+
+      // Send thank-you email with announcement date
+      try {
+        const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
+        await fetch(`${emailServerUrl}/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: user.email,
+            status: 'voteThankYou',
+            name: userData.name,
+            details: { announcementDate: votingStatus?.endDate ? new Date(votingStatus.endDate).toLocaleString() : '' }
+          })
+        })
+      } catch (e) {
+        // don't block success on email failure
+        console.error('Failed to send thank-you email', e)
+      }
     } catch (error) {
       console.error('Failed to submit votes:', error)
     }
