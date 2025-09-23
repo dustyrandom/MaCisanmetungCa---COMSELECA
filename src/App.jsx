@@ -24,6 +24,9 @@ import ScheduleAppointment from './components/ScheduleAppointment'
 import ManageElections from './components/ManageElections'
 import VotingPage from './components/VotingPage'
 import ViewResults from './components/ViewResults'
+import CampaignSubmit from './components/CampaignSubmit'
+import ManageCampaigns from './components/ManageCampaigns'
+import Campaigns from './components/Campaigns'
 
 function App() {
   return (
@@ -34,6 +37,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/result" element={<Result />} />
+            <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/vote" element={<Vote />} />
             
             {/* Public routes - redirect authenticated users */}
@@ -134,10 +138,26 @@ function App() {
               } 
             />
             <Route 
+              path="/admin/manage-campaigns" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageCampaigns />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/voting" 
               element={
                 <ProtectedRoute requireVerification={true}>
                   <VotingPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/campaign" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <CampaignSubmit />
                 </ProtectedRoute>
               } 
             />
@@ -167,3 +187,4 @@ function App() {
 }
 
 export default App
+ 

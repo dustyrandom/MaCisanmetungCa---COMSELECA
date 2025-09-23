@@ -33,6 +33,7 @@ function NavBar() {
             <Link to="/" className={`${baseLink} ${isActive('/') ? activeClasses : inactiveClasses}`}>HOME</Link>
             <Link to="/about" className={`${baseLink} ${isActive('/about') ? activeClasses : inactiveClasses}`}>ABOUT</Link>
             <Link to="/result" className={`${baseLink} ${isActive('/result') ? activeClasses : inactiveClasses}`}>RESULT</Link>
+            <Link to="/campaigns" className={`${baseLink} ${isActive('/campaigns') ? activeClasses : inactiveClasses}`}>CAMPAIGNS</Link>
             <Link to="/vote" className={`${baseLink} ${isActive('/vote') ? activeClasses : inactiveClasses}`}>VOTE</Link>
             {!user && (
               <Link to="/login" className={`${baseLink} ${isActive('/login') ? activeClasses : inactiveClasses}`}>LOG IN</Link>
@@ -98,6 +99,9 @@ function NavBar() {
             </Link>
             <Link to="/result" className={`block py-2 text-base ${isActive('/result') ? 'text-red-900' : 'text-red-800'}`}>
               <span className={`${isActive('/result') ? 'inline-block border-b border-red-900' : ''}`}>RESULT</span>
+            </Link>
+            <Link to="/campaigns" className={`block py-2 text-base ${isActive('/campaigns') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/campaigns') ? 'inline-block border-b border-red-900' : ''}`}>CAMPAIGNS</span>
             </Link>
             <Link to="/vote" className={`block py-2 text-base ${isActive('/vote') ? 'text-red-900' : 'text-red-800'}`}>
               <span className={`${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>

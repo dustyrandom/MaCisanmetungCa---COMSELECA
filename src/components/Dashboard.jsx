@@ -34,24 +34,13 @@ function Dashboard() {
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4">Admin Controls</h3>
         <div className="grid md:grid-cols-2 gap-4">
-          <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">
-            Manage Elections
-          </a>
-          <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">
-            View Results
-          </a>
-          <a href="/admin/manage-candidates" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-center">
-            Manage Candidates
-          </a>
-          <a href="/admin/manage-users" className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-center">
-            Manage Users
-          </a>
-          <a href="/admin/manage-news" className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 text-center">
-            Manage News
-          </a>
-          <a href="/admin/manage-announcements" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">
-            Manage Announcements
-          </a>
+          <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">Manage Elections</a>
+          <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">View Results</a>
+          <a href="/admin/manage-candidates" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-center">Manage Candidates</a>
+          <a href="/admin/manage-users" className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-center">Manage Users</a>
+          <a href="/admin/manage-news" className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 text-center">Manage News</a>
+          <a href="/admin/manage-announcements" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">Manage Announcements</a>
+          <a href="/admin/manage-campaigns" className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">Manage Campaigns</a>
         </div>
       </div>
     </div>
@@ -65,9 +54,7 @@ function Dashboard() {
           <div className="border p-4 rounded-lg">
             <h4 className="font-semibold">Student Council Election 2025</h4>
             <p className="text-gray-600 text-sm">Vote for your student council representatives</p>
-            <a href="/vote" className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Vote Now
-            </a>
+            <a href="/vote" className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Vote Now</a>
           </div>
         </div>
       </div>
@@ -82,8 +69,6 @@ function Dashboard() {
           )}
         </div>
       </div>
-
-      {/* Scheduling moved to dedicated page; use Go to Schedule */}
     </div>
   )
 
@@ -95,9 +80,7 @@ function Dashboard() {
           <div className="border p-4 rounded-lg">
             <h4 className="font-semibold">Student Council Election 2025</h4>
             <p className="text-gray-600 text-sm">Vote for your student council representatives</p>
-            <a href="/vote" className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Vote Now
-            </a>
+            <a href="/vote" className="mt-2 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Vote Now</a>
           </div>
         </div>
       </div>
@@ -107,17 +90,12 @@ function Dashboard() {
         <div className="space-y-4">
           <div className="border p-4 rounded-lg">
             <h4 className="font-semibold">Student Council Election 2025</h4>
-            <p className="text-gray-600 text-sm">Position: President</p>
-            <div className="mt-2">
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
-                Active Campaign
-              </span>
+            <div className="mt-4">
+              <a href="/campaign" className="inline-block bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800">Submit Campaign Materials</a>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Scheduling moved to dedicated page; use Go to Schedule */}
     </div>
   )
 
@@ -156,7 +134,6 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {renderDashboardContent()}
@@ -167,3 +144,4 @@ function Dashboard() {
 }
 
 export default Dashboard
+
