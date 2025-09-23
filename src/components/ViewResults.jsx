@@ -526,54 +526,6 @@ function ViewResults() {
                       )
                     })}
                   </div>
-
-                  {/* Teams (Partylists) Overview */}
-                  <div>
-                    <h2 className="text-xl font-semibold text-red-900 mb-6">Teams (Partylists)</h2>
-                    {(() => {
-                      const teams = Array.from(new Set(candidates.filter(c => c.team && c.team.trim() !== '').map(c => c.team.trim())))
-                      if (teams.length === 0) {
-                        return <p className="text-gray-500 italic">No teams defined.</p>
-                      }
-                      return (
-                        <div className="space-y-8">
-                          {teams.map(teamName => {
-                            const teamCandidates = candidates.filter(c => (c.team || '').trim() === teamName)
-                            // Group by role -> candidate names
-                            const roleToCandidates = teamCandidates.reduce((acc, c) => {
-                              if (!acc[c.role]) acc[c.role] = []
-                              acc[c.role].push(c)
-                              return acc
-                            }, {})
-                            const roles = Object.keys(roleToCandidates).sort()
-                            return (
-                              <div key={teamName} className="bg-white rounded-lg shadow p-5">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">{teamName}</h3>
-                                {roles.length > 0 ? (
-                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {roles.map(role => (
-                                      <div key={role} className="border rounded-lg p-3">
-                                        <div className="font-semibold text-gray-800 mb-2">{role}</div>
-                                        <ul className="space-y-1">
-                                          {roleToCandidates[role].map(candidate => (
-                                            <li key={candidate.id} className="text-gray-700">
-                                              {candidate.name}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <p className="text-gray-500 italic">No roles for this team.</p>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    })()}
-                  </div>
                 </div>
               </>
             </div>
