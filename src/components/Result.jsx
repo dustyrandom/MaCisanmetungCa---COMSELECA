@@ -16,13 +16,14 @@ import { PieChart, Pie, Cell } from 'recharts'
 function Result() {
   const [candidates, setCandidates] = useState([])
   const [loadingTeams, setLoadingTeams] = useState(true)
-  const data = [
-    { name: 'SSC', value: 2000, color: '#991b1b' },
-    { name: 'IAS', value: 1000, color: '#10b981' },
-    { name: 'IBCE', value: 1000, color: '#f59e0b' },
-    { name: 'IHTM', value: 1000, color: '#ec4899' },
-    { name: 'ITE', value: 1000, color: '#3b82f6' },
-  ]
+  const [barData, setBarData] = useState([
+    { name: 'SSC', value: 0, color: '#991b1b' },
+    { name: 'IAS', value: 0, color: '#10b981' },
+    { name: 'IBCE', value: 0, color: '#f59e0b' },
+    { name: 'IHTM', value: 0, color: '#ec4899' },
+    { name: 'ITE', value: 0, color: '#3b82f6' },
+  ])
+  const [publicVisible, setPublicVisible] = useState(true)
 
   const pieColors = ['#ef4444', '#fb923c', '#991b1b']
   const sscPresident = [
@@ -59,7 +60,58 @@ function Result() {
         setLoadingTeams(false)
       }
     }
+    const loadVoterCountsForBar = async () => {
+      try {
+        const [votesSnap, usersSnap] = await Promise.all([
+          get(dbRef(db, 'electionVotes')),
+          get(dbRef(db, 'users'))
+        ])
+
+        const counts = { SSC: 0, IAS: 0, IBCE: 0, IHTM: 0, ITE: 0 }
+
+        if (votesSnap.exists()) {
+          const votes = votesSnap.val()
+          const votedUids = Object.keys(votes)
+          const users = usersSnap.exists() ? usersSnap.val() : {}
+
+          votedUids.forEach((uid) => {
+            const u = users[uid] || {}
+            const role = (u.role || '').toLowerCase()
+            const institute = (u.institute || '').toUpperCase()
+
+            if (role === 'admin') {
+              counts.SSC += 1
+            } else {
+              if (institute === 'INSTITUTE OF ARTS AND SCIENCES') counts.IAS += 1
+              else if (institute === 'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION') counts.IBCE += 1
+              else if (institute === 'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT') counts.IHTM += 1
+              else if (institute === 'INSTITUTE OF TEACHER EDUCATION') counts.ITE += 1
+            }
+          })
+        }
+
+        setBarData([
+          { name: 'SSC', value: counts.SSC, color: '#991b1b' },
+          { name: 'IAS', value: counts.IAS, color: '#10b981' },
+          { name: 'IBCE', value: counts.IBCE, color: '#f59e0b' },
+          { name: 'IHTM', value: counts.IHTM, color: '#ec4899' },
+          { name: 'ITE', value: counts.ITE, color: '#3b82f6' },
+        ])
+      } catch (e) {
+        console.error('Failed to load voter counts for bar chart:', e)
+      }
+    }
+    const loadPublicFlag = async () => {
+      try {
+        const pubSnap = await get(dbRef(db, 'publicResultsVisible'))
+        setPublicVisible(pubSnap.exists() ? !!pubSnap.val() : false)
+      } catch {
+        setPublicVisible(false)
+      }
+    }
     loadCandidates()
+    loadVoterCountsForBar()
+    loadPublicFlag()
   }, [])
 
   // Combined role order (SSC + ISC) for consistent display
@@ -97,12 +149,27 @@ function Result() {
           <p className="text-base sm:text-lg text-gray-800 -mt-1">STUDENT ELECTIONS 2025</p>
         </div>
 
-        {/* shadcn-like card */}
+        {/* If hidden, show friendly announcement and stop */}
+        {!publicVisible ? (
+          <div className="bg-white rounded-xl shadow-sm border border-yellow-200">
+            <div className="p-6">
+              <div className="bg-yellow-50 text-yellow-900 border border-yellow-200 rounded-lg p-5">
+                <h3 className="text-lg font-semibold mb-2">Results not yet published</h3>
+                <p className="text-sm">
+                  The official election results will be announced soon through our public channels. Please check back later.
+                </p>
+              </div>
+              <div className="mt-6 text-center">
+                <a href="/" className="inline-block px-5 py-2 rounded-md bg-red-900 text-white hover:bg-red-800">Return to Home</a>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-4 sm:p-6">
             {/* Legend inside card */}
             <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
-              {data.map((d) => (
+              {barData.map((d) => (
                 <div key={d.name} className="flex items-center gap-2">
                   <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />
                   <span className="text-sm font-medium text-gray-800">{d.name}</span>
@@ -111,7 +178,7 @@ function Result() {
             </div>
             <div className="h-[380px] sm:h-[420px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
+                <BarChart data={barData} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} />
                   <YAxis tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'RESPONSES', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
@@ -128,7 +195,7 @@ function Result() {
                     return null
                   }} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {data.map((entry, index) => (
+                    {barData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Bar>
@@ -137,8 +204,9 @@ function Result() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Pie charts row */}
+        {publicVisible && (
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           {[{ title: 'SSC PRESIDENT', data: sscPresident }, { title: 'SSC VICE PRESIDENT', data: sscVice }, { title: 'SSC SECRETARY', data: sscSecretary }].map((chart) => (
             <div key={chart.title} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -167,8 +235,9 @@ function Result() {
             </div>
           ))}
         </div>
+        )}
 
-        {/* Partylist section (dynamic, 3 teams per card) */}
+        {publicVisible && (
         <div className="mt-12">
           <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Partylist</h3>
           {loadingTeams ? (
@@ -241,8 +310,9 @@ function Result() {
             })()
           )}
         </div>
+        )}
 
-        {/* Individuals (no team) */}
+        {publicVisible && (
         <div className="mt-12">
           <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Individual</h3>
           {loadingTeams ? (
@@ -286,6 +356,7 @@ function Result() {
             })()
           )}
         </div>
+        )}
       </div>
     </div>
   )
