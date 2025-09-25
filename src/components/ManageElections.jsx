@@ -28,6 +28,7 @@ function ManageElections() {
   const [showVoteModal, setShowVoteModal] = useState(false)
   const [voteModalMessage, setVoteModalMessage] = useState('')
   const [voteModalError, setVoteModalError] = useState('')
+  // Voting page handles only voting
 
   const sscRoles = [
     'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
@@ -36,7 +37,7 @@ function ManageElections() {
   ]
 
   const iscRoles = [
-    'Gov', 'Vice Gov', 'BM', 'Records', 'Finance', 'Audit',
+    'Gov', 'Vice Gov', 'Records', 'Finance', 'Audit',
     'Publication', 'Public Relation', 'Resources'
   ]
 
@@ -114,6 +115,8 @@ function ManageElections() {
             await set(votingStatusRef, updatedStatus)
           }
         }
+
+        // No other statuses here
       } catch (error) {
         console.error('Failed to load data:', error)
       } finally {
@@ -414,6 +417,8 @@ function ManageElections() {
                 </button>
               </div>
             </div>
+
+            {/* Appointment/Campaign controls moved to their own pages */}
           </div>
         )}
 

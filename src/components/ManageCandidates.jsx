@@ -4,7 +4,7 @@ import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 
-function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment }) {
+function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId }) {
   const formatDateTime = (value) => {
     try {
       return value ? new Date(value).toLocaleString() : ''
@@ -70,15 +70,17 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
         <div className="flex gap-3">
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'reviewed')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+            disabled={savingId === `${app.uid}-${app.id}`}
+            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            Reviewed
+            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
           </button>
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+            disabled={savingId === `${app.uid}-${app.id}`}
+            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
           >
-            Reject
+            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
           </button>
         </div>
       )}
@@ -94,15 +96,17 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
                 <div className="flex gap-3 mt-3">
                   <button
                     onClick={() => onAppointmentDecision(app.uid, app.id, 'approved', app.appointment)}
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+                    disabled={savingId === `${app.uid}-${app.id}-appt`}
+                    className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                   >
-                    Approve Appointment
+                    {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve Appointment'}
                   </button>
                   <button
                     onClick={() => onAppointmentDecision(app.uid, app.id, 'rejected', app.appointment)}
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+                    disabled={savingId === `${app.uid}-${app.id}-appt`}
+                    className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                   >
-                    Reject Appointment
+                    {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Reject Appointment'}
                   </button>
                 </div>
               )}
@@ -117,15 +121,17 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
         <div className="flex gap-3 mt-3">
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+            disabled={savingId === `${app.uid}-${app.id}`}
+            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
           >
-            Approve
+            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Approve'}
           </button>
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+            disabled={savingId === `${app.uid}-${app.id}`}
+            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
           >
-            Reject
+            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
           </button>
         </div>
       )}
@@ -138,7 +144,10 @@ function ManageCandidates() {
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
-  const [activeTab, setActiveTab] = useState('candidacy') // 'candidacy' | 'appointments'
+  const [activeTab, setActiveTab] = useState('candidacy') // 'candidacy' | 'appointments' | 'settings'
+  const [savingId, setSavingId] = useState('')
+  const [savingScreening, setSavingScreening] = useState(false)
+  const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -162,6 +171,19 @@ function ManageCandidates() {
           
           setApplications(allApps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
         }
+
+        const swSnap = await get(dbRef(db, 'appointmentStatus'))
+        if (swSnap.exists()) {
+          setAppointmentStatus(swSnap.val())
+        } else {
+          const nextDay = new Date()
+          nextDay.setDate(nextDay.getDate() + 1)
+          nextDay.setHours(9, 0, 0, 0)
+          const end = new Date(nextDay)
+          end.setHours(17, 0, 0, 0)
+          const toLocalInput = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16)
+          setAppointmentStatus({ isActive: false, startDate: toLocalInput(nextDay), endDate: toLocalInput(end) })
+        }
       } catch (error) {
         console.error('Error fetching applications:', error)
         setMessage('Failed to load applications.')
@@ -179,6 +201,7 @@ function ManageCandidates() {
 
   const updateApplicationStatus = async (uid, appId, status) => {
     try {
+      setSavingId(`${uid}-${appId}`)
       const appRef = dbRef(db, `candidacyApplications/${uid}/${appId}`)
       const updateData = {
         status: status,
@@ -210,11 +233,14 @@ function ManageCandidates() {
     } catch (error) {
       console.error('Error updating application:', error)
       setMessage('Failed to update application status.')
+    } finally {
+      setSavingId('')
     }
   }
 
   const decideAppointment = async (uid, appId, decision, appointment) => {
     try {
+      setSavingId(`${uid}-${appId}-appt`)
       const apptRef = dbRef(db, `candidacyApplications/${uid}/${appId}/appointment`)
       const historyItem = {
         decision,
@@ -244,6 +270,8 @@ function ManageCandidates() {
     } catch (e) {
       console.error('Failed to decide appointment', e)
       setMessage('Failed to update appointment')
+    } finally {
+      setSavingId('')
     }
   }
 
@@ -379,6 +407,8 @@ function ManageCandidates() {
           <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
         </div>
 
+        {/* Settings Tab Nav */}
+
         <div className="mb-6 border-b border-gray-200">
           <nav className="-mb-px flex gap-6" aria-label="Tabs">
             <button
@@ -393,12 +423,70 @@ function ManageCandidates() {
             >
               Appointments
             </button>
+            <button
+              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              Settings
+            </button>
           </nav>
         </div>
 
         {message && (
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-800">{message}</p>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Appointment</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Open Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={appointmentStatus.startDate || ''}
+                    onChange={(e) => setAppointmentStatus(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Close Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={appointmentStatus.endDate || ''}
+                    onChange={(e) => setAppointmentStatus(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={async () => {
+                    try {
+                      setSavingScreening(true)
+                      // Save only schedule fields; active will be derived at runtime
+                      const toSave = { startDate: appointmentStatus.startDate || '', endDate: appointmentStatus.endDate || '' }
+                      await set(dbRef(db, 'appointmentStatus'), toSave)
+                      setAppointmentStatus(prev => ({ ...prev, ...toSave }))
+                      setMessage('Appointment settings saved.')
+                      setTimeout(() => setMessage(''), 2500)
+                    } catch (e) {
+                      console.error('Failed to save appointment settings', e)
+                      setMessage('Failed to save appointment settings')
+                    } finally {
+                      setSavingScreening(false)
+                    }
+                  }}
+                  disabled={savingScreening}
+                  className={`px-4 py-2 rounded text-white ${savingScreening ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'}`}
+                >
+                  {savingScreening ? 'Saving…' : 'Save Settings'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -418,6 +506,7 @@ function ManageCandidates() {
                       key={`${app.uid}-${app.id}`} 
                       app={app} 
                       onUpdateStatus={updateApplicationStatus}
+                      savingId={savingId}
                       showActions={true}
                     />
                   ))}
@@ -440,6 +529,7 @@ function ManageCandidates() {
                       app={app} 
                       onUpdateStatus={updateApplicationStatus}
                       onAppointmentDecision={decideAppointment}
+                      savingId={savingId}
                       showActions={true}
                       showAppointment={false}
                     />
@@ -462,6 +552,7 @@ function ManageCandidates() {
                       key={`${app.uid}-${app.id}`} 
                       app={app} 
                       onUpdateStatus={updateApplicationStatus}
+                      savingId={savingId}
                       showActions={false}
                     />
                   ))}
@@ -483,6 +574,7 @@ function ManageCandidates() {
                       key={`${app.uid}-${app.id}`} 
                       app={app} 
                       onUpdateStatus={updateApplicationStatus}
+                      savingId={savingId}
                       showActions={false}
                     />
                   ))}
@@ -512,6 +604,7 @@ function ManageCandidates() {
                         app={app}
                         onUpdateStatus={updateApplicationStatus}
                         onAppointmentDecision={decideAppointment}
+                        savingId={savingId}
                         showActions={false}
                         showAppointment={true}
                       />
@@ -535,6 +628,7 @@ function ManageCandidates() {
                         app={app}
                         onUpdateStatus={updateApplicationStatus}
                         onAppointmentDecision={decideAppointment}
+                        savingId={savingId}
                         showActions={false}
                         showAppointment={true}
                       />
@@ -558,6 +652,7 @@ function ManageCandidates() {
                         app={app}
                         onUpdateStatus={updateApplicationStatus}
                         onAppointmentDecision={decideAppointment}
+                        savingId={savingId}
                         showActions={false}
                         showAppointment={true}
                       />

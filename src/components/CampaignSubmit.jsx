@@ -18,6 +18,7 @@ function CampaignSubmit() {
   const [history, setHistory] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [fullscreenImage, setFullscreenImage] = useState(null)
+  const [campaignStatus, setCampaignStatus] = useState({ isActive: false, startDate: '', endDate: '' })
   const hasPending = useMemo(() => history.some(h => (h.status || 'pending') === 'pending'), [history])
 
   useEffect(() => {
@@ -42,6 +43,19 @@ function CampaignSubmit() {
     }
     loadCandidate()
   }, [user, userData])
+
+  // Load campaign status
+  useEffect(() => {
+    const loadWindow = async () => {
+      try {
+        const snap = await get(dbRef(db, 'campaignStatus'))
+        if (snap.exists()) setCampaignStatus(snap.val())
+      } catch (e) {
+        console.error('Failed to load campaign status', e)
+      }
+    }
+    loadWindow()
+  }, [])
 
   // Load submission history when candidate resolved
   useEffect(() => {
@@ -73,14 +87,33 @@ function CampaignSubmit() {
     setFiles(list)
   }
 
-  const canSubmit = useMemo(() => !!candidateRecord && files.length > 0 && !submitting && !hasPending, [candidateRecord, files, submitting, hasPending])
+  const hasProfilePic = !!(userData && userData.profilePicture)
+  const canSubmit = useMemo(() => !!candidateRecord && hasProfilePic && files.length > 0 && !submitting && !hasPending, [candidateRecord, hasProfilePic, files, submitting, hasPending])
+  const nowInWindow = (() => {
+    if (!campaignStatus?.startDate || !campaignStatus?.endDate) return campaignStatus?.isActive || false
+    try {
+      const now = new Date()
+      const start = new Date(campaignStatus.startDate)
+      const end = new Date(campaignStatus.endDate)
+      return now >= start && now <= end
+    } catch { return true }
+  })()
+  const uploadDisabled = hasPending || !hasProfilePic || !candidateRecord || !nowInWindow
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setMessage('')
     if (!candidateRecord) {
-      setError('Candidate profile not found. Please contact admin to link your account.')
+      setError('Candidate must have a profile to submit a campaign. Please contact admin to link your candidacy.')
+      return
+    }
+    if (!hasProfilePic) {
+      setError('Please upload a profile picture in your Profile page before submitting campaign materials.')
+      return
+    }
+    if (!nowInWindow) {
+      setError('Campaign submissions are currently closed. Please check the schedule.')
       return
     }
     if (files.length === 0) {
@@ -104,9 +137,9 @@ function CampaignSubmit() {
       }
       const payload = {
         candidateId: candidateRecord.id,
-        candidateName: candidateRecord.name || '',
+        candidateName: (candidateRecord.name || userData?.name || ''),
         role: candidateRecord.role || '',
-        institute: candidateRecord.institute || '',
+        institute: (candidateRecord.institute || userData?.institute || ''),
         team: candidateRecord.team || '',
         submittedBy: user?.uid || '',
         submittedByEmail: user?.email || '',
@@ -166,6 +199,16 @@ function CampaignSubmit() {
           ) : candidateRecord ? null : (
             <div className="mb-4 text-sm text-red-600">Candidate profile not found for this account.</div>
           )}
+          {!nowInWindow && (
+            <div className="mb-4 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded p-3">
+              Campaign submission is closed. Please check back later.
+            </div>
+          )}
+          {!loading && candidateRecord && !hasProfilePic && (
+            <div className="mb-4 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded p-3">
+              A profile picture is required for campaign submissions. Go to <a href="/profile" className="underline font-medium">Profile</a> to upload one.
+            </div>
+          )}
 
           {message && <div className="mb-4 text-green-700 bg-green-50 border border-green-200 rounded p-3 text-sm">{message}</div>}
           {error && <div className="mb-4 text-red-700 bg-red-50 border border-red-200 rounded p-3 text-sm">{error}</div>}
@@ -184,22 +227,22 @@ function CampaignSubmit() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Upload Media</label>
-              <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${hasPending ? 'border-gray-200 bg-gray-50' : 'border-gray-300 hover:border-red-400 hover:bg-red-50'}`}>
+              <div className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploadDisabled ? 'border-gray-200 bg-gray-50' : 'border-gray-300 hover:border-red-400 hover:bg-red-50'}`}>
                 <div className="space-y-2">
-                  <svg className={`w-12 h-12 mx-auto ${hasPending ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`w-12 h-12 mx-auto ${uploadDisabled ? 'text-gray-400' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <div>
-                    <label className={`cursor-pointer ${hasPending ? 'cursor-not-allowed' : ''}`}>
-                      <span className={`text-sm font-medium ${hasPending ? 'text-gray-400' : 'text-red-600 hover:text-red-500'}`}>
-                        {hasPending ? 'Upload disabled' : 'Click to upload'}
+                    <label className={`cursor-pointer ${uploadDisabled ? 'cursor-not-allowed' : ''}`}>
+                      <span className={`text-sm font-medium ${uploadDisabled ? 'text-gray-400' : 'text-red-600 hover:text-red-500'}`}>
+                        {uploadDisabled ? 'Upload disabled' : 'Click to upload'}
                       </span>
                       <input 
                         type="file" 
                         accept="image/*,video/*" 
                         multiple 
                         onChange={handleFileChange} 
-                        disabled={hasPending}
+                        disabled={uploadDisabled}
                         className="sr-only"
                       />
                     </label>

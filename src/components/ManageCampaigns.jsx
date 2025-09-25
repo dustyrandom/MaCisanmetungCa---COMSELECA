@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ref as dbRef, get, set, remove } from 'firebase/database'
 import { db } from '../firebase'
 import NavBar from './NavBar'
@@ -11,6 +11,8 @@ function ManageCampaigns() {
   const [filter, setFilter] = useState('all')
   const [fullscreenImage, setFullscreenImage] = useState(null)
   const [userProfiles, setUserProfiles] = useState({})
+  const [campaignStatus, setCampaignStatus] = useState({ isActive: false, startDate: '', endDate: '' })
+  const [savingStatus, setSavingStatus] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -42,6 +44,10 @@ function ManageCampaigns() {
           })
         }
         setUserProfiles(profiles)
+
+        // Load campaign status
+        const csSnap = await get(dbRef(db, 'campaignStatus'))
+        if (csSnap.exists()) setCampaignStatus(csSnap.val())
       } finally {
         setLoading(false)
       }
@@ -49,10 +55,7 @@ function ManageCampaigns() {
     load()
   }, [])
 
-  const filtered = useMemo(() => {
-    if (filter === 'all') return submissions
-    return submissions.filter(s => (s.status || 'pending') === filter)
-  }, [submissions, filter])
+  // keep local filtering inline in render to avoid unused var warnings
 
   const updateStatus = async (s, status) => {
     try {
@@ -91,6 +94,52 @@ function ManageCampaigns() {
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Settings - Campaign Status */}
+            <div className="mb-8 border rounded-lg p-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
+              <div className="flex items-center gap-4 mb-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      setSavingStatus(true)
+                      const newStatus = { ...campaignStatus, isActive: !campaignStatus.isActive }
+                      await set(dbRef(db, 'campaignStatus'), newStatus)
+                      setCampaignStatus(newStatus)
+                    } finally { setSavingStatus(false) }
+                  }}
+                  disabled={savingStatus}
+                  className={`px-4 py-2 rounded text-white ${savingStatus ? 'bg-gray-400 cursor-not-allowed' : (campaignStatus.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')}`}
+                >
+                  {savingStatus ? 'Updating…' : (campaignStatus.isActive ? 'Close Campaign' : 'Open Campaign')}
+                </button>
+                <span className="text-sm text-gray-600">{campaignStatus.isActive ? 'Campaign submissions are open' : 'Campaign submissions are closed'}</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
+                  <input type="datetime-local" value={campaignStatus.startDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, startDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
+                  <input type="datetime-local" value={campaignStatus.endDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, endDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={async () => {
+                    try {
+                      setSavingStatus(true)
+                      await set(dbRef(db, 'campaignStatus'), campaignStatus)
+                    } finally { setSavingStatus(false) }
+                  }}
+                  disabled={savingStatus}
+                  className="px-4 py-2 rounded text-white bg-gray-800 hover:bg-gray-900"
+                >
+                  {savingStatus ? 'Saving…' : 'Save Settings'}
+                </button>
               </div>
             </div>
 

@@ -15,6 +15,7 @@ function ScheduleAppointment() {
   const VENUE = 'MB201 (MCC Dolores Campus)'
   const [message, setMessage] = useState('')
   const [canReschedule, setCanReschedule] = useState(false)
+  const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
 
   useEffect(() => {
     const load = async () => {
@@ -51,6 +52,9 @@ function ScheduleAppointment() {
             return
           }
         }
+        // Load appointment status
+        const swSnap = await get(dbRef(db, 'appointmentStatus'))
+        if (swSnap.exists()) setAppointmentStatus(swSnap.val())
       } catch (e) {
         console.error('Failed to load appointment data', e)
       } finally {
@@ -81,6 +85,20 @@ function ScheduleAppointment() {
     if (!dateTime) {
       setMessage('Please select date and time')
       return
+    }
+    // Enforce allowed date
+    if (appointmentStatus?.startDate && appointmentStatus?.endDate) {
+      try {
+        const selected = new Date(dateTime)
+        const start = new Date(appointmentStatus.startDate)
+        const end = new Date(appointmentStatus.endDate)
+        if (selected < start || selected > end) {
+          setMessage(`Appointments are only accepted from ${new Date(start).toLocaleString()} to ${new Date(end).toLocaleString()}`)
+          return
+        }
+      } catch (e) {
+        console.error('Invalid screening window comparison', e)
+      }
     }
     // Prevent scheduling in the past
     const now = new Date()
@@ -153,6 +171,9 @@ function ScheduleAppointment() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{canReschedule ? 'Reschedule Date & Time' : 'Date & Time'}</label>
                     <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0,16)} className="w-full border rounded px-3 py-2" />
+                    {(appointmentStatus?.startDate && appointmentStatus?.endDate) && (
+                      <p className="mt-1 text-xs text-yellow-700">Accepting bookings from {new Date(appointmentStatus.startDate).toLocaleString()} to {new Date(appointmentStatus.endDate).toLocaleString()}.</p>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600">Venue: <span className="font-medium">{VENUE}</span></p>
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">{canReschedule ? 'Submit New Appointment' : 'Submit Appointment'}</button>

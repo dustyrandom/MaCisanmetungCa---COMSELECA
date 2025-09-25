@@ -35,7 +35,6 @@ function VotingPage() {
   const iscRoles = [
     { name: 'Gov', maxVotes: 1 },
     { name: 'Vice Gov', maxVotes: 1 },
-    { name: 'BM', maxVotes: 1 },
     { name: 'Records', maxVotes: 1 },
     { name: 'Finance', maxVotes: 1 },
     { name: 'Audit', maxVotes: 1 },

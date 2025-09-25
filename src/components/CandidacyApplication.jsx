@@ -27,7 +27,7 @@ function CandidacyApplication() {
     resignationLetter: null,
   })
 
-  const requiredKeys = ['coc', 'cor', 'cog', 'letterOfMotivation', 'goodMoral', 'psychologicalEvaluation', 'letterOfIntent', 'resignationLetter']
+  const requiredKeys = ['coc', 'cor', 'cog', 'letterOfMotivation', 'goodMoral', 'psychologicalEvaluation', 'letterOfIntent']
 
   useEffect(() => {
     const checkExistingApplication = async () => {
@@ -89,8 +89,9 @@ function CandidacyApplication() {
         const file = files[key]
         uploads[key] = await uploadAndGetUrl(file, `${basePath}/${key}_${file.name}`)
       }
-      // optional file
+      // optional files
       if (files.loa) uploads.loa = await uploadAndGetUrl(files.loa, `${basePath}/loa_${files.loa.name}`)
+      if (files.resignationLetter) uploads.resignationLetter = await uploadAndGetUrl(files.resignationLetter, `${basePath}/resignationLetter_${files.resignationLetter.name}`)
 
       const record = {
         applicant: {
@@ -347,7 +348,7 @@ function CandidacyApplication() {
             </div>
 
             <div>
-              <label htmlFor="resignationLetter" className="block text-sm font-medium text-gray-700 mb-1">Resignation Letter *</label>
+              <label htmlFor="resignationLetter" className="block text-sm font-medium text-gray-700 mb-1">Resignation Letter (optional)</label>
               <input
                 id="resignationLetter"
                 type="file"
@@ -358,9 +359,6 @@ function CandidacyApplication() {
                 }}
                 className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              {submitted && !files.resignationLetter && (
-                <p className="mt-1 text-xs text-red-600">This document is required.</p>
-              )}
             </div>
           </div>
 

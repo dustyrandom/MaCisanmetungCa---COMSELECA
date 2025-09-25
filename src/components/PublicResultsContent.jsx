@@ -29,7 +29,7 @@ function PublicResultsContent({ forceVisible = false }) {
   const sscRoles = [
     'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Gov','Vice Gov','BM','Records','Finance','Audit','Publication','Public Relation','Resources']
+  const iscRoles = ['Gov','Vice Gov','Records','Finance','Audit','Publication','Public Relation','Resources']
   const institutes = [
     'INSTITUTE OF ARTS AND SCIENCES',
     'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION',
@@ -105,7 +105,7 @@ function PublicResultsContent({ forceVisible = false }) {
   }, [])
 
   const combinedRoleOrder = [
-    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer','Gov','Vice Gov','BM','Records','Finance','Audit','Publication','Public Relation','Resources'
+    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer','Gov','Vice Gov','Records','Finance','Audit','Publication','Public Relation','Resources'
   ]
 
   if (!forceVisible && !publicVisible) {

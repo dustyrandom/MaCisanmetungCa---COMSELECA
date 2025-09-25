@@ -24,7 +24,7 @@ function ViewResults() {
   ]
 
   const iscRoles = [
-    'Gov', 'Vice Gov', 'BM', 'Records', 'Finance', 'Audit',
+    'Gov', 'Vice Gov', 'Records', 'Finance', 'Audit',
     'Publication', 'Public Relation', 'Resources'
   ]
 
