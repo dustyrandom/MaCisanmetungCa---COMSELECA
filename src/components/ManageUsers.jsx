@@ -59,6 +59,7 @@ function ManageUsers() {
     }
   }
 
+
   if (userData?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -131,9 +132,24 @@ function ManageUsers() {
                   {users.map((u) => (
                     <tr key={u.uid}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{u.name || 'Unknown'}</div>
-                          <div className="text-sm text-gray-500">{u.email}</div>
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {u.profilePicture ? (
+                              <img
+                                className="h-10 w-10 rounded-full object-cover"
+                                src={u.profilePicture}
+                                alt={u.name || 'User'}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
+                                {(u.name || 'U').slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{u.name || 'Unknown'}</div>
+                            <div className="text-sm text-gray-500">{u.email}</div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -27,6 +27,7 @@ import ViewResults from './components/ViewResults'
 import CampaignSubmit from './components/CampaignSubmit'
 import ManageCampaigns from './components/ManageCampaigns'
 import Campaigns from './components/Campaigns'
+import Profile from './components/Profile'
 
 function App() {
   return (
@@ -176,6 +177,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <Profile />
                 </ProtectedRoute>
               } 
             />

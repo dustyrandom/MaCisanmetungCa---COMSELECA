@@ -8,10 +8,12 @@ function Campaigns() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [fullscreenImage, setFullscreenImage] = useState(null)
+  const [userProfiles, setUserProfiles] = useState({})
 
   useEffect(() => {
     const load = async () => {
       try {
+        // Load campaign submissions
         const snap = await get(dbRef(db, 'campaignSubmissions'))
         const list = []
         if (snap.exists()) {
@@ -26,6 +28,17 @@ function Campaigns() {
           list.sort((a, b) => new Date(b.reviewedAt || b.submittedAt || 0) - new Date(a.reviewedAt || a.submittedAt || 0))
         }
         setItems(list)
+
+        // Load user profiles for profile pictures
+        const usersSnap = await get(dbRef(db, 'users'))
+        const profiles = {}
+        if (usersSnap.exists()) {
+          const usersData = usersSnap.val()
+          Object.entries(usersData).forEach(([uid, userData]) => {
+            profiles[uid] = userData
+          })
+        }
+        setUserProfiles(profiles)
       } finally {
         setLoading(false)
       }
@@ -46,16 +59,38 @@ function Campaigns() {
           <div className="text-gray-500">No approved campaigns yet.</div>
         ) : (
           <div className="space-y-6">
-            {items.map(s => (
-              <div key={s.id} className="bg-white rounded-lg shadow border border-gray-200 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                  <div>
-                    <div className="font-semibold text-gray-900">{s.candidateName || 'Unknown Candidate'}</div>
-                    <div className="text-sm text-gray-600">{s.institute || ''}</div>
-                    {s.caption && <div className="text-sm text-gray-800 mt-1">{s.caption}</div>}
+            {items.map(s => {
+              // Find user profile by matching email or name
+              const userProfile = Object.values(userProfiles).find(user => 
+                (user.email && s.submittedByEmail && user.email.toLowerCase() === s.submittedByEmail.toLowerCase()) ||
+                (user.name && s.candidateName && user.name.toLowerCase() === s.candidateName.toLowerCase())
+              )
+              
+              return (
+                <div key={s.id} className="bg-white rounded-lg shadow border border-gray-200 p-4">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        {userProfile?.profilePicture ? (
+                          <img
+                            className="h-12 w-12 rounded-full object-cover"
+                            src={userProfile.profilePicture}
+                            alt={s.candidateName || 'Candidate'}
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
+                            {(s.candidateName || 'U').slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900">{s.candidateName || 'Unknown Candidate'}</div>
+                        <div className="text-sm text-gray-600">{s.institute || ''}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500">{s.reviewedAt ? new Date(s.reviewedAt).toLocaleString() : (s.submittedAt ? new Date(s.submittedAt).toLocaleString() : '—')}</div>
                   </div>
-                  <div className="text-xs text-gray-500">{s.reviewedAt ? new Date(s.reviewedAt).toLocaleString() : (s.submittedAt ? new Date(s.submittedAt).toLocaleString() : '—')}</div>
-                </div>
+                  {s.caption && <div className="text-sm text-gray-800 mb-3">{s.caption}</div>}
                 {Array.isArray(s.media) && s.media.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {s.media.map((m, i) => (
@@ -74,8 +109,9 @@ function Campaigns() {
                     ))}
                   </div>
                 )}
-              </div>
-            ))}
+                </div>
+              )
+            })}
           </div>
         )}
 

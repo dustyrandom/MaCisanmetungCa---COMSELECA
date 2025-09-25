@@ -246,20 +246,6 @@ function Register() {
                       <p className="mt-1 text-xs text-gray-500">Only @mcc.edu.ph emails are allowed</p>
                     </div>
 
-                    {/* Role Field */}
-                    <div>
-                      <select
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
-                        required
-                      >
-                        <option value="voter">Voter</option>
-                        <option value="candidate">Candidate</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
 
                     {/* Password Field */}
                     <div>

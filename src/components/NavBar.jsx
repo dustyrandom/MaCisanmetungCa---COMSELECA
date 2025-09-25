@@ -51,9 +51,17 @@ function NavBar() {
                   aria-haspopup="menu"
                   aria-expanded={isProfileOpen}
                 >
-                  <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
-                    {(userData?.name || '').slice(0,2).toUpperCase()}
-                  </div>
+                  {userData?.profilePicture ? (
+                    <img
+                      className="h-8 w-8 rounded-full object-cover"
+                      src={userData.profilePicture}
+                      alt="Profile"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
+                      {(userData?.name || '').slice(0,2).toUpperCase()}
+                    </div>
+                  )}
                   <span className="text-sm text-gray-700 font-medium hidden lg:inline">{userData?.name || 'User'}</span>
                   <svg className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
                 </button>
@@ -63,6 +71,13 @@ function NavBar() {
                       <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-600">
                         Role: {userData?.role?.toUpperCase() || 'VOTER'}
                       </div>
+                      <Link 
+                        to="/profile" 
+                        onClick={() => setIsProfileOpen(false)}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+                      >
+                        Profile
+                      </Link>
                       <button onClick={() => { setIsProfileOpen(false); logout() }} className="w-full text-left px-4 py-2 text-red-700 hover:bg-red-50">Sign out</button>
                     </div>
                   </div>
