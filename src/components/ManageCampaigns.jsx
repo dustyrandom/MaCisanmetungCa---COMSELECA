@@ -115,7 +115,7 @@ function ManageCampaigns() {
                 >
                   {savingStatus ? 'Updating…' : (campaignStatus.isActive ? 'Close Campaign' : 'Open Campaign')}
                 </button>
-                <span className="text-sm text-gray-600">{campaignStatus.isActive ? 'Campaign submissions are open' : 'Campaign submissions are closed'}</span>
+                <span className="text-sm text-gray-600">{campaignStatus.isActive ? 'Campaign materials submission is open' : 'Campaign materials submission is closed'}</span>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
@@ -152,7 +152,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Pending</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'pending').length === 0 ? (
-                        <div className="text-sm text-gray-500">No pending submissions.</div>
+                        <div className="text-sm text-gray-500">No pending campaign materials.</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'pending').map(s => {
                           // Find user profile by matching email or name
@@ -218,7 +218,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Approved</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'approved').length === 0 ? (
-                        <div className="text-sm text-gray-500">No approved submissions.</div>
+                        <div className="text-sm text-gray-500">No approved campaign materials.</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'approved').map(s => {
                           // Find user profile by matching email or name
@@ -283,7 +283,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Rejected</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'rejected').length === 0 ? (
-                        <div className="text-sm text-gray-500">No rejected submissions.</div>
+                        <div className="text-sm text-gray-500">No rejected campaign materials.</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'rejected').map(s => {
                           // Find user profile by matching email or name
