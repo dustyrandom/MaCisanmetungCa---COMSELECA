@@ -64,7 +64,7 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 underline"
             >
-              {documentLabels[docKey] || docKey.replace(/([A-Z])/g, ' $1').trim()} {/* DOCUMENT LABELS */}
+              {documentLabels[docKey] || docKey} {/* NEW DOCUMENT LABELS */}
             </a>
           ))}
         </div>
@@ -511,7 +511,7 @@ function ManageCandidates() {
           <div className="space-y-8">
             {/* Pending Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-red-900 mb-4">Awaiting Your Review</h2>
+              <h2 className="text-lg font-semibold text-red-900 mb-4">Submitted Candidacy Applications</h2>
               {applications.filter(app => app.status === 'submitted').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'submitted').map((app) => (
@@ -526,14 +526,14 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No applications awaiting review.</p>
+                  <p className="text-gray-500">No candidacy awaiting review.</p>
                 </div>
               )}
             </div>
 
             {/* Reviewed Applications (Screening) */}
             <div>
-              <h2 className="text-lg font-semibold text-blue-700 mb-4">Reviewed Applications - Screening</h2>
+              <h2 className="text-lg font-semibold text-blue-700 mb-4">Reviewed Candidacy - Screening</h2>
               {applications.filter(app => app.status === 'reviewed').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'reviewed').map((app) => (
@@ -550,14 +550,14 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No applications in screening.</p>
+                  <p className="text-gray-500">No reviewed candicacy.</p>
                 </div>
               )}
             </div>
 
             {/* Approved Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Applications</h2>
+              <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Candidacy</h2>
               {applications.filter(app => app.status === 'approved').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'approved').map((app) => (
@@ -572,14 +572,14 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No approved applications.</p>
+                  <p className="text-gray-500">No approved candicacy.</p>
                 </div>
               )}
             </div>
 
             {/* Rejected Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Applications</h2>
+              <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Candidacy</h2>
               {applications.filter(app => app.status === 'rejected').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'rejected').map((app) => (
@@ -594,7 +594,7 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No rejected applications.</p>
+                  <p className="text-gray-500">No rejected candidacy.</p>
                 </div>
               )}
             </div>
@@ -606,9 +606,9 @@ function ManageCandidates() {
           const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
           return (
             <div className="space-y-8">
-              {/* Pending Appointments */}
+              {/* Pending Screening Appointments */}
               <div>
-                <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Appointments</h2>
+                <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
                 {byStatus('pending').length > 0 ? (
                   <div className="space-y-4">
                     {byStatus('pending').map(app => (
@@ -630,9 +630,9 @@ function ManageCandidates() {
                 )}
               </div>
 
-              {/* Approved Appointments */}
+              {/* Approved Screening Appointments */}
               <div>
-                <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Appointments</h2>
+                <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
                 {byStatus('approved').length > 0 ? (
                   <div className="space-y-4">
                     {byStatus('approved').map(app => (
@@ -656,7 +656,7 @@ function ManageCandidates() {
 
               {/* Rejected Appointments */}
               <div>
-                <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Appointments</h2>
+                <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Screening Appointments</h2>
                 {byStatus('rejected').length > 0 ? (
                   <div className="space-y-4">
                     {byStatus('rejected').map(app => (
