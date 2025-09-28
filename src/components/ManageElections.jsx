@@ -426,7 +426,7 @@ function ManageElections() {
         {activeTab === 'candidates' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">SSC Candidates</h2>
+              <h2 className="text-xl font-semibold text-red-900 mb-6">Supreme Student Council Candidates</h2>
               {sscRoles.map(role => {
                 const roleCandidates = candidates.filter(c => c.role === role)
                 return (
@@ -469,7 +469,7 @@ function ManageElections() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">ISC Candidates by Institute</h2>
+              <h2 className="text-xl font-semibold text-red-900 mb-6">nstitute Student Council Candidates by Institute</h2>
               {institutes.map(institute => {
                 const instituteCandidates = candidates.filter(c => getRoleCategory(c.role) === 'ISC' && c.institute === institute)
                 return (

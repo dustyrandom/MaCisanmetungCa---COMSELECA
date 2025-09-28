@@ -441,7 +441,7 @@ function ManageCandidates() {
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Appointment</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Open Date & Time</label>
