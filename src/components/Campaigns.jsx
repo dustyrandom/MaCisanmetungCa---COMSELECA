@@ -50,13 +50,13 @@ function Campaigns() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaigns</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaign</h1>
         <p className="text-gray-600 mb-8">Campaign materials from candidates.</p>
 
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="text-gray-500">No approved campaigns yet.</div>
+          <div className="text-gray-500">No approved campaign materials yet.</div>
         ) : (
           <div className="space-y-6">
             {items.map(s => {

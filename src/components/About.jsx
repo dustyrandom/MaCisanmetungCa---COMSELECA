@@ -13,7 +13,7 @@ function About() {
             {/* Left: 60% heading + text */}
             <div className="lg:col-span-3 text-gray-800 space-y-6">
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide text-red-900 mb-10">
-                PEACE. HONESTY. ORDERLY
+                PEACE. HONESTY. ORDERLY.
               </h1>
               <h2 className="text-xl font-semibold text-red-900 mb-2">About</h2>
               <p>
