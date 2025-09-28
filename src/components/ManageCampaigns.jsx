@@ -85,7 +85,7 @@ function ManageCampaigns() {
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Manage Campaigns</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Manage Campaign Materials</h1>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">Filter:</span>
                 <select value={filter} onChange={e => setFilter(e.target.value)} className="border rounded px-3 py-1 text-sm">
@@ -184,7 +184,7 @@ function ManageCampaigns() {
                                     <div className="text-xs text-gray-500">Submitted: {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : 'N/A'}</div>
                                   </div>
                                 </div>
-                                <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">pending</span>
+                                <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">Pending</span>
                               </div>
                               {s.caption && <div className="text-sm text-gray-800 mt-3">{s.caption}</div>}
                             {Array.isArray(s.media) && s.media.length > 0 && (
@@ -250,7 +250,7 @@ function ManageCampaigns() {
                                     <div className="text-xs text-gray-500">Submitted: {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : 'N/A'}</div>
                                   </div>
                                 </div>
-                                <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">approved</span>
+                                <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">Approved</span>
                               </div>
                               {s.caption && <div className="text-sm text-gray-800 mt-3">{s.caption}</div>}
                             {Array.isArray(s.media) && s.media.length > 0 && (
@@ -315,7 +315,7 @@ function ManageCampaigns() {
                                     <div className="text-xs text-gray-500">Submitted: {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : 'N/A'}</div>
                                   </div>
                                 </div>
-                                <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-800">rejected</span>
+                                <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-800">Rejected</span>
                               </div>
                               {s.caption && <div className="text-sm text-gray-800 mt-3">{s.caption}</div>}
                             {Array.isArray(s.media) && s.media.length > 0 && (

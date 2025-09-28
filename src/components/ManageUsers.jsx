@@ -10,6 +10,9 @@ function ManageUsers() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
 
+  const [filteredUsers, setFilteredUsers] = useState([]); // search results
+  const [searchId, setSearchId] = useState("");      // input value
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -39,6 +42,20 @@ function ManageUsers() {
       setLoading(false)
     }
   }, [userData])
+
+    {/* SEARCH NEW */}
+    useEffect(() => {
+    if (!searchId.trim()) {
+      setFilteredUsers(users); // show all if empty
+    } else {
+      const results = users.filter((user) =>
+        user.studentId?.toLowerCase().includes(searchId.toLowerCase())
+      );
+      setFilteredUsers(results);
+    }
+  }, [searchId, users]);
+
+
 
   const updateUserRole = async (uid, newRole) => {
     try {
@@ -104,6 +121,17 @@ function ManageUsers() {
           <p className="text-gray-600 mt-1">View and manage user accounts and roles</p>
         </div>
 
+        {/* LIVE SEARCH BAR NEW */}
+        <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search users by Student ID"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+          className="border px-3 py-2 rounded w-64"
+        />
+        </div>
+
         {message && (
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-blue-800">{message}</p>
@@ -128,65 +156,92 @@ function ManageUsers() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
+
+                {/*SEARCH BAR RESULTS NEW */}
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((u) => (
-                    <tr key={u.uid}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            {u.profilePicture ? (
-                              <img
-                                className="h-10 w-10 rounded-full object-cover"
-                                src={u.profilePicture}
-                                alt={u.name || 'User'}
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                                {(u.name || 'U').slice(0, 2).toUpperCase()}
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((u) => (
+                      <tr key={u.uid}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              {u.profilePicture ? (
+                                <img
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  src={u.profilePicture}
+                                  alt={u.name || "User"}
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
+                                  {(u.name || "U").slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {u.name || "Unknown"}
                               </div>
-                            )}
+                              <div className="text-sm text-gray-500">{u.email}</div>
+                            </div>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{u.name || 'Unknown'}</div>
-                            <div className="text-sm text-gray-500">{u.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {u.institute || '—'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {u.studentId || '—'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(u.role)}`}>
-                          {u.role?.toUpperCase() || 'UNKNOWN'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.emailVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {u.emailVerified ? 'VERIFIED' : 'UNVERIFIED'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {u.uid !== user.uid && (
-                          <select
-                            value={u.role || 'voter'}
-                            onChange={(e) => updateUserRole(u.uid, e.target.value)}
-                            className="text-xs border border-gray-300 rounded px-2 py-1"
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {u.institute || "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {u.studentId || "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(
+                              u.role
+                            )}`}
                           >
-                            <option value="voter">Voter</option>
-                            <option value="candidate">Candidate</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        )}
-                        {u.uid === user.uid && (
-                          <span className="text-xs text-gray-500">Current User</span>
-                        )}
+                            {u.role?.toUpperCase() || "UNKNOWN"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              u.emailVerified
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {u.emailVerified ? "VERIFIED" : "UNVERIFIED"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {u.uid !== user.uid ? (
+                            <select
+                              value={u.role || "voter"}
+                              onChange={(e) => updateUserRole(u.uid, e.target.value)}
+                              className="text-xs border border-gray-300 rounded px-2 py-1"
+                            >
+                              <option value="voter">Voter</option>
+                              <option value="candidate">Candidate</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          ) : (
+                            <span className="text-xs text-gray-500">
+                              Current User
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center text-gray-500 py-4"
+                      >
+                        No users found.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
+
               </table>
             </div>
           </div>
