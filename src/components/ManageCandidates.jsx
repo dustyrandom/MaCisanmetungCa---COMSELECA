@@ -421,7 +421,7 @@ function ManageCandidates() {
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'appointments' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('appointments')}
             >
-              Appointments
+              Screening Appointments
             </button>
             <button
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
