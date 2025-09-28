@@ -12,6 +12,19 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
       return value || ''
     }
   }
+
+  const documentLabels = {
+  coc: "Certificate of Candidacy",
+  cog: "Certificate of Good Moral",
+  cor: "Certificate of Registration",
+  loa: "Leave of Absence",
+  goodMoral: "Good Moral Certificate",
+  psychologicalEvaluation: "Psychological Evaluation",
+  letterOfIntent: "Letter of Intent",
+  letterOfMotivation: "Letter of Motivation",
+  resignationLetter: "Resignation Letter",
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'submitted':
@@ -51,7 +64,7 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 underline"
             >
-              {docKey.replace(/([A-Z])/g, ' $1').trim()}
+              {documentLabels[docKey] || docKey.replace(/([A-Z])/g, ' $1').trim()} {/* DOCUMENT LABELS */}
             </a>
           ))}
         </div>
