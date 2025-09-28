@@ -612,7 +612,7 @@ function ManageCandidates() {
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No pending appointments.</p>
+                    <p className="text-gray-500">No pending screening appointments.</p>
                   </div>
                 )}
               </div>
@@ -636,7 +636,7 @@ function ManageCandidates() {
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No approved appointments.</p>
+                    <p className="text-gray-500">No approved screening appointments.</p>
                   </div>
                 )}
               </div>
@@ -660,7 +660,7 @@ function ManageCandidates() {
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No rejected appointments.</p>
+                    <p className="text-gray-500">No rejected screening appointments.</p>
                   </div>
                 )}
               </div>
