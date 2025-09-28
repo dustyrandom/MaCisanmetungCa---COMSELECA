@@ -469,7 +469,7 @@ function ManageElections() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">nstitute Student Council Candidates by Institute</h2>
+              <h2 className="text-xl font-semibold text-red-900 mb-6">Institute Student Council Candidates</h2>
               {institutes.map(institute => {
                 const instituteCandidates = candidates.filter(c => getRoleCategory(c.role) === 'ISC' && c.institute === institute)
                 return (
