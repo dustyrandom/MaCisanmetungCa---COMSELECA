@@ -29,7 +29,7 @@ function PublicResultsContent({ forceVisible = false }) {
   const sscRoles = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Governor','Vice Governor','Records','Finance','Audit','Publication','Public Relation','Resources']
+  const iscRoles = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
   const institutes = [
     'Institute of Arts and Sciences',
     'Institute of Business and Computing Education',
@@ -165,7 +165,7 @@ function PublicResultsContent({ forceVisible = false }) {
       <div className="mt-12">
         <h3 className="text-center text-xl font-bold text-gray-800 mb-6">Supreme Student Council</h3>
         {candidates.filter(c => sscRoles.includes(c.role)).length === 0 ? (
-        <div className="text-center text-red-800"> No candidates for SUPREME STUDENT COUNCIL. </div>
+        <div className="text-center text-red-800 italic text-sm"> No candidates for Supreme Student Council. </div>
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {sscRoles.map(role => {
@@ -204,52 +204,101 @@ function PublicResultsContent({ forceVisible = false }) {
 
       {/* ISC Position Results by Institute */}
       <div className="mt-12">
-        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">Institute Student Council</h3>
+        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">
+          Institute Student Council
+        </h3>
         <div className="space-y-10">
           {institutes.map(institute => {
-            const instituteCandidates = candidates.filter(c => c.institute === institute && iscRoles.includes(c.role))
-            if (instituteCandidates.length === 0) return (
-              <div key={institute} className="text-center text-red-800">No candidates for {institute}.</div>
+            const instituteCandidates = candidates.filter(
+              c => c.institute === institute && iscRoles.includes(c.role)
             )
+
             return (
               <div key={institute}>
-                <h4 className="text-center font-semibold mb-4 text-gray-800">{institute}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {iscRoles.map(role => {
-                    const roleCandidates = instituteCandidates.filter(c => c.role === role)
-                    if (roleCandidates.length === 0) return null
-                    const counts = {}
-                    votes.forEach(v => {
-                      const key = `${institute}-${role}`
-                      const selected = v.votes?.[key]
-                      const arr = Array.isArray(selected) ? selected : (selected ? [selected] : [])
-                      arr.forEach(id => { counts[id] = (counts[id] || 0) + 1 })
-                    })
-                    const data = roleCandidates.map(c => ({ name: c.name, value: counts[c.id] || 0 }))
-                    return (
-                      <div key={`${institute}-${role}`} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-                        <h3 className="text-center text-sm font-semibold text-gray-700 mb-2">{role}</h3>
-                        <div className="h-72">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={96} innerRadius={40} label>
-                                {data.map((entry, index) => (
-                                  <PieCell key={`isc-${institute}-${role}-${index}`} fill={pieColors[index % pieColors.length]} />
-                                ))}
-                              </Pie>
-                              <Tooltip formatter={(value, name) => [value, name]} />
-                            </PieChart>
-                          </ResponsiveContainer>
+                {/* Always show the institute */}
+                <h4 className="text-center text-lg font-semibold mb-4 text-gray-800">
+                  {institute}
+                </h4>
+
+                {instituteCandidates.length === 0 ? (
+                  <p className="text-center text-red-800 italic text-sm">
+                    No candidates for this institute yet.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {iscRoles.map(role => {
+                      const roleCandidates = instituteCandidates.filter(
+                        c => c.role === role
+                      )
+                      if (roleCandidates.length === 0) return null
+
+                      // Count votes
+                      const counts = {}
+                      votes.forEach(v => {
+                        const key = `${institute}-${role}`
+                        const selected = v.votes?.[key]
+                        const arr = Array.isArray(selected)
+                          ? selected
+                          : selected
+                          ? [selected]
+                          : []
+                        arr.forEach(
+                          id => (counts[id] = (counts[id] || 0) + 1)
+                        )
+                      })
+
+                      const data = roleCandidates.map(c => ({
+                        name: c.name,
+                        value: counts[c.id] || 0,
+                      }))
+
+                      return (
+                        <div
+                          key={`${institute}-${role}`}
+                          className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6"
+                        >
+                          <h3 className="text-center text-sm font-semibold text-gray-700 mb-2">
+                            {role}
+                          </h3>
+                          <div className="h-72">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={data}
+                                  dataKey="value"
+                                  nameKey="name"
+                                  cx="50%"
+                                  cy="50%"
+                                  outerRadius={96}
+                                  innerRadius={40}
+                                  label
+                                >
+                                  {data.map((entry, index) => (
+                                    <PieCell
+                                      key={`isc-${institute}-${role}-${index}`}
+                                      fill={
+                                        pieColors[index % pieColors.length]
+                                      }
+                                    />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  formatter={(value, name) => [value, name]}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
       </div>
+
       
     </>
   )

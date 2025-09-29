@@ -18,15 +18,9 @@ function ViewResults() {
   
 
   const sscRoles = [
-    'President', 'Vice President', 'General Secretary', 'Internal Secretary', 'External Secretary',
-    'Finance Officer', 'Audit Officer', 'Student Welfare and Rights Officer',
-    'Multimedia Officers', 'Editorial Officer', 'Logistics Officer'
+    'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-
-  const iscRoles = [
-    'Governor', 'Vice Governor', 'Records', 'Finance', 'Audit',
-    'Publication', 'Public Relation', 'Resources'
-  ]
+  const iscRoles = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
 
   const institutes = [
     'Institute of Arts and Sciences',

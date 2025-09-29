@@ -35,12 +35,12 @@ function VotingPage() {
   const iscRoles = [
     { name: 'Governor', maxVotes: 1 },
     { name: 'Vice Governor', maxVotes: 1 },
-    { name: 'Records', maxVotes: 1 },
-    { name: 'Finance', maxVotes: 1 },
-    { name: 'Audit', maxVotes: 1 },
-    { name: 'Publication', maxVotes: 1 },
-    { name: 'Public Relation', maxVotes: 1 },
-    { name: 'Resources', maxVotes: 1 }
+    { name: 'Board Member on Records', maxVotes: 1 },
+    { name: 'Board Member on Finance', maxVotes: 1 },
+    { name: 'Board Member on Audit', maxVotes: 1 },
+    { name: 'Board Member on Publication', maxVotes: 1 },
+    { name: 'Board Member on Public Relation', maxVotes: 1 },
+    { name: 'Board Member on Resources', maxVotes: 1 }
   ]
 
   useEffect(() => {

@@ -56,7 +56,7 @@ function Campaigns() {
         {loading ? (
           <div className="text-gray-500">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="text-gray-500">No approved campaign materials yet.</div>
+          <div className="text-red-800 text-sm italic">No approved campaign materials yet.</div>
         ) : (
           <div className="space-y-6">
             {items.map(s => {
