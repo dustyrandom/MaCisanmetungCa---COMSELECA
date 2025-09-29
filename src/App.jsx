@@ -28,6 +28,8 @@ import CampaignSubmit from './components/CampaignSubmit'
 import ManageCampaigns from './components/ManageCampaigns'
 import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
+import Candidates from './components/Candidates'
+
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
             <Route path="/result" element={<Result />} />
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/vote" element={<Vote />} />
+            <Route path="/candidates" element={<Candidates />} />
             
             {/* Public routes - redirect authenticated users */}
             <Route 
@@ -196,4 +199,3 @@ function App() {
 }
 
 export default App
- 

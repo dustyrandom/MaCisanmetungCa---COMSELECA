@@ -216,10 +216,10 @@ function Register() {
                         required
                       >
                         <option value="" disabled>Select Institute</option>
-                        <option value="INSTITUTE OF ARTS AND SCIENCES">INSTITUTE OF ARTS AND SCIENCES</option>
-                        <option value="INSTITUTE OF BUSINESS AND COMPUTING EDUCATION">INSTITUTE OF BUSINESS AND COMPUTING EDUCATION</option>
-                        <option value="INSTITUTE OF TEACHER EDUCATION">INSTITUTE OF TEACHER EDUCATION</option>
-                        <option value="INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT">INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT</option>
+                        <option value="Institute of Arts and Sciences">Institute of Arts and Sciences</option>
+                        <option value="Institute of Business and Computing Education">Institute of Business and Computing Education</option>
+                        <option value="Institute of Teacher Education">Institute of Teacher Education</option>
+                        <option value="Institute of Hospitality and Tourism Management">Institute of Hospitality and Tourism Management</option>
                       </select>
                     </div>
 

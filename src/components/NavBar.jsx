@@ -29,8 +29,9 @@ function NavBar() {
           </div>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 relative">
+          <nav className="hidden md:flex items-center space-x-5 relative">
             <Link to="/" className={`${baseLink} ${isActive('/') ? activeClasses : inactiveClasses}`}>HOME</Link>
+            <Link to="/candidates" className={`${baseLink} ${isActive('/candidates') ? activeClasses : inactiveClasses}`}>CANDIDATES</Link>
             <Link to="/campaigns" className={`${baseLink} ${isActive('/campaigns') ? activeClasses : inactiveClasses}`}>CAMPAIGN</Link>
             <Link to="/vote" className={`${baseLink} ${isActive('/vote') ? activeClasses : inactiveClasses}`}>VOTE</Link>
             <Link to="/result" className={`${baseLink} ${isActive('/result') ? activeClasses : inactiveClasses}`}>RESULT</Link>
@@ -108,6 +109,9 @@ function NavBar() {
           <div className="md:hidden px-4 pb-3 space-y-1">
             <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-900' : 'text-red-800'}`}>
               <span className={`${isActive('/') ? 'inline-block border-b border-red-900' : ''}`}>HOME</span>
+            </Link>
+            <Link to="/candidates" className={`block py-2 text-base ${isActive('/candidates') ? 'text-red-900' : 'text-red-800'}`}>
+              <span className={`${isActive('/candidates') ? 'inline-block border-b border-red-900' : ''}`}>CANDIDATES</span>
             </Link>
             <Link to="/campaigns" className={`block py-2 text-base ${isActive('/campaigns') ? 'text-red-900' : 'text-red-800'}`}>
               <span className={`${isActive('/campaigns') ? 'inline-block border-b border-red-900' : ''}`}>CAMPAIGN</span>

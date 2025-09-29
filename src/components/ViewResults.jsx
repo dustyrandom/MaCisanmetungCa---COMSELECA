@@ -18,21 +18,21 @@ function ViewResults() {
   
 
   const sscRoles = [
-    'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
+    'President', 'Vice President', 'General Secretary', 'Internal Secretary', 'External Secretary',
     'Finance Officer', 'Audit Officer', 'Student Welfare and Rights Officer',
     'Multimedia Officers', 'Editorial Officer', 'Logistics Officer'
   ]
 
   const iscRoles = [
-    'Gov', 'Vice Gov', 'Records', 'Finance', 'Audit',
+    'Governor', 'Vice Governor', 'Records', 'Finance', 'Audit',
     'Publication', 'Public Relation', 'Resources'
   ]
 
   const institutes = [
-    'INSTITUTE OF ARTS AND SCIENCES',
-    'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION',
-    'INSTITUTE OF TEACHER EDUCATION',
-    'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT'
+    'Institute of Arts and Sciences',
+    'Institute of Business and Computing Education',
+    'Institute of Teacher Education',
+    'Institute of Hospitality and Tourism Management'
   ]
 
   useEffect(() => {
@@ -472,7 +472,7 @@ function ViewResults() {
                                     <p className="text-sm text-gray-600">{candidate.studentId}</p>
                                     <p className="text-sm text-gray-600">{candidate.institute}</p>
                                     {candidate.team && (
-                                      <p className="text-sm text-purple-600">Team: {candidate.team}</p>
+                                      <p className="text-sm text-purple-600">Party: {candidate.team}</p>
                                     )}
                                     <div className="mt-3">
                                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -524,7 +524,7 @@ function ViewResults() {
                                               <p className="text-sm text-gray-600">{candidate.email}</p>
                                               <p className="text-sm text-gray-600">{candidate.studentId}</p>
                                               {candidate.team && (
-                                                <p className="text-sm text-purple-600">Team: {candidate.team}</p>
+                                                <p className="text-sm text-purple-600">Party: {candidate.team}</p>
                                               )}
                                               <div className="mt-3">
                                                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -560,7 +560,7 @@ function ViewResults() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Publish Results to Public Page</h3>
-                    <p className="text-sm text-gray-600">Controls visibility of the public /result page.</p>
+                    <p className="text-sm text-gray-600">Controls visibility of the result page.</p>
                   </div>
                   <label className="inline-flex items-center cursor-pointer select-none">
                     <input

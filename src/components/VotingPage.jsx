@@ -20,7 +20,7 @@ function VotingPage() {
 
   const sscRoles = [
     { name: 'President', maxVotes: 1 },
-    { name: 'Vice', maxVotes: 1 },
+    { name: 'Vice President', maxVotes: 1 },
     { name: 'General Secretary', maxVotes: 1 },
     { name: 'Internal Secretary', maxVotes: 1 },
     { name: 'External Secretary', maxVotes: 1 },
@@ -33,8 +33,8 @@ function VotingPage() {
   ]
 
   const iscRoles = [
-    { name: 'Gov', maxVotes: 1 },
-    { name: 'Vice Gov', maxVotes: 1 },
+    { name: 'Governor', maxVotes: 1 },
+    { name: 'Vice Governor', maxVotes: 1 },
     { name: 'Records', maxVotes: 1 },
     { name: 'Finance', maxVotes: 1 },
     { name: 'Audit', maxVotes: 1 },

@@ -37,9 +37,9 @@ function Dashboard() {
           <a href="/admin/manage-news" className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 text-center">Manage News</a>
           <a href="/admin/manage-announcements" className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 text-center">Manage Announcements</a>
           <a href="/admin/manage-candidates" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-center">Manage Candidates</a>
-          <a href="/admin/manage-campaigns" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">Manage Campaigns</a>
+          <a href="/admin/manage-campaigns" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">Manage Campaign Materials</a>
           <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">Manage Elections</a>
-          <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">View Results</a>
+          <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">Election Results</a>
           <a href="/admin/manage-users" className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 text-center">Manage Users</a>
         </div>
       </div>

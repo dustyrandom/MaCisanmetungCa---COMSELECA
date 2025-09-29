@@ -27,14 +27,14 @@ function PublicResultsContent({ forceVisible = false }) {
 
   const pieColors = ['#ef4444', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#f43f5e', '#22c55e', '#eab308']
   const sscRoles = [
-    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
+    'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Gov','Vice Gov','Records','Finance','Audit','Publication','Public Relation','Resources']
+  const iscRoles = ['Governor','Vice Governor','Records','Finance','Audit','Publication','Public Relation','Resources']
   const institutes = [
-    'INSTITUTE OF ARTS AND SCIENCES',
-    'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION',
-    'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT',
-    'INSTITUTE OF TEACHER EDUCATION'
+    'Institute of Arts and Sciences',
+    'Institute of Business and Computing Education',
+    'Institute of Teacher Education',
+    'Institute of Hospitality and Tourism Management'
   ]
 
   useEffect(() => {
@@ -104,10 +104,6 @@ function PublicResultsContent({ forceVisible = false }) {
     loadPublicFlag()
   }, [])
 
-  const combinedRoleOrder = [
-    'President','Vice','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer','Gov','Vice Gov','Records','Finance','Audit','Publication','Public Relation','Resources'
-  ]
-
   if (!forceVisible && !publicVisible) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-yellow-200">
@@ -167,7 +163,10 @@ function PublicResultsContent({ forceVisible = false }) {
 
       {/* SSC Position Results */}
       <div className="mt-12">
-        <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">SSC Positions</h3>
+        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">Supreme Student Council</h3>
+        {candidates.filter(c => sscRoles.includes(c.role)).length === 0 ? (
+        <div className="text-center text-red-800"> No candidates for SUPREME STUDENT COUNCIL. </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {sscRoles.map(role => {
             const roleCandidates = candidates.filter(c => c.role === role)
@@ -178,8 +177,9 @@ function PublicResultsContent({ forceVisible = false }) {
               const arr = Array.isArray(selected) ? selected : (selected ? [selected] : [])
               arr.forEach(id => { counts[id] = (counts[id] || 0) + 1 })
             })
+
             const data = roleCandidates.map(c => ({ name: c.name, value: counts[c.id] || 0 }))
-            if (data.every(d => d.value === 0)) return null
+            
             return (
               <div key={role} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                 <h3 className="text-center text-sm font-semibold text-gray-700 mb-2">{role}</h3>
@@ -199,16 +199,17 @@ function PublicResultsContent({ forceVisible = false }) {
             )
           })}
         </div>
+        )}
       </div>
 
       {/* ISC Position Results by Institute */}
       <div className="mt-12">
-        <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">ISC Positions</h3>
+        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">Institute Student Council</h3>
         <div className="space-y-10">
           {institutes.map(institute => {
             const instituteCandidates = candidates.filter(c => c.institute === institute && iscRoles.includes(c.role))
             if (instituteCandidates.length === 0) return (
-              <div key={institute} className="text-center text-gray-500">No candidates for {institute}.</div>
+              <div key={institute} className="text-center text-red-800">No candidates for {institute}.</div>
             )
             return (
               <div key={institute}>
@@ -249,120 +250,6 @@ function PublicResultsContent({ forceVisible = false }) {
           })}
         </div>
       </div>
-
-      {/* Partylist section remains */}
-      <div className="mt-12">
-        <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Partylist</h3>
-        {loadingTeams ? (
-          <div className="text-center text-gray-500">Loading…</div>
-        ) : (
-          (() => {
-            const teams = Array.from(new Set(candidates.filter(c => (c.team || '').trim() !== '').map(c => c.team.trim())))
-            if (teams.length === 0) {
-              return <div className="text-center text-gray-500">No teams to display.</div>
-            }
-            const groups = []
-            for (let i = 0; i < teams.length; i += 3) {
-              groups.push(teams.slice(i, i + 3))
-            }
-            const colorByIndex = (i) => i % 3 === 0 ? { title: 'text-blue-700', badge: 'bg-blue-200 text-blue-800' } : i % 3 === 1 ? { title: 'text-amber-600', badge: 'bg-amber-200 text-amber-800' } : { title: 'text-green-700', badge: 'bg-green-200 text-green-800' }
-            return (
-              <div className="space-y-8">
-                {groups.map((group, groupIdx) => (
-                  <div key={groupIdx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {group.map((teamName, innerIdx) => {
-                        const { title, badge } = colorByIndex(innerIdx)
-                        const teamCandidates = candidates.filter(c => ((c.team || '').trim().toUpperCase()) === teamName.toUpperCase())
-                        const roleToNames = teamCandidates.reduce((acc, c) => {
-                          const role = c.role || ''
-                          if (!acc[role]) acc[role] = []
-                          acc[role].push(c.name)
-                          return acc
-                        }, {})
-                        const rolesForTeam = Object.keys(roleToNames).sort((a, b) => {
-                          const ia = combinedRoleOrder.indexOf(a)
-                          const ib = combinedRoleOrder.indexOf(b)
-                          if (ia === -1 && ib === -1) return a.localeCompare(b)
-                          if (ia === -1) return 1
-                          if (ib === -1) return -1
-                          return ia - ib
-                        })
-                        return (
-                          <div key={`${teamName}-${innerIdx}`}>
-                            <h4 className={`text-center font-semibold mb-4 ${title}`}>{teamName}</h4>
-                            {rolesForTeam.length > 0 ? (
-                              <div className="space-y-3 text-center text-sm">
-                                {rolesForTeam.map((role) => (
-                                  <div key={role} className="space-y-1">
-                                    <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{role}</div>
-                                    <div className="text-gray-800">
-                                      {roleToNames[role].map((name, i) => (
-                                        <div key={`${role}-${i}`}>{name}</div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center text-gray-500">No roles for this team.</div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          })()
-        )}
-      </div>
-
-      <div className="mt-12">
-        <h3 className="text-center text-lg font-semibold text-gray-800 mb-6">Individual</h3>
-        {loadingTeams ? (
-          <div className="text-center text-gray-500">Loading…</div>
-        ) : (
-          (() => {
-            const individuals = candidates.filter(c => !c.team || c.team.trim() === '')
-            if (individuals.length === 0) {
-              return <div className="text-center text-gray-500">No individuals to display.</div>
-            }
-            const roleToNames = individuals.reduce((acc, c) => {
-              const role = c.role || ''
-              if (!acc[role]) acc[role] = []
-              acc[role].push(c.name)
-              return acc
-            }, {})
-            const roles = Object.keys(roleToNames).sort((a, b) => {
-              const ia = combinedRoleOrder.indexOf(a)
-              const ib = combinedRoleOrder.indexOf(b)
-              if (ia === -1 && ib === -1) return a.localeCompare(b)
-              if (ia === -1) return 1
-              if (ib === -1) return -1
-              return ia - ib
-            })
-            return (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {roles.map(role => (
-                    <div key={role}>
-                      <h4 className="text-center font-semibold mb-4 text-gray-800">{role}</h4>
-                      <div className="space-y-2 text-center text-sm">
-                        {roleToNames[role].map((name, i) => (
-                          <div key={`${role}-${i}`} className="text-gray-800">{name}</div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })()
-        )}
-      </div>
-
       
     </>
   )

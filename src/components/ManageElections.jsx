@@ -31,21 +31,21 @@ function ManageElections() {
   // Voting page handles only voting
 
   const sscRoles = [
-    'President', 'Vice', 'General Secretary', 'Internal Secretary', 'External Secretary',
+    'President', 'Vice President', 'General Secretary', 'Internal Secretary', 'External Secretary',
     'Finance Officer', 'Audit Officer', 'Student Welfare and Rights Officer',
     'Multimedia Officers', 'Editorial Officer', 'Logistics Officer'
   ]
 
   const iscRoles = [
-    'Gov', 'Vice Gov', 'Records', 'Finance', 'Audit',
+    'Governor', 'Vice Governor', 'Records', 'Finance', 'Audit',
     'Publication', 'Public Relation', 'Resources'
   ]
 
   const institutes = [
-    'INSTITUTE OF ARTS AND SCIENCES',
-    'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION',
-    'INSTITUTE OF TEACHER EDUCATION',
-    'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT'
+    'Institute of Arts and Sciences',
+    'Institute of Business and Computing Education',
+    'Institute of Teacher Education',
+    'Institute of Hospitality and Tourism Management'
   ]
 
   useEffect(() => {
@@ -426,7 +426,7 @@ function ManageElections() {
         {activeTab === 'candidates' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">Supreme Student Council Candidates</h2>
+              <h2 className="text-xl font-semibold text-red-900 mb-6">SUPREME STUDENT COUNCIL CANDIDATES</h2>
               {sscRoles.map(role => {
                 const roleCandidates = candidates.filter(c => c.role === role)
                 return (
@@ -441,7 +441,7 @@ function ManageElections() {
                             <p className="text-sm text-gray-600">{candidate.studentId}</p>
                             <p className="text-sm text-gray-600">{candidate.institute}</p>
                             {candidate.team && (
-                              <p className="text-sm text-purple-600">Team: {candidate.team}</p>
+                              <p className="text-sm text-purple-600">Party: {candidate.team}</p>
                             )}
                             <div className="mt-3 flex gap-2">
                               <button
@@ -461,7 +461,7 @@ function ManageElections() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 italic">No candidates for this position yet.</p>
+                      <p className="text-red-800 italic">No candidates for this position yet.</p>
                     )}
                   </div>
                 )
@@ -469,7 +469,7 @@ function ManageElections() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">Institute Student Council Candidates</h2>
+              <h2 className="text-xl font-semibold text-red-900 mb-6">INSTITUTE STUDENT COUNCIL CANDIDATES</h2>
               {institutes.map(institute => {
                 const instituteCandidates = candidates.filter(c => getRoleCategory(c.role) === 'ISC' && c.institute === institute)
                 return (
@@ -490,7 +490,7 @@ function ManageElections() {
                                       <p className="text-sm text-gray-600">{candidate.email}</p>
                                       <p className="text-sm text-gray-600">{candidate.studentId}</p>
                                       {candidate.team && (
-                                        <p className="text-sm text-purple-600">Team: {candidate.team}</p>
+                                        <p className="text-sm text-purple-600">Party: {candidate.team}</p>
                                       )}
                                       <div className="mt-3 flex gap-2">
                                         <button
@@ -510,14 +510,14 @@ function ManageElections() {
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-gray-500 italic text-sm">No candidates for this position yet.</p>
+                                <p className="text-red-500 italic text-sm">No candidates for this position yet.</p>
                               )}
                             </div>
                           )
                         })}
                       </div>
                     ) : (
-                      <p className="text-gray-500 italic">No candidates for this institute yet.</p>
+                      <p className="text-red-800 italic">No candidates for this institute yet.</p>
                     )}
                   </div>
                 )
@@ -606,7 +606,7 @@ function ManageElections() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Party Name</label>
                     <input
                       type="text"
                       value={formData.team}
@@ -616,14 +616,14 @@ function ManageElections() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
                     <select
                       value={formData.role}
                       onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
                       className="w-full border rounded px-3 py-2"
                       required
                     >
-                      <option value="">Select Role</option>
+                      <option value="">Select position</option>
                       <optgroup label="SSC">
                         {sscRoles.map(role => (
                           <option key={role} value={role}>{role}</option>
