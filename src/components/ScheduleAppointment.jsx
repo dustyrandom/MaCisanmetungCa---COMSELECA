@@ -16,6 +16,8 @@ function ScheduleAppointment() {
   const [message, setMessage] = useState('')
   const [canReschedule, setCanReschedule] = useState(false)
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
+  const [slots, setSlots] = useState([])
+
 
   useEffect(() => {
     const load = async () => {
@@ -60,6 +62,15 @@ function ScheduleAppointment() {
       } finally {
         setLoading(false)
       }
+
+      // Load slots
+      const slotsRef = dbRef(db, "appointmentStatus/slots")
+      const slotsSnap = await get(slotsRef)
+      if (slotsSnap.exists()) {
+        const data = slotsSnap.val()
+        const available = Object.keys(data).filter(k => data[k].available)
+        setSlots(available)
+      }
     }
     load()
   }, [user, navigate])
@@ -100,13 +111,7 @@ function ScheduleAppointment() {
         console.error('Invalid screening window comparison', e)
       }
     }
-    // Prevent scheduling in the past
-    const now = new Date()
-    const selected = new Date(dateTime)
-    if (selected < now) {
-      setMessage('Please choose a future date and time')
-      return
-    }
+    
     try {
       const appt = {
         dateTime,
@@ -117,6 +122,9 @@ function ScheduleAppointment() {
       }
       const apptRef = dbRef(db, `candidacyApplications/${user.uid}/${application.id}/appointment`)
       await set(apptRef, appt)
+
+      await set(dbRef(db, `appointmentStatus/slots/${dateTime}/available`), false)
+
       setMessage('Appointment submitted. Awaiting admin approval.')
       setApplication(prev => prev ? { ...prev, appointment: appt } : prev)
       setCanReschedule(false)
@@ -170,7 +178,18 @@ function ScheduleAppointment() {
                 <form onSubmit={submit} className="space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{canReschedule ? 'Reschedule Date & Time' : 'Date & Time'}</label>
-                    <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0,16)} className="w-full border rounded px-3 py-2" />
+                    <select
+                      value={dateTime}
+                      onChange={(e) => setDateTime(e.target.value)}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      <option value="">-- Select an Available Slot --</option>
+                      {slots.map((slot) => (
+                        <option key={slot} value={slot}>
+                          {new Date(slot).toLocaleString()}
+                        </option>
+                      ))}
+                    </select>
                     {(appointmentStatus?.startDate && appointmentStatus?.endDate) && (
                       <p className="mt-1 text-xs text-yellow-700">Accepting bookings from {new Date(appointmentStatus.startDate).toLocaleString()} to {new Date(appointmentStatus.endDate).toLocaleString()}.</p>
                     )}

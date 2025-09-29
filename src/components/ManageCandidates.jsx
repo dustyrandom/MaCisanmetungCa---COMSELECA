@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { ref as dbRef, get, update, set } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
+import { ref as dbRef, get, update, set, remove, onValue } from 'firebase/database'
 
 function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId }) {
   const formatDateTime = (value) => {
@@ -161,6 +161,10 @@ function ManageCandidates() {
   const [savingId, setSavingId] = useState('')
   const [savingScreening, setSavingScreening] = useState(false)
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
+  const [newSlot, setNewSlot] = useState("")
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [slotToDelete, setSlotToDelete] = useState(null)
+
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -185,18 +189,32 @@ function ManageCandidates() {
           setApplications(allApps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
         }
 
-        const swSnap = await get(dbRef(db, 'appointmentStatus'))
-        if (swSnap.exists()) {
-          setAppointmentStatus(swSnap.val())
-        } else {
-          const nextDay = new Date()
-          nextDay.setDate(nextDay.getDate() + 1)
-          nextDay.setHours(9, 0, 0, 0)
-          const end = new Date(nextDay)
-          end.setHours(17, 0, 0, 0)
-          const toLocalInput = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16)
-          setAppointmentStatus({ isActive: false, startDate: toLocalInput(nextDay), endDate: toLocalInput(end) })
-        }
+        // 🔴 Realtime appointmentStatus listener
+        const statusRef = dbRef(db, 'appointmentStatus')
+        const unsubscribe = onValue(statusRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setAppointmentStatus(snapshot.val())
+          } else {
+            const nextDay = new Date()
+            nextDay.setDate(nextDay.getDate() + 1)
+            nextDay.setHours(9, 0, 0, 0)
+            const end = new Date(nextDay)
+            end.setHours(17, 0, 0, 0)
+            const toLocalInput = (d) =>
+              new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+
+            setAppointmentStatus({
+              isActive: false,
+              startDate: toLocalInput(nextDay),
+              endDate: toLocalInput(end),
+              slots: {}
+            })
+          }
+        })
+
+        // ✅ Cleanup when component unmounts
+        return () => unsubscribe()
+
       } catch (error) {
         console.error('Error fetching applications:', error)
         setMessage('Failed to load applications.')
@@ -455,50 +473,62 @@ function ManageCandidates() {
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Open Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={appointmentStatus.startDate || ''}
-                    onChange={(e) => setAppointmentStatus(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Add Appointment Slot</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="datetime-local"
+                      value={newSlot}
+                      onChange={(e) => setNewSlot(e.target.value)}
+                      className="border rounded px-3 py-2 flex-1"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!newSlot) return
+                        const slotRef = dbRef(db, `appointmentStatus/slots/${newSlot}`)
+                        await set(slotRef, { available: true })
+                        setNewSlot("")
+                        setMessage("Slot added successfully")
+                        setTimeout(() => setMessage(""), 2000)
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded"
+                    >
+                      Add Slot
+                    </button>
+                  </div>
                 </div>
+
+                {/* Display slots */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Close Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={appointmentStatus.endDate || ''}
-                    onChange={(e) => setAppointmentStatus(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                  />
+                  <h4 className="text-sm font-medium text-gray-800 mb-2">Available Slots</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    {appointmentStatus.slots
+                      ? Object.keys(appointmentStatus.slots).map((s) => (
+                          <li key={s} className="flex justify-between items-center border rounded px-3 py-1">
+                            <span>{new Date(s).toLocaleString()}</span>
+                            <div className="flex items-center gap-3">
+                              <span className={appointmentStatus.slots[s].available ? "text-green-600" : "text-red-600"}>
+                                {appointmentStatus.slots[s].available ? "Available" : "Booked"}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setSlotToDelete(s)
+                                  setShowDeleteModal(true)
+                                }}
+                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                              >
+                                Delete
+                              </button>
+                            </div>  
+                          </li>
+                        ))
+                      : <p>No slots created yet.</p>}
+                  </ul>
+
                 </div>
-              </div>
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={async () => {
-                    try {
-                      setSavingScreening(true)
-                      // Save only schedule fields; active will be derived at runtime
-                      const toSave = { startDate: appointmentStatus.startDate || '', endDate: appointmentStatus.endDate || '' }
-                      await set(dbRef(db, 'appointmentStatus'), toSave)
-                      setAppointmentStatus(prev => ({ ...prev, ...toSave }))
-                      setMessage('Appointment settings saved.')
-                      setTimeout(() => setMessage(''), 2500)
-                    } catch (e) {
-                      console.error('Failed to save appointment settings', e)
-                      setMessage('Failed to save appointment settings')
-                    } finally {
-                      setSavingScreening(false)
-                    }
-                  }}
-                  disabled={savingScreening}
-                  className={`px-4 py-2 rounded text-white ${savingScreening ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-gray-900'}`}
-                >
-                  {savingScreening ? 'Saving…' : 'Save Settings'}
-                </button>
-              </div>
+            </div>
+            
             </div>
           </div>
         )}
@@ -681,6 +711,51 @@ function ManageCandidates() {
           )
         })()}
       </div>
+
+        {/* 🔽 Add modal here, outside slot list */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Slot</h3>
+              <p className="text-gray-700 mb-6">
+                Delete slot on <span className="font-medium">{new Date(slotToDelete).toLocaleString()}</span>?<br/>
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await remove(dbRef(db, `appointmentStatus/slots/${slotToDelete}`))
+                      setAppointmentStatus(prev => {
+                        const updated = { ...prev }
+                        if (updated.slots) delete updated.slots[slotToDelete]
+                        return updated
+                      })
+                      setMessage("Slot deleted successfully")
+                    } catch (e) {
+                      console.error("Failed to delete slot", e)
+                      setMessage("Failed to delete slot")
+                    } finally {
+                      setShowDeleteModal(false)
+                      setSlotToDelete(null)
+                      setTimeout(() => setMessage(""), 2000)
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
     </div>
   )
 }

@@ -24,7 +24,7 @@ function NavBar() {
             <img src={iconHeader} alt="MaCisanmetungCa Icon" className="h-12 w-12" />
             <div>
               <h1 className="text-2xl font-bold text-red-800">MaCisanmetungCa</h1>
-              <p className="text-sm text-gray-600">COMSELECA - MABALACAT CITY COLLEGE</p>
+              <p className="text-sm text-gray-600">MABALACAT CITY COLLEGE - COMSELECA</p>
             </div>
           </div>
           

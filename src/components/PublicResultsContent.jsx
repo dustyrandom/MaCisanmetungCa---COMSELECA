@@ -19,8 +19,8 @@ function PublicResultsContent({ forceVisible = false }) {
   const [barData, setBarData] = useState([
     { name: 'IAS', value: 0, color: '#10b981' },
     { name: 'IBCE', value: 0, color: '#f59e0b' },
-    { name: 'IHTM', value: 0, color: '#ec4899' },
     { name: 'ITE', value: 0, color: '#3b82f6' },
+    { name: 'IHTM', value: 0, color: '#ec4899' },
   ])
   const [publicVisible, setPublicVisible] = useState(true)
   const [votes, setVotes] = useState([])
@@ -163,7 +163,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
       {/* SSC Position Results */}
       <div className="mt-12">
-        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">Supreme Student Council</h3>
+        <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">Supreme Student Council</h3>
         {candidates.filter(c => sscRoles.includes(c.role)).length === 0 ? (
         <div className="text-center text-red-800 italic text-sm"> No candidates for Supreme Student Council. </div>
         ) : (
@@ -204,7 +204,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
       {/* ISC Position Results by Institute */}
       <div className="mt-12">
-        <h3 className="text-center text-xl font-bold text-gray-800 mb-6">
+        <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
           Institute Student Council
         </h3>
         <div className="space-y-10">

@@ -8,7 +8,7 @@ function Vote() {
         <h1 className="text-center text-2xl sm:text-3xl font-extrabold tracking-wide text-red-900 mb-8">
           MACIPANYULUNGCA 2025 - STUDENT COUNCIL ELECTIONS
         </h1>
-        <h1 className="text-center text-2xl sm:text-2xl font-extrabold tracking-wide text-red-900 mb-4">
+        <h1 className="text-center text-2xl sm:text-2xl font-extrabold tracking-wide text-gray-800 mb-4">
           VOTING GUIDELINES
         </h1>
 
