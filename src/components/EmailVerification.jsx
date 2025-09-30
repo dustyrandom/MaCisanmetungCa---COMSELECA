@@ -36,7 +36,15 @@ function EmailVerification() {
     setMessage('')
 
     try {
-      await sendEmailVerification(user)
+      const actionCodeSettings = {
+        url:
+          import.meta.env.MODE === "development"
+            ? "http://localhost:5173/verify-email"
+            : "https://macisanmetungca.vercel.app/verify-email",
+        handleCodeInApp: true,
+      };
+
+      await sendEmailVerification(user, actionCodeSettings)
       setMessage('Verification email sent successfully!')
     } catch (error) {
       console.error('Resend verification error:', error)
