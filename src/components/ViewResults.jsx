@@ -478,7 +478,7 @@ function ViewResults() {
                               })}
                             </div>
                           ) : (
-                            <p className="text-gray-500 italic">No candidates for this position yet.</p>
+                            <p className="text-red-800 italic text-sm ">No candidates for this position yet.</p>
                           )}
                         </div>
                       )
@@ -530,14 +530,14 @@ function ViewResults() {
                                         })}
                                       </div>
                                     ) : (
-                                      <p className="text-gray-500 italic text-sm">No candidates for this position yet.</p>
+                                      <p className="text-red-800 italic text-sm">No candidates for this position yet.</p>
                                     )}
                                   </div>
                                 )
                               })}
                             </div>
                           ) : (
-                            <p className="text-gray-500 italic">No candidates for this institute yet.</p>
+                            <p className="text-red-800 italic text-sm">No candidates for this institute yet.</p>
                           )}
                         </div>
                       )

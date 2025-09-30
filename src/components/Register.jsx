@@ -20,6 +20,13 @@ function Register() {
     confirmPassword: '',
     role: 'voter'
   })
+  const [passwordRules, setPasswordRules] = useState({
+    length: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    symbol: false,
+  });
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -38,13 +45,41 @@ function Register() {
     return email.endsWith('@mcc.edu.ph')
   }
 
+  const validatePassword = (password) => {
+  // At least 8 chars, one number, one special character
+  const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+  return regex.test(password);
+  };
+
+  const validateStudentId = (id) => {
+    // Format: 1234-5678
+    const regex = /^\d{4}-\d{4}$/;
+    return regex.test(id);
+  };
+
+  const checkPasswordRules = (password) => {
+    setPasswordRules({
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /[0-9]/.test(password),
+      symbol: /[!@#$%^&*]/.test(password),
+    });
+  };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
     if (!validateEmail(formData.email)) {
-      setError('Only @mcc.edu.ph emails are allowed')
+      setError('Only Mabalacat City College emails are allowed')
       return
+    }
+
+    if (!validateStudentId(formData.studentId)) {
+      setError('Student ID must be in the format 1234-5678 and contain only numbers');
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -52,9 +87,9 @@ function Register() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
-      return
+    if (!passwordRules.length || !passwordRules.lowercase || !passwordRules.uppercase || !passwordRules.number || !passwordRules.symbol) {
+      setError('Password does not meet all requirements');
+      return;
     }
 
     setLoading(true)
@@ -198,13 +233,22 @@ function Register() {
                       <input
                         type="text"
                         name="studentId"
-                        placeholder="Student ID"
+                        placeholder="Student ID (e.g. 1234-5678)"
                         value={formData.studentId}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/[^0-9]/g, ""); // remove all non-numeric chars
+                          if (value.length > 4) {
+                            value = value.slice(0, 4) + "-" + value.slice(4, 8); // insert dash
+                          }
+                          if (value.length > 9) value = value.slice(0, 9); // limit length
+                          setFormData({ ...formData, studentId: value });
+                        }}
                         className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
                         required
                       />
+                      <p className="mt-1 text-xs text-gray-500">Format: 1234-5678</p>
                     </div>
+
 
                     {/* Institute Field (Dropdown) */}
                     <div>
@@ -246,7 +290,6 @@ function Register() {
                       <p className="mt-1 text-xs text-gray-500">Only @mcc.edu.ph emails are allowed</p>
                     </div>
 
-
                     {/* Password Field */}
                     <div>
                       <div className="relative">
@@ -260,7 +303,10 @@ function Register() {
                           name="password"
                           placeholder="Password"
                           value={formData.password}
-                          onChange={handleChange}
+                          onChange={(e) => {
+                          handleChange(e);
+                          checkPasswordRules(e.target.value);
+                        }}
                           className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
                           required
                         />
@@ -278,6 +324,38 @@ function Register() {
                           </svg>
                         </button>
                       </div>
+
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              Object.values(passwordRules).filter(Boolean).length === 4
+                                ? "bg-green-600"
+                                : "bg-red-600"
+                            }`}
+                            style={{ width: `${(Object.values(passwordRules).filter(Boolean).length / 4) * 100}%` }}
+                          ></div>
+                        </div>
+
+                        <div className="mt-2 text-sm">
+                          <p className="font-medium">Password must contain:</p>
+                          <ul className="space-y-1 mt-1">
+                            <li className={passwordRules.length ? "text-green-600" : "text-red-600"}>
+                              {passwordRules.length ? "✔" : "✖"} At least 8 characters
+                            </li>
+                            <li className={passwordRules.lowercase ? "text-green-600" : "text-red-600"}>
+                              {passwordRules.lowercase ? "✔" : "✖"} At least one lowercase letter
+                            </li>
+                            <li className={passwordRules.uppercase ? "text-green-600" : "text-red-600"}>
+                              {passwordRules.uppercase ? "✔" : "✖"} At least one uppercase letter
+                            </li>
+                            <li className={passwordRules.number ? "text-green-600" : "text-red-600"}>
+                              {passwordRules.number ? "✔" : "✖"} At least one number
+                            </li>
+                            <li className={passwordRules.symbol ? "text-green-600" : "text-red-600"}>
+                              {passwordRules.symbol ? "✔" : "✖"} At least one special symbol (!@#$%^&*)
+                            </li>
+                          </ul>
+                        </div>
                     </div>
 
                     {/* Confirm Password Field */}
