@@ -213,6 +213,18 @@ function ResetPassword() {
             </div>
           </div>
 
+          {message && (
+            <div
+              className={`text-sm text-center p-3 rounded-lg mt-4 ${
+                message === "Password has been reset successfully. Redirecting to login..."
+                  ? "bg-green-50 text-green-700 border border-green-200"
+                  : "bg-red-50 text-red-700 border border-red-200"
+              }`}
+            >
+              {message}
+            </div>
+          )}
+
           {/* Submit */}
           <button
             type="submit"
@@ -222,9 +234,6 @@ function ResetPassword() {
             {loading ? "Resetting..." : "Reset Password"}
           </button>
 
-          {message && (
-            <p className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg mt-4">{message}</p>
-          )}
         </form>
       </div>
     </div>
