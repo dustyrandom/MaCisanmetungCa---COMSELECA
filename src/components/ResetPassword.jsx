@@ -223,7 +223,7 @@ function ResetPassword() {
           </button>
 
           {message && (
-            <p className="mt-4 text-center text-sm text-gray-700">{message}</p>
+            <p className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg mt-4">{message}</p>
           )}
         </form>
       </div>
