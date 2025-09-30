@@ -77,7 +77,6 @@ function App() {
                 </PublicRoute>
               } 
             />
-            <Route path="/__/auth/action" element={<ResetPassword />} />
             <Route 
               path="/candidacy-application" 
               element={

@@ -15,11 +15,6 @@ function ForgotPassword() {
   setLoading(true)
 
   try {
-    await sendPasswordResetEmail(auth, email, {
-  url: "https://macisanmetungca.vercel.app/reset-password",
-  handleCodeInApp: true,
-})
-
     setMessage('Password reset email sent. Check your inbox.')
   } catch (error) {
     if (error.code === 'auth/user-not-found') {
