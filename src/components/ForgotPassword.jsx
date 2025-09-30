@@ -10,24 +10,34 @@ function ForgotPassword() {
   const [message, setMessage] = useState('')
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage('')
-    setLoading(true)
-    try {
-      await sendPasswordResetEmail(auth, email)
-      setMessage('Password reset email sent. Check your inbox.')
-    } catch (error) {
-      if (error.code === 'auth/user-not-found') {
-        setMessage('No account found with this email.')
-      } else if (error.code === 'auth/invalid-email') {
-        setMessage('Invalid email address.')
-      } else {
-        setMessage('Failed to send reset email. Please try again.')
-      }
-    } finally {
-      setLoading(false)
+  e.preventDefault()
+  setMessage('')
+  setLoading(true)
+
+  try {
+    const actionCodeSettings = {
+      url:
+        import.meta.env.MODE === "development"
+          ? "http://localhost:5173/reset-password"
+          : "https://macisanmetungca.vercel.app/reset-password",
+      handleCodeInApp: true,
     }
+
+    await sendPasswordResetEmail(auth, email, actionCodeSettings)
+    setMessage('Password reset email sent. Check your inbox.')
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      setMessage('No account found with this email.')
+    } else if (error.code === 'auth/invalid-email') {
+      setMessage('Invalid email address.')
+    } else {
+      setMessage('Failed to send reset email. Please try again.')
+    }
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className="min-h-screen bg-gray-50">
