@@ -15,15 +15,7 @@ function ForgotPassword() {
   setLoading(true)
 
   try {
-    const actionCodeSettings = {
-      url:
-        import.meta.env.MODE === "development"
-          ? "http://localhost:5173/reset-password"
-          : "https://macisanmetungca.vercel.app/reset-password",
-      handleCodeInApp: true,
-    };
-
-    await sendPasswordResetEmail(auth, email, actionCodeSettings)
+    await sendPasswordResetEmail(auth, email)
     setMessage('Password reset email sent. Check your inbox.')
   } catch (error) {
     if (error.code === 'auth/user-not-found') {
