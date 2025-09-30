@@ -108,7 +108,15 @@ function Register() {
         console.warn('Unable to set displayName:', e)
       }
 
-      await sendEmailVerification(userCredential.user)
+      const actionCodeSettings = {
+  url:
+    import.meta.env.MODE === "development"
+      ? "http://localhost:5173/verify-email"
+      : "https://macisanmetungca.vercel.app/verify-email",
+  handleCodeInApp: true,
+};
+
+await sendEmailVerification(userCredential.user, actionCodeSettings);
 
       await set(ref(db, `users/${userCredential.user.uid}`), {
         name: formData.name,

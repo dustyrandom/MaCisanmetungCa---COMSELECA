@@ -30,6 +30,7 @@ import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
 import Candidates from './components/Candidates'
 import ResetPassword from './components/ResetPassword'
+import AuthAction from "./components/AuthAction";
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
                 </PublicRoute>
               } 
             />
+            <Route path="/auth-action" element={<AuthAction />} />
             <Route 
               path="/register" 
               element={
