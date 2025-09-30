@@ -54,7 +54,6 @@ function App() {
                 </PublicRoute>
               } 
             />
-            <Route path="/auth-action" element={<AuthAction />} />
             <Route 
               path="/register" 
               element={
