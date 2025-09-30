@@ -29,7 +29,7 @@ import ManageCampaigns from './components/ManageCampaigns'
 import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
 import Candidates from './components/Candidates'
-
+import ResetPassword from './components/ResetPassword'
 
 function App() {
   return (
@@ -66,6 +66,14 @@ function App() {
               element={
                 <PublicRoute>
                   <ForgotPassword />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/reset-password" 
+              element={
+                <PublicRoute>
+                  <ResetPassword />
                 </PublicRoute>
               } 
             />
