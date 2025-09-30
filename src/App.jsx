@@ -30,7 +30,6 @@ import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
 import Candidates from './components/Candidates'
 import ResetPassword from './components/ResetPassword'
-import AuthAction from "./components/AuthAction";
 
 function App() {
   return (
