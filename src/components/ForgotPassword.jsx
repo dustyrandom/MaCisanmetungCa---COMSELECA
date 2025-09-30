@@ -15,14 +15,6 @@ function ForgotPassword() {
   setLoading(true)
 
   try {
-    const actionCodeSettings = {
-      url:
-        import.meta.env.MODE === "development"
-          ? "http://localhost:5173/reset-password"
-          : "https://macisanmetungca.vercel.app/reset-password",
-      handleCodeInApp: true,
-    }
-
     await sendPasswordResetEmail(auth, email, actionCodeSettings)
     setMessage('Password reset email sent. Check your inbox.')
   } catch (error) {
@@ -37,7 +29,6 @@ function ForgotPassword() {
     setLoading(false)
   }
 }
-
 
   return (
     <div className="min-h-screen bg-gray-50">
