@@ -13,16 +13,8 @@ function ForgotPassword() {
     e.preventDefault()
     setMessage('')
     setLoading(true)
-    
-    const actionCodeSettings = {
-      url: `${import.meta.env.VITE_BASE_URL}/reset-password`,
-      handleCodeInApp: false,
-    }
-
-
-    
     try {
-      await sendPasswordResetEmail(auth, email, actionCodeSettings)
+      await sendPasswordResetEmail(auth, email)
       setMessage('Password reset email sent. Check your inbox.')
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
