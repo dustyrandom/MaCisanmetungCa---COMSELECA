@@ -29,7 +29,8 @@ import ManageCampaigns from './components/ManageCampaigns'
 import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
 import Candidates from './components/Candidates'
-import ResetPassword from './components/ResetPassword'
+import ActivityLog from './components/ActivityLog'
+//import ResetPassword from './components/ResetPassword'
 
 function App() {
   return (
@@ -69,14 +70,14 @@ function App() {
                 </PublicRoute>
               } 
             />
-            <Route 
+            {/*<Route 
               path="/reset-password" 
               element={
                 <PublicRoute>
                   <ResetPassword />
                 </PublicRoute>
               } 
-            /> 
+            />*/}
             <Route 
               path="/candidacy-application" 
               element={
@@ -114,6 +115,13 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ManageUsers />
+                </ProtectedRoute>
+              } 
+            /><Route 
+              path="/admin/activity-log" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ActivityLog />
                 </ProtectedRoute>
               } 
             />

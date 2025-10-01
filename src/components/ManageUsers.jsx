@@ -3,6 +3,7 @@ import { ref as dbRef, get, update } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
+import { logActivity } from '../utils/logActivity'
 
 function ManageUsers() {
   const { user, userData } = useAuth()
@@ -67,7 +68,8 @@ function ManageUsers() {
           u.uid === uid ? { ...u, role: newRole } : u
         )
       )
-      
+      const updatedUser = users.find(u => u.uid === uid)
+      logActivity(userData.name, `Updated role of ${updatedUser?.name || uid} to ${newRole}`)
       setMessage(`User role updated to ${newRole} successfully.`)
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {

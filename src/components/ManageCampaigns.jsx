@@ -3,6 +3,7 @@ import { ref as dbRef, get, set, remove } from 'firebase/database'
 import { db } from '../firebase'
 import NavBar from './NavBar'
 import ImageModal from './ImageModal'
+import { logActivity } from '../utils/logActivity'
 
 function ManageCampaigns() {
   const [submissions, setSubmissions] = useState([])
@@ -11,7 +12,7 @@ function ManageCampaigns() {
   const [filter, setFilter] = useState('all')
   const [fullscreenImage, setFullscreenImage] = useState(null)
   const [userProfiles, setUserProfiles] = useState({})
-  const [campaignStatus, setCampaignStatus] = useState({ isActive: false, startDate: '', endDate: '' })
+  const [campaignStatus, setCampaignStatus] = useState({ startDate: '', endDate: '' })
   const [savingStatus, setSavingStatus] = useState(false)
 
   useEffect(() => {
@@ -63,6 +64,8 @@ function ManageCampaigns() {
       const ref = dbRef(db, `campaignSubmissions/${s.candidateId}/${s.id}`)
       await set(ref, { ...s, status, reviewedAt: new Date().toISOString() })
       setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status, reviewedAt: new Date().toISOString() } : x))
+      const updatedUser = users.find(u => u.uid === uid)
+      logActivity(userData.name, `Marked campaign material of ${updatedUser?.name || s.candidateId} as ${status}`)
     } finally {
       setSavingId('')
     }
@@ -73,6 +76,8 @@ function ManageCampaigns() {
       setSavingId(s.id)
       await remove(dbRef(db, `campaignSubmissions/${s.candidateId}/${s.id}`))
       setSubmissions(prev => prev.filter(x => x.id !== s.id))
+      const updatedUser = users.find(u => u.uid === uid)
+      logActivity( userData.name, `Deleted campaign material of ${updatedUser?.name || s.candidateId}`)
     } finally {
       setSavingId('')
     }
@@ -100,7 +105,9 @@ function ManageCampaigns() {
             {/* Settings - Campaign Status */}
             <div className="mb-8 border rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-2">
+                
+                {/*
                 <button
                   onClick={async () => {
                     try {
@@ -116,6 +123,8 @@ function ManageCampaigns() {
                   {savingStatus ? 'Updating…' : (campaignStatus.isActive ? 'Close Campaign' : 'Open Campaign')}
                 </button>
                 <span className="text-sm text-gray-600">{campaignStatus.isActive ? 'Campaign materials submission is open' : 'Campaign materials submission is closed'}</span>
+                */}
+                
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>

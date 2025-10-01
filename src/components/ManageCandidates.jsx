@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 import { ref as dbRef, get, update, set, remove, onValue } from 'firebase/database'
+import { logActivity } from '../utils/logActivity'
 
 function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId }) {
   const formatDateTime = (value) => {
@@ -248,6 +249,9 @@ function ManageCandidates() {
         await update(userRef, { role: 'candidate' })
       }
       
+      const updatedUser = applications.find(app => app.uid === uid)
+      logActivity(userData.name, `Updated candidacy status of ${updatedUser?.applicant?.name || uid} to ${status}`)
+
       // Send email notification
       await sendStatusEmail(uid, status)
       
@@ -259,6 +263,17 @@ function ManageCandidates() {
         )
       )
       
+
+      const updatedApp = applications.find(app => app.uid === uid && app.id === appId)
+      logActivity(
+        userData.name,
+        status === 'reviewed'
+          ? `Reviewed candidacy application of ${updatedApp?.applicant?.name || uid}`
+          : status === 'approved'
+            ? `Approved candidacy application of ${updatedApp?.applicant?.name || uid}`
+            : `Rejected candidacy application of ${updatedApp?.applicant?.name || uid}`
+      )
+
       setMessage(`Application ${status} successfully! Email notification sent.${status === 'approved' ? ' User role updated to candidate.' : ''}`)
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
@@ -283,6 +298,9 @@ function ManageCandidates() {
       await update(apptRef, { status: decision })
       const historyRef = dbRef(db, `candidacyApplications/${uid}/${appId}/appointmentHistory/${Date.now()}`)
       await set(historyRef, historyItem)
+
+      const updatedUser = applications.find(app => app.uid === uid)
+      logActivity(userData.name, `${decision === 'approved' ? 'Approved' : 'Rejected'} screening appointment of ${updatedUser?.applicant?.name || uid}`)
 
       // Send email on decision
       if (decision === 'approved') {
@@ -434,7 +452,7 @@ function ManageCandidates() {
       <NavBar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Admin Management</h1>
+          <h1 className="text-2xl font-bold text-red-900">Candidacy Management</h1>
           <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
         </div>
 
@@ -446,7 +464,7 @@ function ManageCandidates() {
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'candidacy' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               onClick={() => setActiveTab('candidacy')}
             >
-              Candidacy
+              Applications
             </button>
             <button
               className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'appointments' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
@@ -490,6 +508,7 @@ function ManageCandidates() {
                         await set(slotRef, { available: true })
                         setNewSlot("")
                         setMessage("Slot added successfully")
+                        logActivity(userData.name, `Added new screening appointment slot on ${new Date(newSlot).toLocaleString()}`)
                         setTimeout(() => setMessage(""), 2000)
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -563,7 +582,7 @@ function ManageCandidates() {
 
             {/* Reviewed Applications (Screening) */}
             <div>
-              <h2 className="text-lg font-semibold text-blue-700 mb-4">Reviewed Candidacy - Screening</h2>
+              <h2 className="text-lg font-semibold text-blue-700 mb-4">Reviewed Candidacy Applications (After Screening)</h2>
               {applications.filter(app => app.status === 'reviewed').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'reviewed').map((app) => (
@@ -587,7 +606,7 @@ function ManageCandidates() {
 
             {/* Approved Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Candidacy</h2>
+              <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Candidacy Applications</h2>
               {applications.filter(app => app.status === 'approved').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'approved').map((app) => (
@@ -609,7 +628,7 @@ function ManageCandidates() {
 
             {/* Rejected Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Candidacy</h2>
+              <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Candidacy Applications</h2>
               {applications.filter(app => app.status === 'rejected').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'rejected').map((app) => (
@@ -738,6 +757,7 @@ function ManageCandidates() {
                         return updated
                       })
                       setMessage("Slot deleted successfully")
+                      logActivity(userData.name, `Deleted screening appointment slot on ${new Date(slotToDelete).toLocaleString()}`)
                     } catch (e) {
                       console.error("Failed to delete slot", e)
                       setMessage("Failed to delete slot")

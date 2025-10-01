@@ -364,7 +364,8 @@ function VotingPage() {
     let iconColor = 'text-red-600'
     let bgColor = 'bg-red-100'
     
-    if (startDate && endDate) {
+    {/*
+      if (startDate && endDate) {
       if (now < startDate) {
         statusMessage = `Voting will begin on ${new Date(votingStatus.startDate).toLocaleString()}`
         statusTitle = 'Voting Has Not Started'
@@ -383,6 +384,7 @@ function VotingPage() {
       iconColor = 'text-gray-600'
       bgColor = 'bg-gray-100'
     }
+    */}
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -397,11 +399,15 @@ function VotingPage() {
               </div>
               <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
               <p className="text-gray-600 mb-4">{statusMessage}</p>
+
+              {/*
               {votingStatus.startDate && votingStatus.endDate && (
                 <p className="text-sm text-gray-500">
                   Voting period: {new Date(votingStatus.startDate).toLocaleString()} - {new Date(votingStatus.endDate).toLocaleString()}
                 </p>
               )}
+              */}
+              
             </div>
             <a
               href="/dashboard"

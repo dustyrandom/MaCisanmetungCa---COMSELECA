@@ -3,6 +3,7 @@ import { ref as dbRef, get, set, push, update, remove } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
+import { logActivity } from '../utils/logActivity'
 
 function ManageElections() {
   const { userData } = useAuth()
@@ -158,12 +159,22 @@ function ManageElections() {
         const candidateRef = dbRef(db, `Election/${editingCandidate.id}`)
         await update(candidateRef, candidateData)
         setCandidates(prev => prev.map(c => c.id === editingCandidate.id ? { ...c, ...candidateData } : c))
+        try {
+        await logActivity(userData.name, `Edited candidate: ${candidateData.name} (${candidateData.role} - ${candidateData.team})`)
+        } catch (logError) {
+        console.error('Logging failed:', logError)
+        }
       } else {
         // Add new candidate
         const newCandidateRef = dbRef(db, 'Election')
         const newRef = await push(newCandidateRef, candidateData)
         const newId = newRef.key
         setCandidates(prev => [...prev, { id: newId, ...candidateData }])
+        try {
+        await logActivity(userData.name, `Added new candidate: ${candidateData.name} (${candidateData.role} - ${candidateData.team})`)
+        } catch (logError) {
+        console.error('Logging failed:', logError)
+        }
       }
 
       setFormData({
@@ -201,6 +212,13 @@ function ManageElections() {
       const candidateRef = dbRef(db, `Election/${deletingCandidate.id}`)
       await remove(candidateRef)
       setCandidates(prev => prev.filter(c => c.id !== deletingCandidate.id))
+
+      try {
+      await logActivity(userData.name, `Deleted candidate: ${deletingCandidate.name} (${deletingCandidate.role} - ${deletingCandidate.team}) `)
+      } catch (logError) {
+      console.error('Failed to log activity:', logError)
+      }
+
       setShowDeleteModal(false)
       setDeletingCandidate(null)
     } catch (error) {
@@ -240,7 +258,8 @@ function ManageElections() {
     }
   }
 
-  const handleToggleVoting = async () => {
+  {/*
+    const handleToggleVoting = async () => {
     setSaving(true)
     try {
       const newStatus = { ...votingStatus, isActive: !votingStatus.isActive }
@@ -258,7 +277,9 @@ function ManageElections() {
     } finally {
       setSaving(false)
     }
-  }
+  }  
+  */}
+  
 
   const handleSaveVotingSettings = async () => {
     setSaving(true)
@@ -268,6 +289,7 @@ function ManageElections() {
       
       const statusRef = dbRef(db, 'votingStatus')
       await set(statusRef, votingStatus)
+      
       setVoteModalError('')
       setVoteModalMessage('Voting settings saved successfully!')
       setShowVoteModal(true)
@@ -309,7 +331,7 @@ function ManageElections() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-red-900">Manage Elections</h1>
-          <p className="text-gray-600 mt-1">Manage candidates and voting periods</p>
+          <p className="text-gray-600 mt-1">Manage candidates and voting period</p>
         </div>
 
         {/* Tab Navigation */}
@@ -361,7 +383,7 @@ function ManageElections() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Voting Controls</h3>
               
-              <div className="flex items-center gap-4 mb-6">
+              {/*<div className="flex items-center gap-4 mb-6">
                 <button
                   onClick={handleToggleVoting}
                   disabled={saving}
@@ -376,7 +398,7 @@ function ManageElections() {
                 <span className="text-sm text-gray-600">
                   {votingStatus.isActive ? 'Voting is currently active' : 'Voting is currently inactive'}
                 </span>
-              </div>
+              </div>*/}
 
               <div className="space-y-4">
                 <div>

@@ -267,12 +267,12 @@ function ViewResults() {
                     </div>
 
                     <div className="border-t pt-4" id={`votes-${vote.uid}`}> 
-                      <h4 className="font-medium text-gray-900 mb-3">Votes Cast:</h4>
                       {expandedVotes[vote.uid] && (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Votes Cast:</h4>
                         {/* SSC Votes */}
                         <div>
-                          <h5 className="text-lg font-semibold text-red-900 mb-3">SSC Votes</h5>
+                          <h5 className="text-lg font-semibold text-red-900 mb-3">Supreme Student Council Votes</h5>
                           <div className="space-y-3">
                             {sscRoles.map(role => {
                               const selectedCandidates = vote.votes[role]
@@ -324,7 +324,7 @@ function ViewResults() {
 
                         {/* ISC Votes */}
                         <div>
-                          <h5 className="text-lg font-semibold text-red-900 mb-3">ISC Votes</h5>
+                          <h5 className="text-lg font-semibold text-red-900 mb-3">Institute Student Council Votes</h5>
                           <div className="space-y-3">
                             {(() => {
                               // Find the voter's institute by looking for ISC votes
