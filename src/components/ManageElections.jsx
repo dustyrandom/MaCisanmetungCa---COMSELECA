@@ -29,6 +29,7 @@ function ManageElections() {
   const [showVoteModal, setShowVoteModal] = useState(false)
   const [voteModalMessage, setVoteModalMessage] = useState('')
   const [voteModalError, setVoteModalError] = useState('')
+  const [dateError, setDateError] = useState("")
   // Voting page handles only voting
 
   const sscRoles = [
@@ -284,24 +285,82 @@ function ManageElections() {
   const handleSaveVotingSettings = async () => {
     setSaving(true)
     try {
-      // Check and update voting status based on dates
-      checkVotingStatus()
-      
-      const statusRef = dbRef(db, 'votingStatus')
-      await set(statusRef, votingStatus)
-      
-      setVoteModalError('')
-      setVoteModalMessage('Voting settings saved successfully!')
+      const now = new Date()
+      const start = votingStatus.startDate ? new Date(votingStatus.startDate) : null
+      const end = votingStatus.endDate ? new Date(votingStatus.endDate) : null
+
+      // Validate start date
+      if (start && start < now) {
+        setVoteModalMessage("")
+        setVoteModalError("Start date/time cannot be in the past.")
+        setShowVoteModal(true)
+        setSaving(false)
+        return
+      }
+
+      // Validate end date
+      if (end && end < now) {
+        setVoteModalMessage("")
+        setVoteModalError("End date/time cannot be in the past.")
+        setShowVoteModal(true)
+        setSaving(false)
+        return
+      }
+
+      // Validate start = end
+      if (start && end && start.getTime() === end.getTime()) {
+        setVoteModalMessage("")
+        setVoteModalError("Start and end date/time cannot be the same.")
+        setShowVoteModal(true)
+        setSaving(false)
+        return
+      }
+
+      // Validate start > end
+      if (start && end && start > end) {
+        setVoteModalMessage("")
+        setVoteModalError("Start date/time cannot be later than end date/time.")
+        setShowVoteModal(true)
+        setSaving(false)
+        return
+      }
+
+      await set(dbRef(db, 'votingStatus'), votingStatus)
+
+      try {
+        const formatDate = (dateStr) => {
+          const d = new Date(dateStr)
+          return d.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          })
+        }
+
+        await logActivity(
+          userData.name,
+          `Updated voting period: ${formatDate(votingStatus.startDate)} → ${formatDate(votingStatus.endDate)}`
+        )
+      } catch (logError) {
+        console.error('Logging failed:', logError)
+      }
+
+      setVoteModalError("")
+      setVoteModalMessage("Voting settings saved successfully!")
       setShowVoteModal(true)
     } catch (error) {
-      console.error('Failed to save voting status:', error)
-      setVoteModalMessage('')
-      setVoteModalError('Failed to save voting settings. Please try again.')
+      console.error("Failed to save voting status:", error)
+      setVoteModalMessage("")
+      setVoteModalError("Failed to save voting settings. Please try again.")
       setShowVoteModal(true)
     } finally {
       setSaving(false)
     }
   }
+
 
   if (userData?.role !== 'admin') {
     return (
@@ -401,26 +460,27 @@ function ManageElections() {
               </div>*/}
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={votingStatus.startDate}
-                    onChange={(e) => setVotingStatus(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                  />
-                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={votingStatus.startDate}
+                      onChange={(e) => setVotingStatus(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={votingStatus.endDate}
-                    onChange={(e) => setVotingStatus(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={votingStatus.endDate}
+                      onChange={(e) => setVotingStatus(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
                 </div>
-
               </div>
 
               <div className="mt-6 flex justify-end">
@@ -433,6 +493,7 @@ function ManageElections() {
                 </button>
               </div>
             </div>
+            
 
             {/* Appointment/Campaign controls moved to their own pages */}
           </div>

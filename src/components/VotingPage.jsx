@@ -359,8 +359,8 @@ function VotingPage() {
     const startDate = votingStatus.startDate ? new Date(votingStatus.startDate) : null
     const endDate = votingStatus.endDate ? new Date(votingStatus.endDate) : null
     
-    let statusMessage = 'Voting has not started yet. Please check back later.'
-    let statusTitle = 'Voting is Currently Inactive'
+    let statusMessage = 'Voting has not started yet. Please check the commission announcements.'
+    let statusTitle = 'Voting is currently inactive'
     let iconColor = 'text-red-600'
     let bgColor = 'bg-red-100'
     

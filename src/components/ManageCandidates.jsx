@@ -165,7 +165,7 @@ function ManageCandidates() {
   const [newSlot, setNewSlot] = useState("")
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [slotToDelete, setSlotToDelete] = useState(null)
-
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -190,7 +190,7 @@ function ManageCandidates() {
           setApplications(allApps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
         }
 
-        // 🔴 Realtime appointmentStatus listener
+        // Realtime appointmentStatus listener
         const statusRef = dbRef(db, 'appointmentStatus')
         const unsubscribe = onValue(statusRef, (snapshot) => {
           if (snapshot.exists()) {
@@ -203,7 +203,6 @@ function ManageCandidates() {
             end.setHours(17, 0, 0, 0)
             const toLocalInput = (d) =>
               new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-
             setAppointmentStatus({
               isActive: false,
               startDate: toLocalInput(nextDay),
@@ -213,7 +212,7 @@ function ManageCandidates() {
           }
         })
 
-        // ✅ Cleanup when component unmounts
+        // Cleanup when component unmounts
         return () => unsubscribe()
 
       } catch (error) {
@@ -481,12 +480,6 @@ function ManageCandidates() {
           </nav>
         </div>
 
-        {message && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800">{message}</p>
-          </div>
-        )}
-
         {activeTab === 'settings' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
@@ -503,19 +496,58 @@ function ManageCandidates() {
                     />
                     <button
                       onClick={async () => {
-                        if (!newSlot) return
-                        const slotRef = dbRef(db, `appointmentStatus/slots/${newSlot}`)
-                        await set(slotRef, { available: true })
-                        setNewSlot("")
-                        setMessage("Slot added successfully")
-                        logActivity(userData.name, `Added new screening appointment slot on ${new Date(newSlot).toLocaleString()}`)
-                        setTimeout(() => setMessage(""), 2000)
+                        if (!newSlot) {
+                          setMessage("Please select a date and time")
+                          setIsError(true)
+                          setTimeout(() => setMessage(""), 2000)
+                          return
+                        }
+
+                        const selectedDate = new Date(newSlot)
+                        const now = new Date()
+
+                        if (selectedDate < now) {
+                          setMessage("Cannot add a past date/time slot")
+                          setIsError(true)
+                          setTimeout(() => setMessage(""), 2000)
+                          return
+                        }
+
+                        try {
+                          const slotRef = dbRef(db, `appointmentStatus/slots/${newSlot}`)
+                          const existing = await get(slotRef)
+
+                          if (existing.exists()) {
+                            setMessage("This slot already exists")
+                            setIsError(true)
+                            setTimeout(() => setMessage(""), 2000)
+                            return
+                          }
+
+                          await set(slotRef, { available: true })
+                          setNewSlot("")
+                          setMessage("Slot added successfully")
+                          setIsError(false)
+                          logActivity(userData.name, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
+                          setTimeout(() => setMessage(""), 2000)
+                        } catch (err) {
+                          console.error("Error adding slot", err)
+                          setMessage("Failed to add slot")
+                          setIsError(true)
+                          setTimeout(() => setMessage(""), 2000)
+                        }
                       }}
                       className="px-4 py-2 bg-blue-600 text-white rounded"
                     >
                       Add Slot
                     </button>
+                    
                   </div>
+                  {message && (
+                    <p className={`mt-2 mb-4 text-sm ${isError ? "text-red-600" : "text-green-600"}`}>
+                      {message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Display slots */}
@@ -731,7 +763,6 @@ function ManageCandidates() {
         })()}
       </div>
 
-        {/* 🔽 Add modal here, outside slot list */}
         {showDeleteModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">

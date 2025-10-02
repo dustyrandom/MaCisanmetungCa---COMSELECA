@@ -269,7 +269,7 @@ function Candidates({ forceVisible = false }) {
                 (() => {
                   const individuals = candidates.filter(c => !c.team || c.team.trim() === '')
                   if (individuals.length === 0) {
-                    return <div className="text-center text-gray-500">No individuals to display.</div>
+                    return <div className="text-center text-gray-500">No candidates to display.</div>
                   }
                   const roleToNames = individuals.reduce((acc, c) => {
                     const role = c.role || ''

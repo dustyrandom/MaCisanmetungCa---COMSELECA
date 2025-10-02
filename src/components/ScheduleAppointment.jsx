@@ -190,9 +190,6 @@ function ScheduleAppointment() {
                         </option>
                       ))}
                     </select>
-                    {(appointmentStatus?.startDate && appointmentStatus?.endDate) && (
-                      <p className="mt-1 text-xs text-yellow-700">Accepting bookings from {new Date(appointmentStatus.startDate).toLocaleString()} to {new Date(appointmentStatus.endDate).toLocaleString()}.</p>
-                    )}
                   </div>
                   <p className="text-sm text-gray-600">Venue: <span className="font-medium">{VENUE}</span></p>
                   <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">{canReschedule ? 'Submit New Appointment' : 'Submit Appointment'}</button>

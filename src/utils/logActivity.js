@@ -1,16 +1,15 @@
-import { getDatabase, ref, push, set, serverTimestamp } from "firebase/database"
+import { db } from '../firebase'
+import { ref, push } from 'firebase/database'
 
-export const logActivity = async (adminName, action) => {
+export const logActivity = async (adminName, action, photoURL = null) => {
   try {
-    const db = getDatabase()
-    const logRef = ref(db, "activityLogs")
-    const newLogRef = push(logRef)
-    await set(newLogRef, {
+    const logsRef = ref(db, 'activityLogs')
+    await push(logsRef, {
       admin: adminName,
       action,
       timestamp: Date.now()
     })
-  } catch (err) {
-    console.error("Error logging activity:", err)
+  } catch (error) {
+    console.error("Error logging activity:", error)
   }
 }

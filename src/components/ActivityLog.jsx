@@ -1,29 +1,57 @@
 import { useEffect, useState } from "react"
 import { getDatabase, ref, onValue, remove } from "firebase/database"
 import NavBar from "./NavBar"
+import { useAuth } from "../contexts/AuthContext"
 
 function ActivityLog() {
+  const { user, userData } = useAuth()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const db = getDatabase()
-    const logsRef = ref(db, "activityLogs")
-    const unsubscribe = onValue(logsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val()
-        const logList = Object.entries(data)
-          .map(([id, log]) => ({ id, ...log }))
-          .sort((a, b) => b.timestamp - a.timestamp) // sort newest first
-        setLogs(logList)
-      } else {
-        setLogs([])
-      }
-      setLoading(false)
-    })
+    if (userData?.role === "admin") {
+      const db = getDatabase()
+      const logsRef = ref(db, "activityLogs")
+      const unsubscribe = onValue(logsRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val()
+          const logList = Object.entries(data)
+            .map(([id, log]) => ({ id, ...log }))
+            .sort((a, b) => b.timestamp - a.timestamp) // newest first
+          setLogs(logList)
+        } else {
+          setLogs([])
+        }
+        setLoading(false)
+      })
 
-    return () => unsubscribe()
-  }, [])
+      return () => unsubscribe()
+    } else {
+      setLoading(false)
+    }
+  }, [userData])
+
+  if (userData?.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+            <p className="text-gray-600">You don't have permission to access this page.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-900"></div>
+      </div>
+    )
+  }
 
   // Group logs by date
   const groupedLogs = logs.reduce((acc, log) => {
@@ -75,9 +103,6 @@ function ActivityLog() {
                         <tr key={log.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                                {log.admin?.slice(0, 2).toUpperCase() || "A"}
-                              </div>
                               <div className="text-sm font-medium text-gray-900">{log.admin || "Unknown"}</div>
                             </div>
                           </td>

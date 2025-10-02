@@ -223,9 +223,11 @@ function Profile() {
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  /*onChange={handleChange}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  required
+                  */
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                  disabled
                 />
               </div>
 
@@ -239,9 +241,11 @@ function Profile() {
                   id="studentId"
                   name="studentId"
                   value={formData.studentId}
-                  onChange={handleChange}
+                  /*onChange={handleChange}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  required
+                  */
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                  disabled
                 />
               </div>
 
@@ -250,20 +254,25 @@ function Profile() {
                 <label htmlFor="institute" className="block text-sm font-medium text-gray-700 mb-2">
                   Institute
                 </label>
-                <select
+                <input
                   id="institute"
                   name="institute"
                   value={formData.institute}
+                  /*
                   onChange={handleChange}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  required
+                  */
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                  disabled
                 >
+                  {/*
                   <option value="">Select Institute</option>
                   <option value="Institute of Arts and Sciences">Institute of Arts and Sciences</option>
                   <option value="Institute of Business and Computing Education">Institute of Business and Computing Education</option>
                   <option value="Institute of Teacher Education">Institute of Teacher Education</option>
                   <option value="Institute of Hospitality and Tourism Management">Institute of Hospitality and Tourism Management</option>
-                </select>
+                  */}
+                </input>
               </div>
 
               {/* Email Field (Read-only) */}
@@ -279,8 +288,9 @@ function Profile() {
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
                   disabled
                 />
-                <p className="mt-1 text-xs text-gray-500">Email cannot be changed. Contact support if needed.</p>
               </div>
+
+              <p className="mt-1 text-xs text-gray-500">Credentials cannot be changed. Contact the commission if needed.</p>
 
               {/* Messages */}
               {message && (
@@ -296,6 +306,7 @@ function Profile() {
               )}
 
               {/* Submit Button */}
+              
               <div className="flex justify-end">
                 <button
                   type="submit"
@@ -305,6 +316,7 @@ function Profile() {
                   {loading ? 'Updating...' : 'Update Profile'}
                 </button>
               </div>
+
             </form>
           </div>
         </div>
