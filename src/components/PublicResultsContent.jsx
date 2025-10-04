@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts'
-import { PieChart, Pie, Cell as PieCell } from 'recharts'
+
 
 function PublicResultsContent({ forceVisible = false }) {
   const [candidates, setCandidates] = useState([])
@@ -22,6 +22,15 @@ function PublicResultsContent({ forceVisible = false }) {
     { name: 'ITE', value: 0, color: '#3b82f6' },
     { name: 'IHTM', value: 0, color: '#ec4899' },
   ])
+
+  const institutePopulation = {
+    IAS: 800,
+    IBCE: 500,
+    IHTM: 600,
+    ITE: 900
+  }
+  const totalPopulation = Object.values(institutePopulation).reduce((a, b) => a + b, 0);
+
   const [publicVisible, setPublicVisible] = useState(true)
   const [votes, setVotes] = useState([])
 
@@ -66,26 +75,55 @@ function PublicResultsContent({ forceVisible = false }) {
 
         if (votesSnap.exists()) {
           const votesVal = votesSnap.val()
-          const votedUids = Object.keys(votesVal)
-          // Store votes array for pie charts
-          setVotes(Object.values(votesVal))
           const users = usersSnap.exists() ? usersSnap.val() : {}
 
-          votedUids.forEach((uid) => {
-            const u = users[uid] || {}
-            const institute = (u.institute || '').toUpperCase()
-            if (institute === 'INSTITUTE OF ARTS AND SCIENCES') counts.IAS += 1
-            else if (institute === 'INSTITUTE OF BUSINESS AND COMPUTING EDUCATION') counts.IBCE += 1
-            else if (institute === 'INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT') counts.IHTM += 1
-            else if (institute === 'INSTITUTE OF TEACHER EDUCATION') counts.ITE += 1
+          // Merge institute info into votes
+          const mergedVotes = Object.keys(votesVal).map(uid => ({
+            ...votesVal[uid],
+            institute: (users[uid]?.institute || "").toUpperCase()
+          }))
+
+          setVotes(mergedVotes)
+
+          // Count participation per institute for bar chart
+          mergedVotes.forEach(v => {
+            const inst = v.institute
+            if (inst === "INSTITUTE OF ARTS AND SCIENCES") counts.IAS += 1
+            else if (inst === "INSTITUTE OF BUSINESS AND COMPUTING EDUCATION") counts.IBCE += 1
+            else if (inst === "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT") counts.IHTM += 1
+            else if (inst === "INSTITUTE OF TEACHER EDUCATION") counts.ITE += 1
           })
         }
 
         setBarData([
-          { name: 'IAS', value: counts.IAS, color: '#10b981' },
-          { name: 'IBCE', value: counts.IBCE, color: '#f59e0b' },
-          { name: 'IHTM', value: counts.IHTM, color: '#ec4899' },
-          { name: 'ITE', value: counts.ITE, color: '#3b82f6' },
+          { 
+            name: 'IAS', 
+            value: counts.IAS > 0 ? ((counts.IAS / institutePopulation.IAS) * 100).toFixed(2) : 0, 
+            raw: counts.IAS,
+            total: institutePopulation.IAS,
+            color: '#10b981' 
+          },
+          { 
+            name: 'IBCE', 
+            value: counts.IBCE > 0 ? ((counts.IBCE / institutePopulation.IBCE) * 100).toFixed(2) : 0, 
+            raw: counts.IBCE,
+            total: institutePopulation.IBCE,
+            color: '#f59e0b' 
+          },
+          { 
+            name: 'IHTM', 
+            value: counts.IHTM > 0 ? ((counts.IHTM / institutePopulation.IHTM) * 100).toFixed(2) : 0, 
+            raw: counts.IHTM,
+            total: institutePopulation.IHTM,
+            color: '#ec4899' 
+          },
+          { 
+            name: 'ITE', 
+            value: counts.ITE > 0 ? ((counts.ITE / institutePopulation.ITE) * 100).toFixed(2) : 0, 
+            raw: counts.ITE,
+            total: institutePopulation.ITE,
+            color: '#3b82f6' 
+          },
         ])
       } catch (e) {
         console.error('Failed to load voter counts for bar chart:', e)
@@ -137,14 +175,15 @@ function PublicResultsContent({ forceVisible = false }) {
               <BarChart data={barData} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} />
-                <YAxis tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'RESPONSES', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'PERCENTAGE', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
                 <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const p = payload[0].payload
                     return (
                       <div className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm shadow">
                         <div className="font-medium text-gray-800">{p.name}</div>
-                        <div className="text-gray-600">Responses: {p.value}</div>
+                        <div className="text-gray-600">Responses: {p.raw} / {p.total}</div>
+                        <div className="text-gray-600">Percentage: {p.value}%</div>
                       </div>
                     )
                   }
@@ -162,7 +201,7 @@ function PublicResultsContent({ forceVisible = false }) {
       </div>
 
       {/* SSC Position Results */}
-      <div className="mt-12">
+      {/* <div className="mt-12">
         <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">Supreme Student Council</h3>
         {candidates.filter(c => sscRoles.includes(c.role)).length === 0 ? (
         <div className="text-center text-red-800 italic text-sm"> No candidates for Supreme Student Council. </div>
@@ -178,7 +217,7 @@ function PublicResultsContent({ forceVisible = false }) {
               arr.forEach(id => { counts[id] = (counts[id] || 0) + 1 })
             })
 
-            const data = roleCandidates.map(c => ({ name: c.name, value: counts[c.id] || 0 }))
+            const data = roleCandidates.map(c => ({ name: `${c.lastName}, ${c.firstName}`, value: counts[c.id] || 0 }))
             
             return (
               <div key={role} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
@@ -200,10 +239,121 @@ function PublicResultsContent({ forceVisible = false }) {
           })}
         </div>
         )}
+      </div> */}
+
+      {/* SSC Position Results */}
+      <div className="mt-12">
+        <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
+          Supreme Student Council
+        </h3>
+
+        {sscRoles.map(role => {
+          const roleCandidates = candidates.filter(c => c.role === role)
+          if (roleCandidates.length === 0) return null
+
+          // Count votes
+          const counts = {}
+          votes.forEach(v => {
+            const selected = v.votes?.[role]
+            const arr = Array.isArray(selected)
+              ? selected
+              : selected
+              ? [selected]
+              : []
+            arr.forEach(id => {
+              counts[id] = (counts[id] || 0) + 1
+            })
+          })
+
+          const totalVotes = Object.values(counts).reduce((a, b) => a + b, 0)
+
+          const data = roleCandidates
+            .map(c => ({
+              id: c.id,
+              name: `${c.lastName?.toUpperCase()}, ${c.firstName?.toUpperCase()}`,
+              profile: c.profilePicture || '/default-avatar.png',
+              votes: counts[c.id] || 0,
+              percentage:
+                totalPopulation > 0
+                  ? ((counts[c.id] / totalPopulation) * 100).toFixed(2)
+                  : '0.00',
+              party: c.team || 'Independent',
+            }))
+            .sort((a, b) => b.votes - a.votes);
+
+
+          // Function for proper ordinal suffix (1st, 2nd, 3rd, etc.)
+          const getOrdinal = n => {
+            const s = ['th', 'st', 'nd', 'rd'];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+          };
+
+
+          return (
+            <div
+              key={role}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8"
+            >
+              <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
+                {role}
+              </h3>
+
+              {data.length === 0 ? (
+                <p className="text-center text-red-800 italic text-sm">
+                  No candidates yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {data.map((c, idx) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                        <img
+                          src={c.profile}
+                          alt={c.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-semibold text-gray-800">
+                            {getOrdinal(idx + 1)} • {c.name}
+                          </h4>
+                          <span className="text-sm text-gray-600">{c.party}</span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                        <div
+                          className={`h-3 rounded-full transition-all duration-500 ${
+                            c.votes > 0 ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                          style={{
+                            width: `${c.votes > 0 ? c.percentage : 0}%`,
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex justify-between text-xs text-gray-600 mt-1">
+                        <span>{c.votes} Votes</span>
+                        <span>{c.percentage}%</span>
+                      </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* ISC Position Results by Institute */}
-      <div className="mt-12">
+      {/* <div className="mt-12">
         <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
           Institute Student Council
         </h3>
@@ -215,7 +365,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
             return (
               <div key={institute}>
-                {/* Always show the institute */}
+                // Always show the institute 
                 <h4 className="text-center text-lg font-semibold mb-4 text-gray-800">
                   {institute}
                 </h4>
@@ -248,7 +398,7 @@ function PublicResultsContent({ forceVisible = false }) {
                       })
 
                       const data = roleCandidates.map(c => ({
-                        name: c.name,
+                        name: `${c.lastName}, ${c.firstName}`,
                         value: counts[c.id] || 0,
                       }))
 
@@ -297,9 +447,150 @@ function PublicResultsContent({ forceVisible = false }) {
             )
           })}
         </div>
-      </div>
+      </div> */}
 
-      
+{/* ISC Position Results */}
+<div className="mt-12">
+  <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
+    Institute Student Council
+  </h3>
+
+  {["INSTITUTE OF ARTS AND SCIENCES", "INSTITUTE OF BUSINESS AND COMPUTING EDUCATION", "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT", "INSTITUTE OF TEACHER EDUCATION"].map(instituteFull => {
+    const shortNameMap = {
+      "INSTITUTE OF ARTS AND SCIENCES": "IAS",
+      "INSTITUTE OF BUSINESS AND COMPUTING EDUCATION": "IBCE",
+      "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT": "IHTM",
+      "INSTITUTE OF TEACHER EDUCATION": "ITE"
+    }
+
+    const shortName = shortNameMap[instituteFull]
+    const population = institutePopulation[shortName] || 0
+
+    const instituteCandidates = candidates.filter(
+      c => c.institute?.toUpperCase() === instituteFull.toUpperCase() && iscRoles.includes(c.role)
+    )
+
+    if (instituteCandidates.length === 0) return null
+
+    return (
+      <div key={instituteFull} className="mb-12">
+        <h4 className="text-xl font-bold text-center text-gray-700 mb-4">
+          {instituteFull}
+        </h4>
+
+        {iscRoles.map(role => {
+          const roleCandidates = instituteCandidates.filter(c => c.role === role)
+          if (roleCandidates.length === 0) return null
+
+          // Count votes for this institute + role
+          const counts = {}
+          votes.forEach(v => {
+            const voterInstitute = v.institute?.toUpperCase()
+            if (voterInstitute !== instituteFull.toUpperCase()) return
+
+            Object.entries(v.votes || {}).forEach(([key, value]) => {
+            // key is like "INSTITUTE OF ARTS AND SCIENCES-Governor"
+            const [instKey, roleKey] = key.split("-")
+
+            if (instKey?.toUpperCase() === instituteFull.toUpperCase() && roleKey === role) {
+              const arr = Array.isArray(value) ? value : value ? [value] : []
+              arr.forEach(id => {
+                counts[id] = (counts[id] || 0) + 1
+              })
+            }
+          })
+          })
+
+          const data = roleCandidates
+            .map(c => {
+              const voteCount = counts[c.id] || 0
+              const percentage =
+                population > 0 ? ((voteCount / population) * 100).toFixed(2) : "0.00"
+
+              return {
+                id: c.id,
+                name: `${c.lastName?.toUpperCase()}, ${c.firstName?.toUpperCase()}`,
+                profile: c.profilePicture || "/default-avatar.png",
+                votes: voteCount,
+                percentage,
+                party: c.team || "Independent"
+              }
+            })
+            .sort((a, b) => b.votes - a.votes)
+
+          const getOrdinal = (n) => {
+            const s = ["th", "st", "nd", "rd"]
+            const v = n % 100
+            return n + (s[(v - 20) % 10] || s[v] || s[0])
+          }
+
+          return (
+            <div
+              key={`${instituteFull}-${role}`}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6"
+            >
+              <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
+                {role}
+              </h3>
+
+              {data.length === 0 ? (
+                <p className="text-center text-red-800 italic text-sm">
+                  No candidates yet.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {data.map((c, idx) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                        <img
+                          src={c.profile}
+                          alt={c.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-semibold text-gray-800">
+                            {getOrdinal(idx + 1)} • {c.name}
+                          </h4>
+                          <span className="text-sm text-gray-600">{c.party}</span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                          <div
+                            className={`h-3 rounded-full transition-all duration-500 ${
+                              c.votes > 0 ? "bg-green-600" : "bg-gray-300"
+                            }`}
+                            style={{ width: `${c.votes > 0 ? c.percentage : 0}%` }}
+                          />
+                        </div>
+
+                        {/* Vote Count & Percentage */}
+                        <div className="flex justify-between text-xs text-gray-600 mt-1">
+                          <span>{c.votes} Votes</span>
+                          <span>{c.percentage}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  })}
+</div>
+
+
+
+
     </>
   )
 }

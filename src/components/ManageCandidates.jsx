@@ -45,7 +45,7 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
     <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{app.applicant?.name || 'Unknown'}</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{app.applicant?.fullName || 'Unknown'}</h3>
           <p className="text-sm text-gray-600">{app.applicant?.email}</p>
           <p className="text-sm text-gray-600">{app.applicant?.institute}</p>
         </div>
@@ -249,7 +249,7 @@ function ManageCandidates() {
       }
       
       const updatedUser = applications.find(app => app.uid === uid)
-      logActivity(userData.name, `Updated candidacy status of ${updatedUser?.applicant?.name || uid} to ${status}`)
+      logActivity(userData.fullName, `Updated candidacy status of ${updatedUser?.applicant?.fullName || uid} to ${status}`)
 
       // Send email notification
       await sendStatusEmail(uid, status)
@@ -265,12 +265,12 @@ function ManageCandidates() {
 
       const updatedApp = applications.find(app => app.uid === uid && app.id === appId)
       logActivity(
-        userData.name,
+        userData.fullName,
         status === 'reviewed'
-          ? `Reviewed candidacy application of ${updatedApp?.applicant?.name || uid}`
+          ? `Reviewed candidacy application of ${updatedApp?.applicant?.fullName || uid}`
           : status === 'approved'
-            ? `Approved candidacy application of ${updatedApp?.applicant?.name || uid}`
-            : `Rejected candidacy application of ${updatedApp?.applicant?.name || uid}`
+            ? `Approved candidacy application of ${updatedApp?.applicant?.fullName || uid}`
+            : `Rejected candidacy application of ${updatedApp?.applicant?.fullName || uid}`
       )
 
       setMessage(`Application ${status} successfully! Email notification sent.${status === 'approved' ? ' User role updated to candidate.' : ''}`)
@@ -299,7 +299,7 @@ function ManageCandidates() {
       await set(historyRef, historyItem)
 
       const updatedUser = applications.find(app => app.uid === uid)
-      logActivity(userData.name, `${decision === 'approved' ? 'Approved' : 'Rejected'} screening appointment of ${updatedUser?.applicant?.name || uid}`)
+      logActivity(userData.fullName, `${decision === 'approved' ? 'Approved' : 'Rejected'} screening appointment of ${updatedUser?.applicant?.fullName || uid}`)
 
       // Send email on decision
       if (decision === 'approved') {
@@ -337,7 +337,7 @@ function ManageCandidates() {
         body: JSON.stringify({
           to: candidate.email,
           status: 'appointment',
-          name: candidate.name,
+          fullName: candidate.fullName,
           details: { dateTime: appointment?.dateTime, venue: appointment?.venue }
         })
       })
@@ -361,7 +361,7 @@ function ManageCandidates() {
         body: JSON.stringify({
           to: candidate.email,
           status: 'appointmentRejected',
-          name: candidate.name
+          fullName: candidate.fullName
         })
       })
       if (!response.ok) throw new Error('Email server error')
@@ -406,7 +406,7 @@ function ManageCandidates() {
         body: JSON.stringify({
           to: userData.email,
           status: emailStatus,
-          name: userData.name,
+          fullName: userData.fullName,
           position: position
         })
       })
@@ -528,7 +528,7 @@ function ManageCandidates() {
                           setNewSlot("")
                           setMessage("Slot added successfully")
                           setIsError(false)
-                          logActivity(userData.name, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
+                          logActivity(userData.fullName, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
                           setTimeout(() => setMessage(""), 2000)
                         } catch (err) {
                           console.error("Error adding slot", err)
@@ -788,7 +788,7 @@ function ManageCandidates() {
                         return updated
                       })
                       setMessage("Slot deleted successfully")
-                      logActivity(userData.name, `Deleted screening appointment slot on ${new Date(slotToDelete).toLocaleString()}`)
+                      logActivity(userData.fullName, `Deleted screening appointment slot on ${new Date(slotToDelete).toLocaleString()}`)
                     } catch (e) {
                       console.error("Failed to delete slot", e)
                       setMessage("Failed to delete slot")

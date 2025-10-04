@@ -22,8 +22,6 @@ function ManageCampaigns() {
   const [voteModalMessage, setVoteModalMessage] = useState('')
   const [voteModalError, setVoteModalError] = useState('')
 
-  
-
   useEffect(() => {
     const load = async () => {
       try {
@@ -93,7 +91,7 @@ function ManageCampaigns() {
       setSubmissions(prev => prev.map(x => x.id === s.id ? { ...x, status, reviewedAt: new Date().toISOString() } : x))
       try {
         await logActivity(
-          userData.name,
+          userData.fullName,
           `${status === 'approved' ? 'Approved' : 'Rejected'} campaign submission of ${s.candidateName || 'Unknown'}`
         )
       } catch (logError) {
@@ -111,7 +109,7 @@ function ManageCampaigns() {
       setSubmissions(prev => prev.filter(x => x.id !== s.id))
       try {
       await logActivity(
-        userData.name,
+        userData.fullName,
         `Deleted campaign submission of ${s.candidateName || 'Unknown'}`
       )
       } catch (logError) {
@@ -157,7 +155,7 @@ function ManageCampaigns() {
         }
 
         await logActivity(
-          userData.name,
+          userData.fullName,
           `Updated campaign period: ${formatDate(campaignStatus.startDate)} → ${formatDate(campaignStatus.endDate)}`
         )
       } catch (logError) {
@@ -183,7 +181,7 @@ function ManageCampaigns() {
   const renderSubmissionCard = (s) => {
     const userProfile = Object.values(userProfiles).find(user =>
       (user.email && s.submittedByEmail && user.email.toLowerCase() === s.submittedByEmail.toLowerCase()) ||
-      (user.name && s.candidateName && user.name.toLowerCase() === s.candidateName.toLowerCase())
+      (user.fullName && s.candidateName && user.fullName.toLowerCase() === s.candidateName.toLowerCase())
     )
 
     const statusColors = {

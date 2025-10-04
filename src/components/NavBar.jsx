@@ -60,10 +60,10 @@ function NavBar() {
                     />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
-                      {(userData?.name || '').slice(0,2).toUpperCase()}
+                      {(userData?.fullName || '').slice(0,2).toUpperCase()}
                     </div>
                   )}
-                  <span className="text-sm text-gray-700 font-medium hidden lg:inline">{userData?.name || 'User'}</span>
+                  <span className="text-sm text-gray-700 font-medium hidden lg:inline">{userData?.fullName || 'User'}</span>
                   <svg className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
                 </button>
                 {isProfileOpen && (
@@ -108,40 +108,46 @@ function NavBar() {
         {isMenuOpen && (
           <div className="md:hidden px-4 pb-3 space-y-1">
             <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/') ? 'inline-block border-b border-red-900' : ''}`}>HOME</span>
+              <span className={`${baseLink} ${isActive('/') ? 'inline-block border-b border-red-900' : ''}`}>HOME</span>
             </Link>
             <Link to="/candidates" className={`block py-2 text-base ${isActive('/candidates') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/candidates') ? 'inline-block border-b border-red-900' : ''}`}>CANDIDATES</span>
+              <span className={`${baseLink} ${isActive('/candidates') ? 'inline-block border-b border-red-900' : ''}`}>CANDIDATES</span>
             </Link>
             <Link to="/campaigns" className={`block py-2 text-base ${isActive('/campaigns') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/campaigns') ? 'inline-block border-b border-red-900' : ''}`}>CAMPAIGN</span>
+              <span className={`${baseLink} ${isActive('/campaigns') ? 'inline-block border-b border-red-900' : ''}`}>CAMPAIGN</span>
             </Link>
             <Link to="/vote" className={`block py-2 text-base ${isActive('/vote') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>
+              <span className={`${baseLink} ${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>
             </Link>
             <Link to="/result" className={`block py-2 text-base ${isActive('/result') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/result') ? 'inline-block border-b border-red-900' : ''}`}>RESULT</span>
+              <span className={`${baseLink} ${isActive('/result') ? 'inline-block border-b border-red-900' : ''}`}>RESULT</span>
             </Link>
             <Link to="/about" className={`block py-2 text-base ${isActive('/about') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${isActive('/about') ? 'inline-block border-b border-red-900' : ''}`}>ABOUT</span>
+              <span className={`${baseLink} ${isActive('/about') ? 'inline-block border-b border-red-900' : ''}`}>ABOUT</span>
             </Link>
             {!user && (
               <Link to="/login" className={`block py-2 text-base ${isActive('/login') ? 'text-red-900' : 'text-red-800'}`}>
-                <span className={`${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
+                <span className={`${baseLink} ${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
               </Link>
             )}
             {user && (
               <>
                 {isEmailVerified() && (
                   <Link to="/dashboard" className={`block py-2 text-base ${isActive('/dashboard') ? 'text-red-900' : 'text-red-800'}`}>
-                    <span className={`${isActive('/dashboard') ? 'inline-block border-b border-red-900' : ''}`}>DASHBOARD</span>
+                    <span className={`${baseLink} ${isActive('/dashboard') ? 'inline-block border-b border-red-900' : ''}`}>DASHBOARD</span>
                   </Link>
                 )}
                 <div className="py-2 flex justify-between items-center">
-                  <span className="text-sm text-gray-700">{userData?.name || 'User'}</span>
+                  <Link 
+                        to="/profile" 
+                        onClick={() => setIsProfileOpen(false)}
+                        className="text-gray-700 hover:bg-gray-50"
+                      >
+                      <span className="text-sm text-gray-700">{userData?.fullName || 'User'}</span>
+                      </Link>
                   <span className="text-xs text-gray-500">Role: {userData?.role?.toUpperCase() || 'VOTER'}</span>
                 </div>
-                <button onClick={logout} className="py-2 text-red-700 font-semibold">LOG OUT</button>
+                <button onClick={logout} className="py-2 text-red-700">Sign Out</button>
               </>
             )}
           </div>

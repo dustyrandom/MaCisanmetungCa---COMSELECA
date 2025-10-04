@@ -132,8 +132,12 @@ function VotingPage() {
           }
         }
       } else {
-        // Single select
+        if (newVotes[role] === candidateId) {
+        // Deselect if clicking the same candidate again
+        newVotes[role] = null
+      } else {
         newVotes[role] = candidateId
+      }
       }
       
       return newVotes
@@ -144,7 +148,7 @@ function VotingPage() {
     try {
       const voteData = {
         voterId: user.uid,
-        voterName: userData.name,
+        voterName: userData.fullName,
         voterEmail: user.email,
         votes: votes,
         submittedAt: new Date().toISOString()
@@ -164,7 +168,7 @@ function VotingPage() {
           body: JSON.stringify({
             to: user.email,
             status: 'voteThankYou',
-            name: userData.name,
+            name: userData.fullName,
             details: { announcementDate: votingStatus?.endDate ? new Date(votingStatus.endDate).toLocaleString() : '' }
           })
         })
@@ -215,17 +219,27 @@ function VotingPage() {
                     <div
                       key={candidate.id}
                       onClick={() => handleVote(role.name, candidate.id, role.maxVotes)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                         isSelected 
                           ? 'border-blue-500 bg-blue-50' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <h4 className="font-medium">{candidate.name}</h4>
-                      <p className="text-sm text-gray-600">{candidate.institute}</p>
-                      {isSelected && (
-                        <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
-                      )}
+
+                      <img
+                        src={candidate.profilePicture || '/default-profile.png'}
+                        alt={`${candidate.firstName} ${candidate.lastName}`}
+                        className="w-20 h-20 rounded-full object-cover border border-gray-300"
+                      />
+
+                      <div>
+                        <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
+                        <p className="text-sm text-gray-600">{candidate.institute}</p>
+                        <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                        {/* {isSelected && (
+                          <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
+                        )} */}
+                      </div>
                     </div>
                   )
                 })}
@@ -288,16 +302,25 @@ function VotingPage() {
                           <div
                             key={candidate.id}
                             onClick={() => handleVote(`${institute}-${role.name}`, candidate.id, role.maxVotes)}
-                            className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                            className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                               isSelected 
                                 ? 'border-blue-500 bg-blue-50' 
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
-                            <h5 className="font-medium">{candidate.name}</h5>
-                            {isSelected && (
-                              <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
-                            )}
+                            <img
+                              src={candidate.profilePicture || '/default-profile.png'}
+                              alt={`${candidate.firstName} ${candidate.lastName}`}
+                              className="w-20 h-20 rounded-full object-cover border border-gray-300"
+                            />
+                            <div>
+                              <h5 className="font-medium">{candidate.lastName}, {candidate.firstName}</h5>
+                              <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                              {/* {isSelected && (
+                                <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
+                              )} */}
+                            </div>
+                            
                           </div>
                         )
                       })}

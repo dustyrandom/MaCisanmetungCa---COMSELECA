@@ -81,9 +81,14 @@ function ViewResults() {
   }, [userData])
 
   const getCandidateName = (candidateId) => {
-    const candidate = candidates.find(c => c.id === candidateId)
-    return candidate ? candidate.name : `Unknown Candidate (ID: ${candidateId})`
+  const candidate = candidates.find(c => c.id === candidateId)
+  if (!candidate) return `Unknown Candidate (ID: ${candidateId})`
+
+  const last = candidate.lastName || ''
+    const first = candidate.firstName || ''
+    return `${last.toUpperCase()}, ${first.toUpperCase()}`.trim()
   }
+
 
   const getCandidateRole = (candidateId) => {
     const candidate = candidates.find(c => c.id === candidateId)
@@ -115,7 +120,7 @@ function ViewResults() {
       await remove(votesRef)
       setVotes([])
       setShowDeleteModal(false)
-      logActivity(userData.name, "Deleted all votes")
+      logActivity(userData.fullName, "Deleted all votes")
     } catch (error) {
       console.error('Failed to delete all votes:', error)
       setDeleteError('Failed to delete votes. Please try again.')
@@ -481,7 +486,7 @@ function ViewResults() {
 
                                 return (
                                   <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                    <h4 className="font-semibold">{candidate.name}</h4>
+                                    <h4 className="font-semibold">{candidate.fullName}</h4>
                                     <p className="text-sm text-gray-600">{candidate.email}</p>
                                     <p className="text-sm text-gray-600">{candidate.studentId}</p>
                                     <p className="text-sm text-gray-600">{candidate.institute}</p>
@@ -534,7 +539,7 @@ function ViewResults() {
 
                                           return (
                                             <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                              <h5 className="font-semibold">{candidate.name}</h5>
+                                              <h5 className="font-semibold">{candidate.fullName}</h5>
                                               <p className="text-sm text-gray-600">{candidate.email}</p>
                                               <p className="text-sm text-gray-600">{candidate.studentId}</p>
                                               {candidate.team && (
@@ -588,7 +593,7 @@ function ViewResults() {
                           await set(dbRef(db, 'publicResultsVisible'), value)
                           setPublicVisible(value)
                           logActivity(
-                          userData.name,
+                          userData.fullName,
                           value ? "Published election results to public" : "Hid election results from public"
                         )
                         } catch (err) {

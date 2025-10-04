@@ -30,7 +30,7 @@ function CampaignSubmit() {
           const list = Object.entries(snap.val()).map(([id, v]) => ({ id, ...v }))
           // Try to match by email first, fallback to name
           const found = list.find(c => (c.email || '').toLowerCase() === (user.email || '').toLowerCase()) ||
-                        list.find(c => (c.name || '').toLowerCase() === (userData?.name || '').toLowerCase())
+                        list.find(c => (c.fullName || '').toLowerCase() === (userData?.fullName || '').toLowerCase())
           setCandidateRecord(found || null)
         } else {
           setCandidateRecord(null)
@@ -137,7 +137,7 @@ function CampaignSubmit() {
       }
       const payload = {
         candidateId: candidateRecord.id,
-        candidateName: (candidateRecord.name || userData?.name || ''),
+        candidateName: (candidateRecord.fullName || userData?.fullName || ''),
         role: candidateRecord.role || '',
         institute: (candidateRecord.institute || userData?.institute || ''),
         team: candidateRecord.team || '',

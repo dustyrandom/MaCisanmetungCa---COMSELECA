@@ -9,12 +9,12 @@ import NavBar from './NavBar'
 function Profile() {
   const { user, userData } = useAuth()
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     studentId: '',
     institute: '',
     email: ''
   })
-  const [profilePicture, setProfilePicture] = useState(null)
+  /* const [profilePicture, setProfilePicture] = useState(null) */
   const [profilePictureUrl, setProfilePictureUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -23,7 +23,7 @@ function Profile() {
   useEffect(() => {
     if (userData) {
       setFormData({
-        name: userData.name || '',
+        fullName: userData.fullName || '',
         studentId: userData.studentId || '',
         institute: userData.institute || '',
         email: userData.email || ''
@@ -32,12 +32,12 @@ function Profile() {
     }
   }, [userData])
 
-  const handleChange = (e) => {
+  /*  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
-  }
+  } */
 
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0]
@@ -54,13 +54,16 @@ function Profile() {
         return
       }
       
-      setProfilePicture(file)
+      uploadProfilePicture(file) // auto-upload immediately
       setError('')
     }
   }
 
   const uploadProfilePicture = async (file) => {
     if (!file) return null
+    setLoading(true)
+    setError('')
+    setMessage('')
 
     try {
       // Delete old profile picture if exists
@@ -77,58 +80,52 @@ function Profile() {
       const imageRef = storageRef(storage, `profile-pictures/${user.uid}/${Date.now()}`)
       const snapshot = await uploadBytes(imageRef, file)
       const downloadURL = await getDownloadURL(snapshot.ref)
-      
-      return downloadURL
+
+      const userRef = dbRef(db, `users/${user.uid}`)
+      await update(userRef, {
+        profilePicture: downloadURL,
+        updatedAt: new Date().toISOString()
+      })
+
+      setProfilePictureUrl(downloadURL)
+      setMessage('Profile picture updated successfully!')
     } catch (error) {
       console.error('Error uploading profile picture:', error)
-      throw error
+      setError('Failed to upload profile picture. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleSubmit = async (e) => {
+  /* const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setMessage('')
 
     try {
-      let newProfilePictureUrl = profilePictureUrl
+    // 🔹 Update Firebase Auth displayName
+    await updateProfile(auth.currentUser, {
+      displayName: formData.fullName
+    })
 
-      // Upload new profile picture if selected
-      if (profilePicture) {
-        newProfilePictureUrl = await uploadProfilePicture(profilePicture)
-      }
+    // 🔹 Update Realtime Database
+    const userRef = dbRef(db, `users/${user.uid}`)
+    await update(userRef, {
+      fullName: formData.fullName,
+      studentId: formData.studentId,
+      institute: formData.institute,
+      updatedAt: new Date().toISOString()
+    })
 
-      // Update Firebase Auth profile
-      await updateProfile(auth.currentUser, {
-        displayName: formData.name
-      })
-
-      // Update user data in database
-      const userRef = dbRef(db, `users/${user.uid}`)
-      await update(userRef, {
-        name: formData.name,
-        studentId: formData.studentId,
-        institute: formData.institute,
-        profilePicture: newProfilePictureUrl,
-        updatedAt: new Date().toISOString()
-      })
-
-      setProfilePictureUrl(newProfilePictureUrl)
-      setProfilePicture(null)
       setMessage('Profile updated successfully!')
-      
-      // Clear file input
-      const fileInput = document.getElementById('profilePicture')
-      if (fileInput) fileInput.value = ''
-
     } catch (error) {
       console.error('Error updating profile:', error)
       setError('Failed to update profile. Please try again.')
     } finally {
       setLoading(false)
     }
-  }
+  } */
 
   const removeProfilePicture = async () => {
     if (!profilePictureUrl) return
@@ -168,21 +165,33 @@ function Profile() {
           <div className="px-4 py-5 sm:p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile Management</h1>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
               {/* Profile Picture Section */}
               <div className="flex items-center space-x-6">
                 <div className="flex-shrink-0">
-                  {profilePictureUrl ? (
-                    <img
-                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-                      src={profilePictureUrl}
-                      alt="Profile"
-                    />
-                  ) : (
-                    <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                      {(formData.name || 'U').slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
+                  <div className="relative h-24 w-24">
+                    {profilePictureUrl ? (
+                      <img
+                        className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                        src={profilePictureUrl}
+                        alt="Profile"
+                      />
+                    ) : (
+                      <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                        {(formData.fullName || 'U').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+
+                    {/* 🔹 Spinner Overlay */}
+                    {loading && (
+                      <div className="absolute inset-0 bg-white bg-opacity-70 rounded-full flex items-center justify-center">
+                        <svg className="animate-spin h-8 w-8 text-red-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-4">
@@ -220,9 +229,9 @@ function Profile() {
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
                   /*onChange={handleChange}
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                   */
@@ -307,7 +316,7 @@ function Profile() {
 
               {/* Submit Button */}
               
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={loading}
@@ -315,9 +324,9 @@ function Profile() {
                 >
                   {loading ? 'Updating...' : 'Update Profile'}
                 </button>
-              </div>
+              </div> */}
 
-            </form>
+            </div>
           </div>
         </div>
       </main>

@@ -7,7 +7,6 @@ function Candidates({ forceVisible = false }) {
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('positions')
-
   const sscRoles = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary',
     'Finance Officer','Audit Officer','Student Welfare and Rights Officer',
@@ -117,14 +116,24 @@ function Candidates({ forceVisible = false }) {
                     {roleCandidates.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {roleCandidates.map(candidate => (
-                          <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
-                            <h4 className="font-semibold">{candidate.name}</h4>
-                            <p className="text-sm text-gray-600">{candidate.email}</p>
-                            <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                            <p className="text-sm text-gray-600">{candidate.institute}</p>
-                            {candidate.team && (
-                              <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                            )}
+                          <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
+                            {/* Profile picture */}
+                            <div className="flex-shrink-0">
+                              <img
+                                src={candidate.profilePicture || '/default-avatar.png'} // fallback image
+                                alt={`${candidate.firstName} ${candidate.lastName}`}
+                                className="w-20 h-20 rounded-full object-cover"
+                              />
+                            </div>
+
+                            {/* Candidate info */}
+                            <div className="flex-1">
+                              <h4 className="font-semibold">{candidate.lastName}, {candidate.firstName}</h4>
+                              <p className="text-sm text-gray-600">{candidate.email}</p>
+                              <p className="text-sm text-gray-600">{candidate.studentId}</p>
+                              <p className="text-sm text-gray-600">{candidate.institute}</p>
+                              <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -157,13 +166,24 @@ function Candidates({ forceVisible = false }) {
                             {roleCandidates.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {roleCandidates.map(candidate => (
-                                  <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
-                                    <h5 className="font-semibold">{candidate.name}</h5>
-                                    <p className="text-sm text-gray-600">{candidate.email}</p>
-                                    <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                    {candidate.team && (
-                                      <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                                    )}
+                                  <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
+                                    {/* Profile picture */}
+                                    <div className="flex-shrink-0">
+                                      <img
+                                        src={candidate.profilePicture || '/default-avatar.png'} // fallback image
+                                        alt={`${candidate.firstName} ${candidate.lastName}`}
+                                        className="w-20 h-20 rounded-full object-cover"
+                                      />
+                                    </div>
+
+                                    {/* Candidate info */}
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold">{candidate.lastName}, {candidate.firstName}</h4>
+                                      <p className="text-sm text-gray-600">{candidate.email}</p>
+                                      <p className="text-sm text-gray-600">{candidate.studentId}</p>
+                                      <p className="text-sm text-gray-600">{candidate.institute}</p>
+                                      <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -218,7 +238,7 @@ function Candidates({ forceVisible = false }) {
                               const roleToNames = teamCandidates.reduce((acc, c) => {
                                 const role = c.role || ''
                                 if (!acc[role]) acc[role] = []
-                                acc[role].push(c.name)
+                                acc[role].push(c.fullName)
                                 return acc
                               }, {})
                               const rolesForTeam = Object.keys(roleToNames).sort((a, b) => {
@@ -238,8 +258,8 @@ function Candidates({ forceVisible = false }) {
                                         <div key={role} className="space-y-1">
                                           <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{role}</div>
                                           <div className="text-gray-800">
-                                            {roleToNames[role].map((name, i) => (
-                                              <div key={`${role}-${i}`}>{name}</div>
+                                            {roleToNames[role].map((fullName, i) => (
+                                              <div key={`${role}-${i}`}>{fullName}</div>
                                             ))}
                                           </div>
                                         </div>
@@ -274,7 +294,7 @@ function Candidates({ forceVisible = false }) {
                   const roleToNames = individuals.reduce((acc, c) => {
                     const role = c.role || ''
                     if (!acc[role]) acc[role] = []
-                    acc[role].push(c.name)
+                    acc[role].push(c.fullName)
                     return acc
                   }, {})
                   const roles = Object.keys(roleToNames).sort((a, b) => {
@@ -292,8 +312,8 @@ function Candidates({ forceVisible = false }) {
                           <div key={role}>
                             <h4 className="text-center font-semibold mb-4 text-gray-800">{role}</h4>
                             <div className="space-y-2 text-center text-sm">
-                              {roleToNames[role].map((name, i) => (
-                                <div key={`${role}-${i}`} className="text-gray-800">{name}</div>
+                              {roleToNames[role].map((fullName, i) => (
+                                <div key={`${role}-${i}`} className="text-gray-800">{fullName}</div>
                               ))}
                             </div>
                           </div>

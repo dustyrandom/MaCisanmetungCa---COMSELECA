@@ -12,7 +12,8 @@ import comselecaLogo from '../assets/comselecalogo.png'
 
 function Register() {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     institute: '',
     studentId: '',
@@ -101,17 +102,21 @@ function Register() {
         formData.password
       )
 
+      const fullName = `${formData.firstName} ${formData.lastName}`
+
       // Ensure Firebase Auth profile has the full name immediately
       try {
-        await updateProfile(userCredential.user, { displayName: formData.name })
+        await updateProfile(userCredential.user, { displayName: fullName })
       } catch (e) {
         console.warn('Unable to set displayName:', e)
       }
 
-await sendEmailVerification(userCredential.user, actionCodeSettings);
+      await sendEmailVerification(userCredential.user);
 
       await set(ref(db, `users/${userCredential.user.uid}`), {
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        fullName,
         email: formData.email,
         institute: formData.institute,
         studentId: formData.studentId,
@@ -209,24 +214,37 @@ await sendEmailVerification(userCredential.user, actionCodeSettings);
                   
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Full Name Field */}
-                    <div>
+                    {/* First & Last Name Fields */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
                         </div>
                         <input
                           type="text"
-                          name="name"
-                          placeholder="Full Name"
-                          value={formData.name}
+                          name="firstName"
+                          placeholder="First Name"
+                          value={formData.firstName}
                           onChange={handleChange}
-                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
+                          required
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        </div>
+                        <input
+                          type="text"
+                          name="lastName"
+                          placeholder="Last Name"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          className="block w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
                           required
                         />
                       </div>
                     </div>
+
 
                     {/* Student ID Field */}
                     <div>
@@ -328,11 +346,11 @@ await sendEmailVerification(userCredential.user, actionCodeSettings);
                       <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                           <div
                             className={`h-2 rounded-full transition-all ${
-                              Object.values(passwordRules).filter(Boolean).length === 4
+                              Object.values(passwordRules).filter(Boolean).length === 5
                                 ? "bg-green-600"
                                 : "bg-red-600"
                             }`}
-                            style={{ width: `${(Object.values(passwordRules).filter(Boolean).length / 4) * 100}%` }}
+                            style={{ width: `${(Object.values(passwordRules).filter(Boolean).length / 5) * 100}%` }}
                           ></div>
                         </div>
 

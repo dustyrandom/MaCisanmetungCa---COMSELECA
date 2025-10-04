@@ -71,10 +71,13 @@ function ManageElections() {
                   id: `${uid}-${appId}`,
                   uid: uid,
                   appId: appId,
-                  name: app.applicant?.name || 'Unknown',
+                  fullName: app.applicant?.fullName || 'Unknown',
+                  firstName: app.applicant?.firstName || '',
+                  lastName: app.applicant?.lastName || '', 
                   email: app.applicant?.email || '',
                   institute: app.applicant?.institute || '',
-                  studentId: app.applicant?.studentId || ''
+                  studentId: app.applicant?.studentId || '',
+                  profilePicture: app.applicant?.profilePicture || ''
                 })
               }
             })
@@ -144,10 +147,13 @@ function ManageElections() {
       }
 
       const candidateData = {
-        name: selectedCandidate.name,
+        fullName: `${selectedCandidate.firstName} ${selectedCandidate.lastName}`,
+        firstName: selectedCandidate.firstName,
+        lastName: selectedCandidate.lastName,
         email: selectedCandidate.email,
         institute: selectedCandidate.institute,
         studentId: selectedCandidate.studentId,
+        profilePicture: selectedCandidate.profilePicture || '',
         team: formData.team,
         role: formData.role,
         candidateUid: selectedCandidate.uid,
@@ -161,7 +167,7 @@ function ManageElections() {
         await update(candidateRef, candidateData)
         setCandidates(prev => prev.map(c => c.id === editingCandidate.id ? { ...c, ...candidateData } : c))
         try {
-        await logActivity(userData.name, `Edited candidate: ${candidateData.name} (${candidateData.role} - ${candidateData.team})`)
+        await logActivity(userData.fullName, `Edited candidate: ${candidateData.fullName} (${candidateData.role} - ${candidateData.team})`)
         } catch (logError) {
         console.error('Logging failed:', logError)
         }
@@ -172,7 +178,7 @@ function ManageElections() {
         const newId = newRef.key
         setCandidates(prev => [...prev, { id: newId, ...candidateData }])
         try {
-        await logActivity(userData.name, `Added new candidate: ${candidateData.name} (${candidateData.role} - ${candidateData.team})`)
+        await logActivity(userData.fullName, `Added new candidate: ${candidateData.fullName} (${candidateData.role} - ${candidateData.team})`)
         } catch (logError) {
         console.error('Logging failed:', logError)
         }
@@ -194,8 +200,8 @@ function ManageElections() {
   const handleEdit = (candidate) => {
     setFormData({
       candidateId: candidate.candidateUid ? `${candidate.candidateUid}-${candidate.candidateAppId}` : '',
-      team: candidate.team,
-      role: candidate.role
+      team: candidate.team || '',
+      role: candidate.role || ''
     })
     setEditingCandidate(candidate)
     setShowAddModal(true)
@@ -215,7 +221,7 @@ function ManageElections() {
       setCandidates(prev => prev.filter(c => c.id !== deletingCandidate.id))
 
       try {
-      await logActivity(userData.name, `Deleted candidate: ${deletingCandidate.name} (${deletingCandidate.role} - ${deletingCandidate.team}) `)
+      await logActivity(userData.fullName, `Deleted candidate: ${deletingCandidate.fullName} (${deletingCandidate.role} - ${deletingCandidate.team}) `)
       } catch (logError) {
       console.error('Failed to log activity:', logError)
       }
@@ -341,7 +347,7 @@ function ManageElections() {
         }
 
         await logActivity(
-          userData.name,
+          userData.fullName,
           `Updated voting period: ${formatDate(votingStatus.startDate)} → ${formatDate(votingStatus.endDate)}`
         )
       } catch (logError) {
@@ -513,14 +519,23 @@ function ManageElections() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {roleCandidates.map(candidate => (
                           <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                            <h4 className="font-semibold">{candidate.name}</h4>
-                            <p className="text-sm text-gray-600">{candidate.email}</p>
-                            <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                            <p className="text-sm text-gray-600">{candidate.institute}</p>
-                            {candidate.team && (
-                              <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                            )}
-                            <div className="mt-3 flex gap-2">
+                            <div className="flex items-center gap-3 mb-2">
+                              <img
+                                src={candidate.profilePicture || '/default-profile.png'}
+                                alt={candidate.fullName}
+                                className="w-20 h-20 rounded-full object-cover border border-gray-300"
+                              />
+                              <div>
+                                <h4 className="font-semibold">{candidate.fullName}</h4>
+                                <p className="text-sm text-gray-600">{candidate.email}</p>
+                                <p className="text-sm text-gray-600">{candidate.institute}</p>
+                                {/* <p className="text-sm text-gray-600">{candidate.studentId}</p> */}
+                                <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                              </div>
+                            </div>
+                            
+                            
+                            <div className="mt-3 flex justify-end gap-2">
                               <button
                                 onClick={() => handleEdit(candidate)}
                                 className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -563,13 +578,20 @@ function ManageElections() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                   {roleCandidates.map(candidate => (
                                     <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                      <h5 className="font-semibold">{candidate.name}</h5>
-                                      <p className="text-sm text-gray-600">{candidate.email}</p>
-                                      <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                      {candidate.team && (
-                                        <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                                      )}
-                                      <div className="mt-3 flex gap-2">
+                                      <div className="flex items-center gap-3 mb-2">
+                                        <img
+                                          src={candidate.profilePicture || '/default-profile.png'}
+                                          alt={candidate.fullName}
+                                          className="w-20 h-20 rounded-full object-cover border border-gray-300"
+                                        />
+                                        <div>
+                                          <h5 className="font-semibold">{candidate.fullName}</h5>
+                                          <p className="text-sm text-gray-600">{candidate.email}</p>
+                                          {/* <p className="text-sm text-gray-600">{candidate.studentId}</p> */}
+                                          <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                                        </div>
+                                      </div>
+                                      <div className="mt-3 justify-end flex gap-2">
                                         <button
                                           onClick={() => handleEdit(candidate)}
                                           className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -670,12 +692,17 @@ function ManageElections() {
                       onChange={(e) => setFormData(prev => ({ ...prev, candidateId: e.target.value }))}
                       className="w-full border rounded px-3 py-2"
                       required
+                      disabled={!!editingCandidate}
                     >
                       <option value="">Select Candidate</option>
-                      {approvedCandidates.map(candidate => (
-                        <option key={candidate.id} value={candidate.id}>
-                          {candidate.name} - {candidate.institute}{candidate.studentId ? ` (${candidate.studentId})` : ''}
-                        </option>
+                      {approvedCandidates
+                        .filter(ac => !candidates.some(c => c.candidateUid === ac.uid && c.candidateAppId === ac.appId)
+                        || `${ac.uid}-${ac.appId}` === formData.candidateId
+                      )
+                        .map(candidate => (
+                          <option key={candidate.id} value={candidate.id}>
+                            {candidate.lastName}, {candidate.firstName} - {candidate.institute}{candidate.studentId ? ` (${candidate.studentId})` : ''}
+                          </option>
                       ))}
                     </select>
                     {approvedCandidates.length === 0 && (
