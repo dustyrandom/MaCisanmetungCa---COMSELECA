@@ -17,7 +17,8 @@ function ViewResults() {
   const [expandedVotes, setExpandedVotes] = useState({})
   const [publicVisible, setPublicVisible] = useState(false)
   const [savingPublish, setSavingPublish] = useState(false)
-  
+  const [voterFilter, setVoterFilter] = useState('All')
+
 
   const sscRoles = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
@@ -30,6 +31,14 @@ function ViewResults() {
     'Institute of Teacher Education',
     'Institute of Hospitality and Tourism Management'
   ]
+
+  const instituteMap = {
+  IAS: 'Institute of Arts and Sciences',
+  IBCE: 'Institute of Business and Computing Education',
+  IHTM: 'Institute of Hospitality and Tourism Management',
+  ITE: 'Institute of Teacher Education'
+}
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -104,11 +113,12 @@ function ViewResults() {
     return new Date(dateString).toLocaleString()
   }
 
-  // getRoleCategory not used
-
   const getFilteredVotes = () => {
-    return votes
+    if (voterFilter === 'All') return votes
+    const instituteFullName = instituteMap[voterFilter]
+    return votes.filter(v => v.voterInstitute === instituteFullName)
   }
+
 
   // getFilteredCandidates not used
 
@@ -128,6 +138,79 @@ function ViewResults() {
       setDeletingVotes(false)
     }
   }
+
+  const handleExportCSV = async () => {
+    if (votes.length === 0) return
+
+    const headers = [
+      'Voter Name',
+      'Student ID',
+      'Email',
+      'Institute',
+      'Submitted At',
+      'Votes'
+    ]
+
+    const rows = votes.map(vote => {
+      const voteDetails = Object.entries(vote.votes)
+        .map(([role, candidateIds]) => {
+          const ids = Array.isArray(candidateIds) ? candidateIds : [candidateIds]
+          const names = ids.filter(Boolean).map(getCandidateName)
+          return `${role}: ${names.join(', ') || 'None'}`
+        })
+        .join(' | ')
+
+      return [
+        vote.voterName,
+        vote.voterstudentId,
+        vote.voterEmail,
+        vote.voterInstitute,
+        formatDate(vote.submittedAt),
+        voteDetails
+      ]
+    })
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+
+    try {
+      // Prefer the modern Save File dialog if available
+      if ('showSaveFilePicker' in window) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: `election_results_${new Date().toISOString().slice(0, 10)}.csv`,
+          types: [
+            {
+              description: 'CSV Files',
+              accept: { 'text/csv': ['.csv'] },
+            },
+          ],
+        })
+
+        const writable = await handle.createWritable()
+        await writable.write(csvContent)
+        await writable.close()
+
+        // Optional: log export action
+        if (typeof logActivity === 'function' && userData?.fullName) {
+          logActivity(userData.fullName, 'Exported election results to CSV')
+        }
+
+        alert('✅ CSV file successfully saved!')
+      } else {
+        // Fallback for older browsers
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `election_results_${new Date().toISOString().slice(0, 10)}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      console.error('Election results save cancelled or failed:', err)
+    }
+}
 
   if (loading) {
     return (
@@ -172,11 +255,23 @@ function ViewResults() {
               <button
                 onClick={() => setShowDeleteModal(true)}
                 disabled={deletingVotes || votes.length === 0}
-                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-600 text-white border-red-700 hover:bg-red-700'}`}
+                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-700 text-white border-red-700 hover:bg-red-600'}`}
                 title={votes.length === 0 ? 'No votes to delete' : 'Delete all votes'}
               >
                 {deletingVotes ? 'Deleting…' : 'Delete All Votes'}
               </button>
+              <button
+              onClick={handleExportCSV}
+              disabled={votes.length === 0}
+              className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
+                votes.length === 0
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-green-700 text-white border-green-700 hover:bg-green-600 transition'
+              }`}
+              title="Export votes to CSV"
+            >
+              Export CSV
+            </button>
             </div>
           </div>
 
@@ -256,6 +351,22 @@ function ViewResults() {
           {/* Tab Content */}
           {activeTab === 'voters' && (
             <div className="space-y-6">
+              {/* Voter Details Filter */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Institute:</label>
+                <select
+                  value={voterFilter}
+                  onChange={(e) => setVoterFilter(e.target.value)}
+                  className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                >
+                  <option value="All">All</option>
+                  <option value="IAS">IAS</option>
+                  <option value="IBCE">IBCE</option>
+                  <option value="IHTM">IHTM</option>
+                  <option value="ITE">ITE</option>
+                </select>
+              </div>
+
               {getFilteredVotes().length === 0 ? (
                 <div className="bg-white rounded-lg shadow p-6 text-center">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -272,7 +383,9 @@ function ViewResults() {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">{vote.voterName}</h3>
+                        <p className="text-gray-600">{vote.voterstudentId}</p>
                         <p className="text-gray-600">{vote.voterEmail}</p>
+                        <p className="text-gray-600">{vote.voterInstitute}</p>
                         <p className="text-sm text-gray-500">Voted on: {formatDate(vote.submittedAt)}</p>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -295,6 +408,7 @@ function ViewResults() {
                       {expandedVotes[vote.uid] && (
                       <div className="space-y-4">
                         <h4 className="font-medium text-gray-900 mb-3">Votes Cast:</h4>
+
                         {/* SSC Votes */}
                         <div>
                           <h5 className="text-lg font-semibold text-red-900 mb-3">Supreme Student Council Votes</h5>
@@ -318,13 +432,13 @@ function ViewResults() {
                                               </svg>
                                             </div>
                                             <div>
+                                              <div className="text-xs text-green-600 font-medium">VOTED FOR</div>
                                               <span className="font-semibold text-gray-900">{getCandidateName(candidateId)}</span>
-                                              <span className="text-gray-500 ml-2">({getCandidateRole(candidateId)})</span>
+                                              {/* <span className="text-gray-500 ml-2">({getCandidateRole(candidateId)})</span> */}
                                             </div>
                                           </div>
                                           <div className="text-right">
                                             <span className="text-sm text-gray-500">{getCandidateInstitute(candidateId)}</span>
-                                            <div className="text-xs text-green-600 font-medium">VOTED FOR</div>
                                           </div>
                                         </div>
                                       ))}
@@ -352,85 +466,78 @@ function ViewResults() {
                           <h5 className="text-lg font-semibold text-red-900 mb-3">Institute Student Council Votes</h5>
                           <div className="space-y-3">
                             {(() => {
-                              // Find the voter's institute by looking for ISC votes
-                              const voterInstitute = institutes.find(institute => 
-                                iscRoles.some(role => {
-                                  const voteKey = `${institute}-${role}`
-                                  const selectedCandidates = vote.votes[voteKey]
-                                  return selectedCandidates && (Array.isArray(selectedCandidates) ? selectedCandidates.length > 0 : selectedCandidates)
-                                })
-                              )
-                              
-                              // If no votes found, try to determine from candidate data
-                              if (!voterInstitute) {
-                                // Look for any ISC vote and get the institute from the candidate
-                                for (const [voteKey, candidateId] of Object.entries(vote.votes)) {
-                                  if (voteKey.includes('-') && iscRoles.some(role => voteKey.endsWith(`-${role}`))) {
-                                    const candidate = candidates.find(c => c.id === candidateId)
-                                    if (candidate) {
-                                      return [candidate.institute]
-                                    }
+                              // Determine voter's institute from their votes
+                              let voterInstitute = null
+                              for (const [voteKey, candidateId] of Object.entries(vote.votes)) {
+                                if (!candidateId) continue
+                                const matchedRole = iscRoles.find(role => voteKey.endsWith(`-${role}`))
+                                if (matchedRole) {
+                                  const candidate = candidates.find(c => c.id === candidateId)
+                                  if (candidate) {
+                                    voterInstitute = candidate.institute
+                                    break
                                   }
                                 }
-                                return []
                               }
-                              
-                              return [voterInstitute]
-                            })().map(institute => (
-                              <div key={institute} className="mb-4">
-                                <h6 className="font-semibold text-gray-700 mb-2">{institute}</h6>
-                                <div className="space-y-2">
-                                  {iscRoles.map(role => {
-                                    const voteKey = `${institute}-${role}`
-                                    const selectedCandidates = vote.votes[voteKey]
-                                    const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
-                                    const validCandidates = candidatesArray.filter(Boolean)
-                                    
-                                    return (
-                                <div key={role} className="bg-gray-50 rounded-lg p-3">
-                                  <h6 className="font-medium text-gray-800 mb-2">{role}</h6>
-                                  {validCandidates.length > 0 ? (
-                                    <div className="space-y-2">
-                                      {validCandidates.map((candidateId, idx) => (
-                                        <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-green-200">
-                                          <div className="flex items-center">
-                                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                                              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                              </svg>
+
+                              return (
+                                <div className="mb-4">
+                                  <h6 className="font-semibold text-gray-700 mb-2">{voterInstitute}</h6>
+                                  <div className="space-y-2">
+                                    {iscRoles.map(role => {
+                                      const voteKey = `${voterInstitute}-${role}`
+                                      const selectedCandidates = vote.votes[voteKey]
+                                      const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
+                                      const validCandidates = candidatesArray.filter(Boolean)
+
+                                      return (
+                                        <div key={role} className="bg-gray-50 rounded-lg p-3">
+                                          <h6 className="font-medium text-gray-800 mb-2">{role}</h6>
+
+                                          {validCandidates.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {validCandidates.map((candidateId, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-green-200">
+                                                  <div className="flex items-center">
+                                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                      </svg>
+                                                    </div>
+                                                    <div>
+                                                      <div className="text-xs text-green-600 font-medium">VOTED FOR</div>
+                                                      <span className="font-semibold text-gray-900">{getCandidateName(candidateId)}</span>
+                                                      {/* <span className="text-gray-500 ml-2">({getCandidateRole(candidateId)})</span> */}
+                                                    </div>
+                                                  </div>
+                                                  <div className="text-right">
+                                                    <span className="text-sm text-gray-500">{getCandidateInstitute(candidateId)}</span>
+                                                  </div>
+                                                </div>
+                                              ))}
                                             </div>
-                                            <div>
-                                              <span className="font-semibold text-gray-900">{getCandidateName(candidateId)}</span>
-                                              <span className="text-gray-500 ml-2">({getCandidateRole(candidateId)})</span>
+                                          ) : (
+                                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                              <div className="flex items-center">
+                                                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                  </svg>
+                                                </div>
+                                                <span className="text-gray-500 italic">No candidate selected</span>
+                                              </div>
                                             </div>
-                                          </div>
-                                          <div className="text-right">
-                                            <span className="text-sm text-gray-500">{getCandidateInstitute(candidateId)}</span>
-                                            <div className="text-xs text-green-600 font-medium">VOTED FOR</div>
-                                          </div>
+                                          )}
                                         </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="bg-white rounded-lg p-3 border border-gray-200">
-                                      <div className="flex items-center">
-                                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                          </svg>
-                                        </div>
-                                        <span className="text-gray-500 italic">No candidate selected</span>
-                                      </div>
-                                    </div>
-                                  )}
-                                      </div>
-                                    )
-                                  })}
+                                      )
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })()}
                           </div>
                         </div>
+
                       </div>
                       )}
                     </div>
@@ -442,7 +549,7 @@ function ViewResults() {
 
           {activeTab === 'summary' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow p-6">
+              {/* <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Voting Summary</h3>
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                   <div className="bg-blue-50 rounded-lg p-4">
@@ -459,13 +566,13 @@ function ViewResults() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Candidate Vote Counts */}
               <>
                 <div className="space-y-8">
                   <div>
-                    <h2 className="text-xl font-semibold text-red-900 mb-6">SSC Candidates</h2>
+                    <h2 className="text-xl font-semibold text-red-900 mb-6">Supreme Student Council Candidates</h2>
                       {sscRoles.map(role => {
                       const roleCandidates = candidates.filter(c => c.role === role)
                       return (
@@ -503,7 +610,7 @@ function ViewResults() {
                               })}
                             </div>
                           ) : (
-                            <p className="text-red-800 italic text-sm ">No candidates for this position yet.</p>
+                            <p className="text-red-800 italic text-sm ">No candidate/s for this position yet.</p>
                           )}
                         </div>
                       )
@@ -511,63 +618,63 @@ function ViewResults() {
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold text-red-900 mb-6">ISC Candidates by Institute</h2>
-                      {institutes.map(institute => {
+                    <h2 className="text-xl font-semibold text-red-900 mb-6">Institute Student Council Candidates</h2>
+                    {institutes.map(institute => {
                       const instituteCandidates = candidates.filter(c => iscRoles.includes(c.role) && c.institute === institute)
                       return (
                         <div key={institute} className="mb-8">
                           <h3 className="text-lg font-semibold text-gray-800 mb-6">{institute}</h3>
-                          {instituteCandidates.length > 0 ? (
-                            <div className="space-y-6">
-                              {iscRoles.map(role => {
-                                const roleCandidates = instituteCandidates.filter(c => c.role === role)
-                                return (
-                                  <div key={role}>
-                                    <h4 className="text-md font-semibold text-gray-700 mb-3">{role}</h4>
-                                    {roleCandidates.length > 0 ? (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {roleCandidates.map(candidate => {
-                                          let voteCount = 0
-                                          votes.forEach(vote => {
-                                            Object.values(vote.votes).forEach(selectedCandidates => {
-                                              const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
-                                              if (candidatesArray.includes(candidate.id)) {
-                                                voteCount++
-                                              }
-                                            })
-                                          })
 
-                                          return (
-                                            <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                              <h5 className="font-semibold">{candidate.fullName}</h5>
-                                              <p className="text-sm text-gray-600">{candidate.email}</p>
-                                              <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                              {candidate.team && (
-                                                <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                                              )}
-                                              <div className="mt-3">
-                                                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                                  {voteCount} votes
-                                                </span>
-                                              </div>
+                          <div className="space-y-8">
+                            {iscRoles.map(role => {
+                              const roleCandidates = instituteCandidates.filter(c => c.role === role)
+
+                              return (
+                                <div key={role}>
+                                  <h4 className="text-lg font-semibold text-gray-700 mb-3">{role}</h4>
+                                  
+                                  {roleCandidates.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      {roleCandidates.map(candidate => {
+                                        let voteCount = 0
+                                        votes.forEach(vote => {
+                                          Object.values(vote.votes).forEach(selectedCandidates => {
+                                            const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
+                                            if (candidatesArray.includes(candidate.id)) {
+                                              voteCount++
+                                            }
+                                          })
+                                        })
+
+                                        return (
+                                          <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
+                                            <h5 className="font-semibold">{candidate.fullName}</h5>
+                                            <p className="text-sm text-gray-600">{candidate.email}</p>
+                                            <p className="text-sm text-gray-600">{candidate.studentId}</p>
+                                            {candidate.team && (
+                                              <p className="text-sm text-purple-600">Party: {candidate.team}</p>
+                                            )}
+                                            <div className="mt-3">
+                                              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                                {voteCount} votes
+                                              </span>
                                             </div>
-                                          )
-                                        })}
-                                      </div>
-                                    ) : (
-                                      <p className="text-red-800 italic text-sm">No candidates for this position yet.</p>
-                                    )}
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          ) : (
-                            <p className="text-red-800 italic text-sm">No candidates for this institute yet.</p>
-                          )}
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-red-800 italic text-sm">No candidate/s for this position yet.</p>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       )
                     })}
                   </div>
+
                 </div>
               </>
             </div>

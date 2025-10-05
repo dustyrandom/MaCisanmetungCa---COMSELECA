@@ -102,7 +102,7 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
         <div className="space-y-3">
           {app.appointment ? (
             <div className="border rounded p-3 text-sm">
-              <p className="font-medium mb-1">Appointment</p>
+              <p className="font-medium mb-1">Screening Appointment</p>
               <p><span className="text-gray-600">Status:</span> {app.appointment.status}</p>
               <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(app.appointment.dateTime)}</p>
               <p><span className="text-gray-600">Venue:</span> {app.appointment.venue}</p>
@@ -160,75 +160,103 @@ function ManageCandidates() {
   const [message, setMessage] = useState('')
   const [activeTab, setActiveTab] = useState('candidacy') // 'candidacy' | 'appointments' | 'settings'
   const [savingId, setSavingId] = useState('')
-  const [savingScreening, setSavingScreening] = useState(false)
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
   const [newSlot, setNewSlot] = useState("")
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [slotToDelete, setSlotToDelete] = useState(null)
   const [isError, setIsError] = useState(false)
+  const [candidacyStatus, setCandidacyStatus] = useState({ startDate: '', endDate: '' });
+  const [savingCandidacyStatus, setSavingCandidacyStatus] = useState(false);
+  const [showCandidacyModal, setShowCandidacyModal] = useState(false);
+  const [candidacyModalMessage, setCandidacyModalMessage] = useState('');
+  const [candidacyModalError, setCandidacyModalError] = useState('');
+
+
 
   useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const appsRef = dbRef(db, 'candidacyApplications')
-        const snapshot = await get(appsRef)
-        
-        if (snapshot.exists()) {
-          const data = snapshot.val()
-          const allApps = []
-          
-          Object.keys(data).forEach(uid => {
-            Object.keys(data[uid]).forEach(appId => {
-              allApps.push({
-                id: appId,
-                uid: uid,
-                ...data[uid][appId]
-              })
+  const fetchApplications = async () => {
+    try {
+      const appsRef = dbRef(db, 'candidacyApplications')
+      const snapshot = await get(appsRef)
+      const csSnap = await get(dbRef(db, 'candidacyStatus'))
+      if (csSnap.exists()) setCandidacyStatus(csSnap.val())
+
+      if (snapshot.exists()) {
+        const data = snapshot.val()
+        const allApps = []
+
+        Object.keys(data).forEach(uid => {
+          Object.keys(data[uid]).forEach(appId => {
+            allApps.push({
+              id: appId,
+              uid: uid,
+              ...data[uid][appId]
             })
           })
-          
-          setApplications(allApps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
-        }
-
-        // Realtime appointmentStatus listener
-        const statusRef = dbRef(db, 'appointmentStatus')
-        const unsubscribe = onValue(statusRef, (snapshot) => {
-          if (snapshot.exists()) {
-            setAppointmentStatus(snapshot.val())
-          } else {
-            const nextDay = new Date()
-            nextDay.setDate(nextDay.getDate() + 1)
-            nextDay.setHours(9, 0, 0, 0)
-            const end = new Date(nextDay)
-            end.setHours(17, 0, 0, 0)
-            const toLocalInput = (d) =>
-              new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-            setAppointmentStatus({
-              isActive: false,
-              startDate: toLocalInput(nextDay),
-              endDate: toLocalInput(end),
-              slots: {}
-            })
-          }
         })
 
-        // Cleanup when component unmounts
-        return () => unsubscribe()
-
-      } catch (error) {
-        console.error('Error fetching applications:', error)
-        setMessage('Failed to load applications.')
-      } finally {
-        setLoading(false)
+        setApplications(allApps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
       }
-    }
 
-    if (userData?.role === 'admin') {
-      fetchApplications()
-    } else {
+      // Realtime appointmentStatus listener
+      const statusRef = dbRef(db, 'appointmentStatus')
+      const unsubscribe = onValue(statusRef, async (snapshot) => {
+        const now = new Date()
+        let updatedStatus = { isActive: false, startDate: '', endDate: '', slots: {} }
+
+        if (snapshot.exists()) {
+          updatedStatus = snapshot.val()
+
+          if (updatedStatus.slots) {
+            for (const slotKey of Object.keys(updatedStatus.slots)) {
+              if (new Date(slotKey) < now) {
+                try {
+                  await remove(dbRef(db, `appointmentStatus/slots/${slotKey}`))
+                  delete updatedStatus.slots[slotKey] // remove from local state immediately
+                } catch (err) {
+                  console.error('Failed to remove past slot', slotKey, err)
+                }
+              }
+            }
+          }
+        } else {
+          // If no snapshot, create default next day slot object
+          const nextDay = new Date()
+          nextDay.setDate(nextDay.getDate() + 1)
+          nextDay.setHours(9, 0, 0, 0)
+          const end = new Date(nextDay)
+          end.setHours(17, 0, 0, 0)
+          const toLocalInput = (d) =>
+            new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+
+          updatedStatus = {
+            isActive: false,
+            startDate: toLocalInput(nextDay),
+            endDate: toLocalInput(end),
+            slots: {}
+          }
+        }
+
+        // Update the state after processing
+        setAppointmentStatus(updatedStatus)
+      })
+
+      // Cleanup listener
+      return () => unsubscribe()
+    } catch (error) {
+      console.error('Error fetching applications:', error)
+      setMessage('Failed to load applications.')
+    } finally {
       setLoading(false)
     }
-  }, [userData])
+  }
+
+  if (userData?.role === 'admin') {
+    fetchApplications()
+  } else {
+    setLoading(false)
+  }
+}, [userData])
 
   const updateApplicationStatus = async (uid, appId, status) => {
     try {
@@ -424,6 +452,40 @@ function ManageCandidates() {
     }
   }
 
+  const handleSaveCandidacySettings = async () => {
+  setSavingCandidacyStatus(true);
+  try {
+    const now = new Date();
+    const start = new Date(candidacyStatus.startDate);
+    const end = new Date(candidacyStatus.endDate);
+
+    if (!candidacyStatus.startDate || !candidacyStatus.endDate) {
+      throw new Error('Please set both start and end date/time.');
+    }
+    if (start < now) throw new Error('Start date/time cannot be in the past.');
+    if (end <= start) throw new Error('End date/time must be later than start date/time.');
+
+    await set(dbRef(db, 'candidacyStatus'), candidacyStatus);
+
+    logActivity(
+      userData.fullName,
+      `Updated candidacy period: ${start.toLocaleString()} → ${end.toLocaleString()}`
+    );
+
+    setCandidacyModalMessage('Candidacy period saved successfully!');
+    setCandidacyModalError('');
+    setShowCandidacyModal(true);
+  } catch (err) {
+    console.error(err);
+    setCandidacyModalError(err.message);
+    setCandidacyModalMessage('');
+    setShowCandidacyModal(true);
+  } finally {
+    setSavingCandidacyStatus(false);
+  }
+};
+
+
   if (userData?.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -482,6 +544,40 @@ function ManageCandidates() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6">
+
+            <div className="bg-white mb-8 border rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Candidacy Submission</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={candidacyStatus.startDate || ''}
+                    onChange={(e) => setCandidacyStatus(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={candidacyStatus.endDate || ''}
+                    onChange={(e) => setCandidacyStatus(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleSaveCandidacySettings}
+                disabled={savingCandidacyStatus}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {savingCandidacyStatus ? 'Saving…' : 'Save Settings'}
+              </button>
+            </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
               <div className="space-y-4">
@@ -554,10 +650,13 @@ function ManageCandidates() {
                 <div>
                   <h4 className="text-sm font-medium text-gray-800 mb-2">Available Slots</h4>
                   <ul className="space-y-1 text-sm text-gray-700">
-                    {appointmentStatus.slots
+                    {appointmentStatus.slots && Object.keys(appointmentStatus.slots).length > 0
                       ? Object.keys(appointmentStatus.slots).map((s) => (
                           <li key={s} className="flex justify-between items-center border rounded px-3 py-1">
-                            <span>{new Date(s).toLocaleString()}</span>
+                            <span>
+                              {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} {' '}
+                              {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                             <div className="flex items-center gap-3">
                               <span className={appointmentStatus.slots[s].available ? "text-green-600" : "text-red-600"}>
                                 {appointmentStatus.slots[s].available ? "Available" : "Booked"}
@@ -592,7 +691,7 @@ function ManageCandidates() {
           <div className="space-y-8">
             {/* Pending Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-red-900 mb-4">Submitted Candidacy Applications</h2>
+              <h2 className="text-lg font-semibold text-yellow-700 mb-4">Submitted Candidacy Applications</h2>
               {applications.filter(app => app.status === 'submitted').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'submitted').map((app) => (
@@ -607,14 +706,17 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No candidacy awaiting review.</p>
+                  <p className="text-gray-500">No candidacy awaiting review</p>
                 </div>
               )}
             </div>
 
             {/* Reviewed Applications (Screening) */}
             <div>
-              <h2 className="text-lg font-semibold text-blue-700 mb-4">Reviewed Candidacy Applications (After Screening)</h2>
+              <div className='mb-4'>
+                <h2 className="text-lg font-semibold text-blue-700">Reviewed Candidacy Applications</h2>
+                <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment</p>
+              </div>
               {applications.filter(app => app.status === 'reviewed').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'reviewed').map((app) => (
@@ -631,7 +733,7 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No reviewed candicacy.</p>
+                  <p className="text-gray-500">No reviewed candicacy</p>
                 </div>
               )}
             </div>
@@ -653,7 +755,7 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No approved candicacy.</p>
+                  <p className="text-gray-500">No approved candicacy</p>
                 </div>
               )}
             </div>
@@ -675,7 +777,7 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No rejected candidacy.</p>
+                  <p className="text-gray-500">No rejected candidacy</p>
                 </div>
               )}
             </div>
@@ -683,84 +785,109 @@ function ManageCandidates() {
         ))}
 
         {activeTab === 'appointments' && (() => {
-          const withAppointments = applications.filter(app => app.appointment)
-          const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
-          return (
-            <div className="space-y-8">
-              {/* Pending Screening Appointments */}
-              <div>
-                <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
-                {byStatus('pending').length > 0 ? (
-                  <div className="space-y-4">
-                    {byStatus('pending').map(app => (
-                      <ApplicationCard
-                        key={`${app.uid}-${app.id}`}
-                        app={app}
-                        onUpdateStatus={updateApplicationStatus}
-                        onAppointmentDecision={decideAppointment}
-                        savingId={savingId}
-                        showActions={false}
-                        showAppointment={true}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No pending screening appointments.</p>
-                  </div>
-                )}
-              </div>
+  const withAppointments = applications.filter(app => app.appointment)
+  const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
 
-              {/* Approved Screening Appointments */}
-              <div>
-                <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
-                {byStatus('approved').length > 0 ? (
-                  <div className="space-y-4">
-                    {byStatus('approved').map(app => (
-                      <ApplicationCard
-                        key={`${app.uid}-${app.id}`}
-                        app={app}
-                        onUpdateStatus={updateApplicationStatus}
-                        onAppointmentDecision={decideAppointment}
-                        savingId={savingId}
-                        showActions={false}
-                        showAppointment={true}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No approved screening appointments.</p>
-                  </div>
-                )}
-              </div>
+  // Group appointments by date
+  const groupByDate = (apps) =>
+    apps.reduce((acc, app) => {
+      const date = new Date(app.appointment.dateTime).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      if (!acc[date]) acc[date] = []
+      acc[date].push(app)
+      return acc
+    }, {})
 
-              {/* Rejected Appointments */}
-              <div>
-                <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Screening Appointments</h2>
-                {byStatus('rejected').length > 0 ? (
-                  <div className="space-y-4">
-                    {byStatus('rejected').map(app => (
-                      <ApplicationCard
-                        key={`${app.uid}-${app.id}`}
-                        app={app}
-                        onUpdateStatus={updateApplicationStatus}
-                        onAppointmentDecision={decideAppointment}
-                        savingId={savingId}
-                        showActions={false}
-                        showAppointment={true}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No rejected screening appointments.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })()}
+  const renderTable = (apps, showActions = false) => {
+    const grouped = groupByDate(apps)
+    return Object.keys(grouped)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map(date => (
+        <div key={date} className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+          <div className="bg-gray-100 px-6 py-2 font-semibold text-gray-700">{date}</div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                  {showActions && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {grouped[date]
+                  .sort((a, b) => new Date(a.appointment.dateTime) - new Date(b.appointment.dateTime))
+                  .map(app => (
+                    <tr key={`${app.uid}-${app.id}`} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(app.appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.appointment.venue || "-"}</td>
+                      {showActions && (
+                        <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                          <button
+                            onClick={() => decideAppointment(app.uid, app.id, 'approved', app.appointment)}
+                            disabled={savingId === `${app.uid}-${app.id}-appt`}
+                            className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                          >
+                            {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => decideAppointment(app.uid, app.id, 'rejected', app.appointment)}
+                            disabled={savingId === `${app.uid}-${app.id}-appt`}
+                            className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+                          >
+                            {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Reject'}
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Pending Appointments */}
+      <div>
+        <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
+        {byStatus('pending').length > 0 ? renderTable(byStatus('pending'), true) : (
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+            <p className="text-gray-500">No pending screening appointments</p>
+          </div>
+        )}
+      </div>
+
+      {/* Approved Appointments */}
+      <div>
+        <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
+        {byStatus('approved').length > 0 ? renderTable(byStatus('approved')) : (
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+            <p className="text-gray-500">No approved screening appointments</p>
+          </div>
+        )}
+      </div>
+
+      {/* Rejected Appointments */}
+      <div>
+        <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Screening Appointments</h2>
+        {byStatus('rejected').length > 0 ? renderTable(byStatus('rejected')) : (
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+            <p className="text-gray-500">No rejected screening appointments</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})()}
+
       </div>
 
         {showDeleteModal && (
@@ -807,6 +934,32 @@ function ManageCandidates() {
           </div>
         )}
 
+        {/* Candidacy Modal */}
+        {showCandidacyModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${candidacyModalError ? 'bg-red-100' : 'bg-green-100'}`}>
+                    <svg className={`w-5 h-5 ${candidacyModalError ? 'text-red-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={candidacyModalError ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'} />
+                    </svg>
+                  </div>
+                  <div>
+                    {candidacyModalMessage && <h4 className="text-lg font-semibold text-gray-900 mb-1">Success</h4>}
+                    {candidacyModalError && <h4 className="text-lg font-semibold text-gray-900 mb-1">Update Failed</h4>}
+                    <p className="text-gray-700">{candidacyModalMessage || candidacyModalError}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end">
+                  <button onClick={() => setShowCandidacyModal(false)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   )
 }

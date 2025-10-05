@@ -7,6 +7,30 @@ import NavBar from './NavBar'
 function Dashboard() {
   const { user, userData, loading } = useAuth()
   const [canSeeSchedule, setCanSeeSchedule] = useState(false)
+  const [candidacyStatus, setCandidacyStatus] = useState({ startDate: '', endDate: '' });
+  const [hasSubmittedCandidacy, setHasSubmittedCandidacy] = useState(false);
+
+  useEffect(() => {
+    const fetchCandidacyStatus = async () => {
+      try {
+        const csSnap = await get(dbRef(db, 'candidacyStatus'));
+        if (csSnap.exists()) {
+          setCandidacyStatus(csSnap.val());
+        }
+      } catch (err) {
+        console.error('Failed to fetch candidacy status', err);
+      }
+    };
+    fetchCandidacyStatus();
+  }, []);
+
+  const isCandidacyActive = () => {
+    if (!candidacyStatus.startDate || !candidacyStatus.endDate) return false;
+    const now = new Date();
+    const start = new Date(candidacyStatus.startDate);
+    const end = new Date(candidacyStatus.endDate);
+    return now >= start && now <= end;
+  };
 
   useEffect(() => {
     const fetchLatestStatus = async () => {
@@ -16,14 +40,17 @@ function Dashboard() {
         const snapshot = await get(appsRef)
         if (!snapshot.exists()) {
           setCanSeeSchedule(false)
+          setHasSubmittedCandidacy(false)
           return
         }
         const appsObj = snapshot.val()
         const apps = Object.keys(appsObj).map(id => ({ id, ...appsObj[id] }))
         const latest = apps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
         setCanSeeSchedule(latest?.status === 'reviewed')
+        setHasSubmittedCandidacy(true) // mark that user has submitted
       } catch {
         setCanSeeSchedule(false)
+        setHasSubmittedCandidacy(false)
       }
     }
     fetchLatestStatus()
@@ -61,10 +88,21 @@ function Dashboard() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-3">Candidacy</h3>
+        <h3 className="text-lg font-semibold mb-3">Candidacy Application</h3>
         <p className="text-gray-600 text-sm mb-3">Apply to become a candidate by submitting the required documents.</p>
         <div className="flex flex-wrap gap-3">
-          <a href="/candidacy-application" className="inline-block bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800">Apply for Candidacy</a>
+          <a
+            href="/candidacy-application"
+            className={`inline-block px-4 py-2 rounded ${
+              !isCandidacyActive() || hasSubmittedCandidacy
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                : 'bg-red-900 text-white hover:bg-red-800'
+            }`}
+            aria-disabled={!isCandidacyActive() || hasSubmittedCandidacy}
+            onClick={(e) => (!isCandidacyActive() || hasSubmittedCandidacy) && e.preventDefault()}
+          >
+            Apply for Candidacy
+          </a>
           {canSeeSchedule && (
             <a href="/schedule-appointment" className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Go to Screening Appointment</a>
           )}

@@ -247,7 +247,7 @@ function ManageCampaigns() {
   
         <div className="px-4 py-6 sm:px-0">
             {/* Campaign Settings */}
-            <div className="mb-8 border rounded-lg p-4">
+            <div className="bg-white mb-8 border rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
@@ -288,7 +288,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Pending</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'pending').length === 0 ? (
-                        <div className="text-sm text-gray-500">No pending campaign materials.</div>
+                        <div className="text-sm text-gray-500">No pending campaign materials</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'pending').map(renderSubmissionCard)
                       )}
@@ -301,7 +301,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Approved</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'approved').length === 0 ? (
-                        <div className="text-sm text-gray-500">No approved campaign materials.</div>
+                        <div className="text-sm text-gray-500">No approved campaign materials</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'approved').map(renderSubmissionCard)
                       )}
@@ -314,7 +314,7 @@ function ManageCampaigns() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-3">Rejected</h2>
                     <div className="space-y-4">
                       {submissions.filter(s => (s.status || 'pending') === 'rejected').length === 0 ? (
-                        <div className="text-sm text-gray-500">No rejected campaign materials.</div>
+                        <div className="text-sm text-gray-500">No rejected campaign materials</div>
                       ) : (
                         submissions.filter(s => (s.status || 'pending') === 'rejected').map(renderSubmissionCard)
                       )}

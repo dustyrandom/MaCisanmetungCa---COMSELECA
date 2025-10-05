@@ -24,10 +24,10 @@ function PublicResultsContent({ forceVisible = false }) {
   ])
 
   const institutePopulation = {
-    IAS: 800,
-    IBCE: 500,
-    IHTM: 600,
-    ITE: 900
+    IAS: 10,
+    IBCE: 15,
+    IHTM: 20,
+    ITE: 25
   }
   const totalPopulation = Object.values(institutePopulation).reduce((a, b) => a + b, 0);
 
@@ -249,7 +249,6 @@ function PublicResultsContent({ forceVisible = false }) {
 
         {sscRoles.map(role => {
           const roleCandidates = candidates.filter(c => c.role === role)
-          if (roleCandidates.length === 0) return null
 
           // Count votes
           const counts = {}
@@ -274,9 +273,9 @@ function PublicResultsContent({ forceVisible = false }) {
               profile: c.profilePicture || '/default-avatar.png',
               votes: counts[c.id] || 0,
               percentage:
-                totalPopulation > 0
-                  ? ((counts[c.id] / totalPopulation) * 100).toFixed(2)
-                  : '0.00',
+              counts[c.id] && totalPopulation > 0
+                ? ((counts[c.id] / totalPopulation) * 100).toFixed(2)
+                : '0.00',
               party: c.team || 'Independent',
             }))
             .sort((a, b) => b.votes - a.votes);
@@ -301,7 +300,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
               {data.length === 0 ? (
                 <p className="text-center text-red-800 italic text-sm">
-                  No candidates yet.
+                  No candidate/s for this position yet.
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -330,7 +329,7 @@ function PublicResultsContent({ forceVisible = false }) {
                         <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
                         <div
                           className={`h-3 rounded-full transition-all duration-500 ${
-                            c.votes > 0 ? 'bg-blue-600' : 'bg-gray-300'
+                            c.votes > 0 ? 'bg-red-600' : 'bg-gray-300'
                           }`}
                           style={{
                             width: `${c.votes > 0 ? c.percentage : 0}%`,
@@ -449,147 +448,153 @@ function PublicResultsContent({ forceVisible = false }) {
         </div>
       </div> */}
 
-{/* ISC Position Results */}
-<div className="mt-12">
-  <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
-    Institute Student Council
-  </h3>
+      {/* ISC Position Results */}
+      <div className="mt-12">
+        <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
+          Institute Student Council
+        </h3>
 
-  {["INSTITUTE OF ARTS AND SCIENCES", "INSTITUTE OF BUSINESS AND COMPUTING EDUCATION", "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT", "INSTITUTE OF TEACHER EDUCATION"].map(instituteFull => {
-    const shortNameMap = {
-      "INSTITUTE OF ARTS AND SCIENCES": "IAS",
-      "INSTITUTE OF BUSINESS AND COMPUTING EDUCATION": "IBCE",
-      "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT": "IHTM",
-      "INSTITUTE OF TEACHER EDUCATION": "ITE"
-    }
-
-    const shortName = shortNameMap[instituteFull]
-    const population = institutePopulation[shortName] || 0
-
-    const instituteCandidates = candidates.filter(
-      c => c.institute?.toUpperCase() === instituteFull.toUpperCase() && iscRoles.includes(c.role)
-    )
-
-    if (instituteCandidates.length === 0) return null
-
-    return (
-      <div key={instituteFull} className="mb-12">
-        <h4 className="text-xl font-bold text-center text-gray-700 mb-4">
-          {instituteFull}
-        </h4>
-
-        {iscRoles.map(role => {
-          const roleCandidates = instituteCandidates.filter(c => c.role === role)
-          if (roleCandidates.length === 0) return null
-
-          // Count votes for this institute + role
-          const counts = {}
-          votes.forEach(v => {
-            const voterInstitute = v.institute?.toUpperCase()
-            if (voterInstitute !== instituteFull.toUpperCase()) return
-
-            Object.entries(v.votes || {}).forEach(([key, value]) => {
-            // key is like "INSTITUTE OF ARTS AND SCIENCES-Governor"
-            const [instKey, roleKey] = key.split("-")
-
-            if (instKey?.toUpperCase() === instituteFull.toUpperCase() && roleKey === role) {
-              const arr = Array.isArray(value) ? value : value ? [value] : []
-              arr.forEach(id => {
-                counts[id] = (counts[id] || 0) + 1
-              })
-            }
-          })
-          })
-
-          const data = roleCandidates
-            .map(c => {
-              const voteCount = counts[c.id] || 0
-              const percentage =
-                population > 0 ? ((voteCount / population) * 100).toFixed(2) : "0.00"
-
-              return {
-                id: c.id,
-                name: `${c.lastName?.toUpperCase()}, ${c.firstName?.toUpperCase()}`,
-                profile: c.profilePicture || "/default-avatar.png",
-                votes: voteCount,
-                percentage,
-                party: c.team || "Independent"
-              }
-            })
-            .sort((a, b) => b.votes - a.votes)
-
-          const getOrdinal = (n) => {
-            const s = ["th", "st", "nd", "rd"]
-            const v = n % 100
-            return n + (s[(v - 20) % 10] || s[v] || s[0])
+        {["Institute of Arts and Sciences", "Institute of Business and Computing Education", "Institute of Hospitality and Tourism Management", "Institute of Teacher Education"].map(instituteFull => {
+          const shortNameMap = {
+            "Institute of Arts and Sciences": "IAS",
+            "Institute of Business and Computing Education": "IBCE",
+            "Institute of Hospitality and Tourism Management": "IHTM",
+            "Institute of Teacher Education": "ITE"
           }
 
+          const colorMap = {
+            IAS: '#10b981',   
+            IBCE: '#f59e0b',  
+            IHTM: '#ec4899',  
+            ITE: '#3b82f6'    
+          }
+
+
+          const shortName = shortNameMap[instituteFull]
+          const population = institutePopulation[shortName] || 0
+          const barColor = colorMap[shortName] || '#6b7280' 
+
+
+          const instituteCandidates = candidates.filter(
+            c => c.institute?.toUpperCase() === instituteFull.toUpperCase() && iscRoles.includes(c.role)
+          )
+
+
           return (
-            <div
-              key={`${instituteFull}-${role}`}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6"
-            >
-              <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
-                {role}
-              </h3>
+            <div key={instituteFull} className="mb-12">
+              <h4 className="text-xl font-bold text-center text-gray-700 mb-4">
+                {instituteFull}
+              </h4>
 
-              {data.length === 0 ? (
-                <p className="text-center text-red-800 italic text-sm">
-                  No candidates yet.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {data.map((c, idx) => (
-                    <div
-                      key={c.id}
-                      className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
-                    >
-                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
-                        <img
-                          src={c.profile}
-                          alt={c.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+              {iscRoles.map(role => {
+                const roleCandidates = instituteCandidates.filter(c => c.role === role)
+                
 
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold text-gray-800">
-                            {getOrdinal(idx + 1)} • {c.name}
-                          </h4>
-                          <span className="text-sm text-gray-600">{c.party}</span>
-                        </div>
+                // Count votes for this institute + role
+                const counts = {}
+                votes.forEach(v => {
+                  const voterInstitute = v.institute?.toUpperCase()
+                  if (voterInstitute !== instituteFull.toUpperCase()) return
 
-                        {/* Progress Bar */}
-                        <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                  Object.entries(v.votes || {}).forEach(([key, value]) => {
+                  // key is like "INSTITUTE OF ARTS AND SCIENCES-Governor"
+                  const [instKey, roleKey] = key.split("-")
+
+                  if (instKey?.toUpperCase() === instituteFull.toUpperCase() && roleKey === role) {
+                    const arr = Array.isArray(value) ? value : value ? [value] : []
+                    arr.forEach(id => {
+                      counts[id] = (counts[id] || 0) + 1
+                    })
+                  }
+                })
+                })
+
+                const data = roleCandidates
+                  .map(c => {
+                    const voteCount = counts[c.id] || 0
+                    const percentage =
+                      population > 0 ? ((voteCount / population) * 100).toFixed(2) : "0.00"
+
+                    return {
+                      id: c.id,
+                      name: `${c.lastName?.toUpperCase()}, ${c.firstName?.toUpperCase()}`,
+                      profile: c.profilePicture || "/default-avatar.png",
+                      votes: voteCount,
+                      percentage,
+                      party: c.team || "Independent"
+                    }
+                  })
+                  .sort((a, b) => b.votes - a.votes)
+
+                const getOrdinal = (n) => {
+                  const s = ["th", "st", "nd", "rd"]
+                  const v = n % 100
+                  return n + (s[(v - 20) % 10] || s[v] || s[0])
+                }
+
+                return (
+                  <div
+                    key={`${instituteFull}-${role}`}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6"
+                  >
+                    <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
+                      {role}
+                    </h3>
+
+                    {data.length === 0 ? (
+                      <p className="text-center text-red-800 italic text-sm">
+                        No candidate/s for this position yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {data.map((c, idx) => (
                           <div
-                            className={`h-3 rounded-full transition-all duration-500 ${
-                              c.votes > 0 ? "bg-green-600" : "bg-gray-300"
-                            }`}
-                            style={{ width: `${c.votes > 0 ? c.percentage : 0}%` }}
-                          />
-                        </div>
+                            key={c.id}
+                            className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
+                          >
+                            <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                              <img
+                                src={c.profile}
+                                alt={c.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
 
-                        {/* Vote Count & Percentage */}
-                        <div className="flex justify-between text-xs text-gray-600 mt-1">
-                          <span>{c.votes} Votes</span>
-                          <span>{c.percentage}%</span>
-                        </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center">
+                                <h4 className="font-semibold text-gray-800">
+                                  {getOrdinal(idx + 1)} • {c.name}
+                                </h4>
+                                <span className="text-sm text-gray-600">{c.party}</span>
+                              </div>
+
+                              {/* Progress Bar */}
+                              <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                                <div
+                                  className={`h-3 rounded-full transition-all duration-500 ${
+                                    c.votes > 0 ? "bg-green-600" : "bg-gray-300"
+                                  }`}
+                                  style={{ width: `${c.votes > 0 ? c.percentage : 0}%`, backgroundColor: barColor }}
+                                />
+                              </div>
+
+                              {/* Vote Count & Percentage */}
+                              <div className="flex justify-between text-xs text-gray-600 mt-1">
+                                <span>{c.votes} Votes</span>
+                                <span>{c.percentage}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )
         })}
       </div>
-    )
-  })}
-</div>
-
-
-
 
     </>
   )

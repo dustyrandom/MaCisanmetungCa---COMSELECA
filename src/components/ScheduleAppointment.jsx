@@ -12,7 +12,7 @@ function ScheduleAppointment() {
   const [application, setApplication] = useState(null)
   const [history, setHistory] = useState([])
   const [dateTime, setDateTime] = useState('')
-  const VENUE = 'MB201 (MCC Dolores Campus)'
+  const VENUE = 'MB201 (MCC Dolores Campus)' //Change venue if necessary
   const [message, setMessage] = useState('')
   const [canReschedule, setCanReschedule] = useState(false)
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
@@ -186,7 +186,8 @@ function ScheduleAppointment() {
                       <option value="">-- Select an Available Slot --</option>
                       {slots.map((slot) => (
                         <option key={slot} value={slot}>
-                          {new Date(slot).toLocaleString()}
+                          {new Date(slot).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} –{' '}
+                          {new Date(slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </option>
                       ))}
                     </select>
@@ -213,7 +214,15 @@ function ScheduleAppointment() {
                             <span className="text-gray-500">{new Date(h.decidedAt).toLocaleString()}</span>
                           </div>
                           <p><span className="text-gray-600">Status:</span> {h.status}</p>
-                          <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(h.dateTime)}</p>
+                          <p><span className="text-gray-600">Date & Time: </span> 
+                          {new Date(h.dateTime).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })} – {new Date(h.dateTime).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}</p>
                           <p><span className="text-gray-600">Venue:</span> {h.venue}</p>
                         </li>
                       )
@@ -224,7 +233,15 @@ function ScheduleAppointment() {
                           <span className="capitalize font-medium">{h.decision}</span>
                           <span className="text-gray-500">{new Date(h.decidedAt).toLocaleString()}</span>
                         </div>
-                        {h.dateTime && <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(h.dateTime)}</p>}
+                        {h.dateTime && <p><span className="text-gray-600">Date & Time: </span>
+                        {new Date(h.dateTime).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })} – {new Date(h.dateTime).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}</p>}
                         {h.venue && <p><span className="text-gray-600">Venue:</span> {h.venue}</p>}
                       </li>
                     )

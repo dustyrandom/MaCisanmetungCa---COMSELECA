@@ -150,6 +150,8 @@ function VotingPage() {
         voterId: user.uid,
         voterName: userData.fullName,
         voterEmail: user.email,
+        voterstudentId: userData.studentId,
+        voterInstitute: userData.institute,
         votes: votes,
         submittedAt: new Date().toISOString()
       }
@@ -377,37 +379,36 @@ function VotingPage() {
   }
 
   // Show voting status message if voting is not active
-  if (!votingStatus.isActive) {
+  
     const now = new Date()
     const startDate = votingStatus.startDate ? new Date(votingStatus.startDate) : null
     const endDate = votingStatus.endDate ? new Date(votingStatus.endDate) : null
+
+    let votingState = 'active'
+    if (startDate && now < startDate) votingState = 'notStarted'
+    else if (endDate && now > endDate) votingState = 'ended'
     
-    let statusMessage = 'Voting has not started yet. Please check the commission announcements.'
-    let statusTitle = 'Voting is currently inactive'
-    let iconColor = 'text-red-600'
-    let bgColor = 'bg-red-100'
-    
-    {/*
-      if (startDate && endDate) {
-      if (now < startDate) {
-        statusMessage = `Voting will begin on ${new Date(votingStatus.startDate).toLocaleString()}`
-        statusTitle = 'Voting Has Not Started'
-      } else if (now > endDate) {
-        statusMessage = `Voting ended on ${new Date(votingStatus.endDate).toLocaleString()}`
-        statusTitle = 'Voting Has Ended'
-        iconColor = 'text-gray-600'
-        bgColor = 'bg-gray-100'
-      }
-    } else if (startDate && now < startDate) {
-      statusMessage = `Voting will begin on ${new Date(votingStatus.startDate).toLocaleString()}`
+    if (votingState !== 'active') {
+      let statusTitle = ''
+      let statusMessage = ''
+      let iconColor = 'text-red-600'
+      let bgColor = 'bg-red-100'
+
+    if (votingState === 'notStarted') {
       statusTitle = 'Voting Has Not Started'
-    } else if (endDate && now > endDate) {
-      statusMessage = `Voting ended on ${new Date(votingStatus.endDate).toLocaleString()}`
-      statusTitle = 'Voting Has Ended'
+      statusMessage = 'Voting has not started yet. Please check the commission announcements.'
+    } else if (votingState === 'ended') {
+      statusTitle = 'Voting Is Now Closed'
+      statusMessage = endDate
+        ? `Voting officially closed on ${endDate.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`
+        : 'Voting officially closed.'
       iconColor = 'text-gray-600'
       bgColor = 'bg-gray-100'
     }
-    */}
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -415,22 +416,19 @@ function VotingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
             <div className="mb-6">
-              <div className={`w-16 h-16 ${bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <svg className={`w-8 h-8 ${iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className={`w-16 h-16 ${votingState === 'ended' ? 'bg-red-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                {votingState === 'ended' ? (
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
               </div>
               <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
-              <p className="text-gray-600 mb-4">{statusMessage}</p>
-
-              {/*
-              {votingStatus.startDate && votingStatus.endDate && (
-                <p className="text-sm text-gray-500">
-                  Voting period: {new Date(votingStatus.startDate).toLocaleString()} - {new Date(votingStatus.endDate).toLocaleString()}
-                </p>
-              )}
-              */}
-              
+              <p className="text-gray-600">{statusMessage}</p>
             </div>
             <a
               href="/dashboard"
@@ -497,7 +495,7 @@ function VotingPage() {
             className={`px-6 py-2 rounded-lg font-medium ${
               currentPage === 1 
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                : 'bg-gray-600 text-white hover:bg-gray-700'
+                : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
             Previous
@@ -506,14 +504,14 @@ function VotingPage() {
           {currentPage === 1 ? (
             <button
               onClick={() => setCurrentPage(2)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700"
+              className="bg-blue-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
             >
               Next
             </button>
           ) : (
             <button
               onClick={submitVotes}
-              className="bg-green-600 text-white px-8 py-2 rounded-lg font-medium hover:bg-green-700"
+              className="bg-green-700 text-white px-8 py-2 rounded-lg font-medium hover:bg-green-600"
             >
               Submit Votes
             </button>
