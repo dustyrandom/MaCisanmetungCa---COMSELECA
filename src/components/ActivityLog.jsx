@@ -10,7 +10,7 @@ function ActivityLog() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (userData?.role === "admin") {
+    if (userData?.role === "admin" || userData?.role === "superadmin") {
       const db = getDatabase()
       const logsRef = ref(db, "activityLogs")
       const unsubscribe = onValue(logsRef, (snapshot) => {
@@ -32,7 +32,7 @@ function ActivityLog() {
     }
   }, [userData])
 
-  if (userData?.role !== "admin") {
+  if (userData?.role !== "superadmin" ) {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -82,6 +82,19 @@ function ActivityLog() {
   }))
 
   const csv = Papa.unparse(csvData)
+
+  const blob = new Blob([csv], { type: "text/csv" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = "admin_activity_logs.csv"
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+
+  // Log in Firebase
+  logActivity("Exported activity logs")
 
   try {
     // Open folder picker

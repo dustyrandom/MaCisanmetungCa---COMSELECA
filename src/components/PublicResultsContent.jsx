@@ -35,10 +35,10 @@ function PublicResultsContent({ forceVisible = false }) {
   const [votes, setVotes] = useState([])
 
   const pieColors = ['#ef4444', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#f43f5e', '#22c55e', '#eab308']
-  const sscRoles = [
+  const sscPositions = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
+  const iscPositions = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
   const institutes = [
     'Institute of Arts and Sciences',
     'Institute of Business and Computing Education',
@@ -247,13 +247,13 @@ function PublicResultsContent({ forceVisible = false }) {
           Supreme Student Council
         </h3>
 
-        {sscRoles.map(role => {
-          const roleCandidates = candidates.filter(c => c.role === role)
+        {sscPositions.map(position => {
+          const positionCandidates = candidates.filter(c => c.position === position)
 
           // Count votes
           const counts = {}
           votes.forEach(v => {
-            const selected = v.votes?.[role]
+            const selected = v.votes?.[position]
             const arr = Array.isArray(selected)
               ? selected
               : selected
@@ -266,7 +266,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
           const totalVotes = Object.values(counts).reduce((a, b) => a + b, 0)
 
-          const data = roleCandidates
+          const data = positionCandidates
             .map(c => ({
               id: c.id,
               name: `${c.lastName?.toUpperCase()}, ${c.firstName?.toUpperCase()}`,
@@ -291,11 +291,11 @@ function PublicResultsContent({ forceVisible = false }) {
 
           return (
             <div
-              key={role}
+              key={position}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8"
             >
               <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
-                {role}
+                {position}
               </h3>
 
               {data.length === 0 ? (
@@ -476,7 +476,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
 
           const instituteCandidates = candidates.filter(
-            c => c.institute?.toUpperCase() === instituteFull.toUpperCase() && iscRoles.includes(c.role)
+            c => c.institute?.toUpperCase() === instituteFull.toUpperCase() && iscPositions.includes(c.position)
           )
 
 
@@ -486,8 +486,8 @@ function PublicResultsContent({ forceVisible = false }) {
                 {instituteFull}
               </h4>
 
-              {iscRoles.map(role => {
-                const roleCandidates = instituteCandidates.filter(c => c.role === role)
+              {iscPositions.map(position => {
+                const positionCandidates = instituteCandidates.filter(c => c.position === position)
                 
 
                 // Count votes for this institute + role
@@ -498,9 +498,9 @@ function PublicResultsContent({ forceVisible = false }) {
 
                   Object.entries(v.votes || {}).forEach(([key, value]) => {
                   // key is like "INSTITUTE OF ARTS AND SCIENCES-Governor"
-                  const [instKey, roleKey] = key.split("-")
+                  const [instKey, positionKey] = key.split("-")
 
-                  if (instKey?.toUpperCase() === instituteFull.toUpperCase() && roleKey === role) {
+                  if (instKey?.toUpperCase() === instituteFull.toUpperCase() && positionKey === position) {
                     const arr = Array.isArray(value) ? value : value ? [value] : []
                     arr.forEach(id => {
                       counts[id] = (counts[id] || 0) + 1
@@ -509,7 +509,7 @@ function PublicResultsContent({ forceVisible = false }) {
                 })
                 })
 
-                const data = roleCandidates
+                const data = positionCandidates
                   .map(c => {
                     const voteCount = counts[c.id] || 0
                     const percentage =
@@ -534,11 +534,11 @@ function PublicResultsContent({ forceVisible = false }) {
 
                 return (
                   <div
-                    key={`${instituteFull}-${role}`}
+                    key={`${instituteFull}-${position}`}
                     className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6"
                   >
                     <h3 className="text-center text-lg font-semibold text-gray-700 mb-4">
-                      {role}
+                      {position}
                     </h3>
 
                     {data.length === 0 ? (

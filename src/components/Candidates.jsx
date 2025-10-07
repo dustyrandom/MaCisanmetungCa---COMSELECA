@@ -7,13 +7,13 @@ function Candidates({ forceVisible = false }) {
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('positions')
-  const sscRoles = [
+  const sscPositions = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary',
     'Finance Officer','Audit Officer','Student Welfare and Rights Officer',
     'Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
 
-  const iscRoles = [
+  const iscPositions = [
     'Governor','Vice Governor','Board Member on Records','Board Member on Finance',
     'Board Member on Audit','Board Member on Publication','Board Member on Public Relation',
     'Board Member on Resources'
@@ -47,11 +47,11 @@ function Candidates({ forceVisible = false }) {
     loadCandidates()
   }, [])
 
-  const combinedRoleOrder = [...sscRoles, ...iscRoles]
+  const combinedPositionsOrder = [...sscPositions, ...iscPositions]
 
-  const getRoleCategory = (role) => {
-    if (sscRoles.includes(role)) return 'SSC'
-    if (iscRoles.includes(role)) return 'ISC'
+  const getPositionCategory = (position) => {
+    if (sscPositions.includes(position)) return 'SSC'
+    if (iscPositions.includes(position)) return 'ISC'
     return ''
   }
 
@@ -108,14 +108,14 @@ function Candidates({ forceVisible = false }) {
               <h2 className="text-xl font-bold text-red-900 mb-6 text-center">
                 Supreme Student Council
               </h2>
-              {sscRoles.map(role => {
-                const roleCandidates = candidates.filter(c => c.role === role)
+              {sscPositions.map(position => {
+                const positionCandidates = candidates.filter(c => c.position === position)
                 return (
-                  <div key={role} className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{role}</h3>
-                    {roleCandidates.length > 0 ? (
+                  <div key={position} className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{position}</h3>
+                    {positionCandidates.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {roleCandidates.map(candidate => (
+                        {positionCandidates.map(candidate => (
                           <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
                             {/* Profile picture */}
                             <div className="flex-shrink-0">
@@ -152,20 +152,20 @@ function Candidates({ forceVisible = false }) {
               </h2>
               {institutes.map(institute => {
                 const instituteCandidates = candidates.filter(
-                  c => getRoleCategory(c.role) === 'ISC' && c.institute === institute
+                  c => getPositionCategory(c.position) === 'ISC' && c.institute === institute
                 )
                 return (
                   <div key={institute} className="mb-12 border border-gray-300 rounded-xl bg-white shadow-sm p-6">
                     <h3 className="text-lg font-semibold text-gray-800 mb-6 text-center">{institute}</h3>
                     <div className="space-y-6">
-                      {iscRoles.map(role => {
-                        const roleCandidates = instituteCandidates.filter(c => c.role === role)
+                      {iscPositions.map(position => {
+                        const positionCandidates = instituteCandidates.filter(c => c.position === position)
                         return (
-                          <div key={role}>
-                            <h4 className="text-md font-semibold text-gray-700 mb-3">{role}</h4>
-                            {roleCandidates.length > 0 ? (
+                          <div key={position}>
+                            <h4 className="text-md font-semibold text-gray-700 mb-3">{position}</h4>
+                            {positionCandidates.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {roleCandidates.map(candidate => (
+                                {positionCandidates.map(candidate => (
                                   <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
                                     {/* Profile picture */}
                                     <div className="flex-shrink-0">
@@ -235,15 +235,15 @@ function Candidates({ forceVisible = false }) {
                             {group.map((teamName, innerIdx) => {
                               const { title, badge } = colorByIndex(innerIdx)
                               const teamCandidates = candidates.filter(c => ((c.team || '').trim().toUpperCase()) === teamName.toUpperCase())
-                              const roleToNames = teamCandidates.reduce((acc, c) => {
-                                const role = c.role || ''
-                                if (!acc[role]) acc[role] = []
-                                acc[role].push(c.fullName)
+                              const positionToNames = teamCandidates.reduce((acc, c) => {
+                                const position = c.position || ''
+                                if (!acc[position]) acc[position] = []
+                                acc[position].push(c.fullName)
                                 return acc
                               }, {})
-                              const rolesForTeam = Object.keys(roleToNames).sort((a, b) => {
-                                const ia = combinedRoleOrder.indexOf(a)
-                                const ib = combinedRoleOrder.indexOf(b)
+                              const positionForTeam = Object.keys(positionToNames).sort((a, b) => {
+                                const ia = combinedPositionsOrder.indexOf(a)
+                                const ib = combinedPositionsOrder.indexOf(b)
                                 if (ia === -1 && ib === -1) return a.localeCompare(b)
                                 if (ia === -1) return 1
                                 if (ib === -1) return -1
@@ -252,14 +252,14 @@ function Candidates({ forceVisible = false }) {
                               return (
                                 <div key={`${teamName}-${innerIdx}`}>
                                   <h4 className={`text-center font-semibold mb-4 ${title}`}>{teamName}</h4>
-                                  {rolesForTeam.length > 0 ? (
+                                  {positionForTeam.length > 0 ? (
                                     <div className="space-y-3 text-center text-sm">
-                                      {rolesForTeam.map((role) => (
-                                        <div key={role} className="space-y-1">
-                                          <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{role}</div>
+                                      {positionForTeam.map((position) => (
+                                        <div key={position} className="space-y-1">
+                                          <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{position}</div>
                                           <div className="text-gray-800">
-                                            {roleToNames[role].map((fullName, i) => (
-                                              <div key={`${role}-${i}`}>{fullName}</div>
+                                            {positionToNames[position].map((fullName, i) => (
+                                              <div key={`${position}-${i}`}>{fullName}</div>
                                             ))}
                                           </div>
                                         </div>
@@ -291,15 +291,15 @@ function Candidates({ forceVisible = false }) {
                   if (individuals.length === 0) {
                     return <div className="text-center text-gray-500">No candidates to display.</div>
                   }
-                  const roleToNames = individuals.reduce((acc, c) => {
-                    const role = c.role || ''
-                    if (!acc[role]) acc[role] = []
-                    acc[role].push(c.fullName)
+                  const positionToNames = individuals.reduce((acc, c) => {
+                    const position = c.position || ''
+                    if (!acc[position]) acc[position] = []
+                    acc[position].push(c.fullName)
                     return acc
                   }, {})
-                  const roles = Object.keys(roleToNames).sort((a, b) => {
-                    const ia = combinedRoleOrder.indexOf(a)
-                    const ib = combinedRoleOrder.indexOf(b)
+                  const positions = Object.keys(positionToNames).sort((a, b) => {
+                    const ia = combinedPositionsOrder.indexOf(a)
+                    const ib = combinedPositionsOrder.indexOf(b)
                     if (ia === -1 && ib === -1) return a.localeCompare(b)
                     if (ia === -1) return 1
                     if (ib === -1) return -1
@@ -308,12 +308,12 @@ function Candidates({ forceVisible = false }) {
                   return (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-8">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {roles.map(role => (
-                          <div key={role}>
-                            <h4 className="text-center font-semibold mb-4 text-gray-800">{role}</h4>
+                        {positions.map(position => (
+                          <div key={position}>
+                            <h4 className="text-center font-semibold mb-4 text-gray-800">{position}</h4>
                             <div className="space-y-2 text-center text-sm">
-                              {roleToNames[role].map((fullName, i) => (
-                                <div key={`${role}-${i}`} className="text-gray-800">{fullName}</div>
+                              {positionToNames[position].map((fullName, i) => (
+                                <div key={`${position}-${i}`} className="text-gray-800">{fullName}</div>
                               ))}
                             </div>
                           </div>

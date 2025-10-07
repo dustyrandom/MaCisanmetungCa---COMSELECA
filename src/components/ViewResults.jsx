@@ -20,10 +20,10 @@ function ViewResults() {
   const [voterFilter, setVoterFilter] = useState('All')
 
 
-  const sscRoles = [
+  const sscPosition = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
+  const iscPosition = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
 
   const institutes = [
     'Institute of Arts and Sciences',
@@ -82,7 +82,7 @@ function ViewResults() {
       }
     }
 
-  if (userData?.role === 'admin') {
+  if (userData?.role === 'admin' || userData?.role === 'superadmin') {
       loadData()
     } else {
       setLoading(false)
@@ -99,9 +99,9 @@ function ViewResults() {
   }
 
 
-  const getCandidateRole = (candidateId) => {
+  const getCandidatePosition = (candidateId) => {
     const candidate = candidates.find(c => c.id === candidateId)
-    return candidate ? candidate.role : 'Unknown Role'
+    return candidate ? candidate.position : 'Unknown Position'
   }
 
   const getCandidateInstitute = (candidateId) => {
@@ -153,10 +153,10 @@ function ViewResults() {
 
     const rows = votes.map(vote => {
       const voteDetails = Object.entries(vote.votes)
-        .map(([role, candidateIds]) => {
+        .map(([position, candidateIds]) => {
           const ids = Array.isArray(candidateIds) ? candidateIds : [candidateIds]
           const names = ids.filter(Boolean).map(getCandidateName)
-          return `${role}: ${names.join(', ') || 'None'}`
+          return `${position}: ${names.join(', ') || 'None'}`
         })
         .join(' | ')
 
@@ -227,7 +227,7 @@ function ViewResults() {
     )
   }
 
-  if (!userData || userData.role !== 'admin') {
+  if (!userData || userData.role !== 'admin' && userData?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -246,32 +246,39 @@ function ViewResults() {
       <NavBar />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <div className="mb-6 flex items-start justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Election Results</h1>
-              <p className="text-gray-600 mt-2">View detailed voting results and voter information</p>
+              <p className="text-gray-600 mt-1">View detailed voting results and voter information</p>
             </div>
-            <div className="ml-4">
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                disabled={deletingVotes || votes.length === 0}
-                className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-700 text-white border-red-700 hover:bg-red-600'}`}
-                title={votes.length === 0 ? 'No votes to delete' : 'Delete all votes'}
-              >
-                {deletingVotes ? 'Deleting…' : 'Delete All Votes'}
-              </button>
-              <button
-              onClick={handleExportCSV}
-              disabled={votes.length === 0}
-              className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
-                votes.length === 0
-                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                  : 'bg-green-700 text-white border-green-700 hover:bg-green-600 transition'
-              }`}
-              title="Export votes to CSV"
-            >
-              Export CSV
-            </button>
+            <div className="flex gap-2">
+              {userData.role === 'superadmin' && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={deletingVotes || votes.length === 0}
+                  className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-700 text-white border-red-700 hover:bg-red-600'}`}
+                  title={votes.length === 0 ? 'No votes to delete' : 'Delete all votes'}
+                >
+                  {deletingVotes ? 'Deleting…' : 'Delete All Votes'}
+                </button>
+              )}
+
+              {userData.role === 'superadmin' && (
+                <button
+                  onClick={handleExportCSV}
+                  disabled={votes.length === 0}
+                  className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
+                    votes.length === 0
+                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                      : 'bg-green-700 text-white border-green-700 hover:bg-green-600 transition'
+                  }`}
+                  title="Export votes to CSV"
+                >
+                  Export CSV
+                </button>
+              )}
+              
+              
             </div>
           </div>
 
@@ -335,14 +342,14 @@ function ViewResults() {
                   Vote Summary
                 </button>
                 <button
-                  onClick={() => setActiveTab('public')}
+                  onClick={() => setActiveTab('settings')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'public'
+                    activeTab === 'settings'
                       ? 'border-red-500 text-red-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  Public Results
+                  Settings
                 </button>
               </nav>
             </div>
@@ -413,14 +420,14 @@ function ViewResults() {
                         <div>
                           <h5 className="text-lg font-semibold text-red-900 mb-3">Supreme Student Council Votes</h5>
                           <div className="space-y-3">
-                            {sscRoles.map(role => {
-                              const selectedCandidates = vote.votes[role]
+                            {sscPosition.map(position => {
+                              const selectedCandidates = vote.votes[position]
                               const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
                               const validCandidates = candidatesArray.filter(Boolean)
                               
                               return (
-                                <div key={role} className="bg-gray-50 rounded-lg p-3">
-                                  <h6 className="font-medium text-gray-800 mb-2">{role}</h6>
+                                <div key={position} className="bg-gray-50 rounded-lg p-3">
+                                  <h6 className="font-medium text-gray-800 mb-2">{position}</h6>
                                   {validCandidates.length > 0 ? (
                                     <div className="space-y-2">
                                       {validCandidates.map((candidateId, idx) => (
@@ -470,8 +477,8 @@ function ViewResults() {
                               let voterInstitute = null
                               for (const [voteKey, candidateId] of Object.entries(vote.votes)) {
                                 if (!candidateId) continue
-                                const matchedRole = iscRoles.find(role => voteKey.endsWith(`-${role}`))
-                                if (matchedRole) {
+                                const matchedPosition = iscPosition.find(position => voteKey.endsWith(`-${position}`))
+                                if (matchedPosition) {
                                   const candidate = candidates.find(c => c.id === candidateId)
                                   if (candidate) {
                                     voterInstitute = candidate.institute
@@ -484,15 +491,15 @@ function ViewResults() {
                                 <div className="mb-4">
                                   <h6 className="font-semibold text-gray-700 mb-2">{voterInstitute}</h6>
                                   <div className="space-y-2">
-                                    {iscRoles.map(role => {
-                                      const voteKey = `${voterInstitute}-${role}`
+                                    {iscPosition.map(position => {
+                                      const voteKey = `${voterInstitute}-${position}`
                                       const selectedCandidates = vote.votes[voteKey]
                                       const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
                                       const validCandidates = candidatesArray.filter(Boolean)
 
                                       return (
-                                        <div key={role} className="bg-gray-50 rounded-lg p-3">
-                                          <h6 className="font-medium text-gray-800 mb-2">{role}</h6>
+                                        <div key={position} className="bg-gray-50 rounded-lg p-3">
+                                          <h6 className="font-medium text-gray-800 mb-2">{position}</h6>
 
                                           {validCandidates.length > 0 ? (
                                             <div className="space-y-2">
@@ -570,17 +577,17 @@ function ViewResults() {
 
               {/* Candidate Vote Counts */}
               <>
-                <div className="space-y-8">
+                {/* <div className="space-y-8">
                   <div>
                     <h2 className="text-xl font-semibold text-red-900 mb-6">Supreme Student Council Candidates</h2>
-                      {sscRoles.map(role => {
-                      const roleCandidates = candidates.filter(c => c.role === role)
+                      {sscPosition.map(position => {
+                      const positionCandidates = candidates.filter(c => c.position === position)
                       return (
-                        <div key={role} className="mb-8">
-                          <h3 className="text-lg font-semibold text-gray-800 mb-4">{role}</h3>
-                          {roleCandidates.length > 0 ? (
+                        <div key={position} className="mb-8">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-4">{position}</h3>
+                          {positionCandidates.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {roleCandidates.map(candidate => {
+                              {positionCandidates.map(candidate => {
                                 let voteCount = 0
                                 votes.forEach(vote => {
                                   Object.values(vote.votes).forEach(selectedCandidates => {
@@ -620,22 +627,22 @@ function ViewResults() {
                   <div>
                     <h2 className="text-xl font-semibold text-red-900 mb-6">Institute Student Council Candidates</h2>
                     {institutes.map(institute => {
-                      const instituteCandidates = candidates.filter(c => iscRoles.includes(c.role) && c.institute === institute)
+                      const instituteCandidates = candidates.filter(c => iscPosition.includes(c.position) && c.institute === institute)
                       return (
                         <div key={institute} className="mb-8">
                           <h3 className="text-lg font-semibold text-gray-800 mb-6">{institute}</h3>
 
                           <div className="space-y-8">
-                            {iscRoles.map(role => {
-                              const roleCandidates = instituteCandidates.filter(c => c.role === role)
+                            {iscPosition.map(position => {
+                              const positionCandidates = instituteCandidates.filter(c => c.position === position)
 
                               return (
-                                <div key={role}>
-                                  <h4 className="text-lg font-semibold text-gray-700 mb-3">{role}</h4>
+                                <div key={position}>
+                                  <h4 className="text-lg font-semibold text-gray-700 mb-3">{position}</h4>
                                   
-                                  {roleCandidates.length > 0 ? (
+                                  {positionCandidates.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                      {roleCandidates.map(candidate => {
+                                      {positionCandidates.map(candidate => {
                                         let voteCount = 0
                                         votes.forEach(vote => {
                                           Object.values(vote.votes).forEach(selectedCandidates => {
@@ -675,12 +682,16 @@ function ViewResults() {
                     })}
                   </div>
 
-                </div>
+                </div> */}
               </>
+
+              {/* Public results content reused */}
+              <PublicResultsContent forceVisible={true} />
+
             </div>
           )}
 
-          {activeTab === 'public' && (
+          {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center justify-between">
@@ -720,8 +731,6 @@ function ViewResults() {
                 </div>
               </div>
 
-              {/* Public results content reused */}
-              <PublicResultsContent forceVisible={true} />
             </div>
           )}
         </div>

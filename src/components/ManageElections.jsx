@@ -8,7 +8,7 @@ import { logActivity } from '../utils/logActivity'
 function ManageElections() {
   const { userData } = useAuth()
   const [candidates, setCandidates] = useState([])
-  const [approvedCandidates, setApprovedCandidates] = useState([])
+  const [passedCandidates, setPassedCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -17,7 +17,7 @@ function ManageElections() {
   const [formData, setFormData] = useState({
     candidateId: '',
     team: '',
-    role: ''
+    position: ''
   })
   const [votingStatus, setVotingStatus] = useState({
     isActive: false,
@@ -29,13 +29,13 @@ function ManageElections() {
   const [showVoteModal, setShowVoteModal] = useState(false)
   const [voteModalMessage, setVoteModalMessage] = useState('')
   const [voteModalError, setVoteModalError] = useState('')
-  const [dateError, setDateError] = useState("")
+  
   // Voting page handles only voting
 
-  const sscRoles = [
+  const sscPositions = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscRoles = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
+  const iscPositions = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
 
   const institutes = [
     'Institute of Arts and Sciences',
@@ -61,13 +61,13 @@ function ManageElections() {
         const applicationsSnapshot = await get(applicationsRef)
         if (applicationsSnapshot.exists()) {
           const applicationsData = applicationsSnapshot.val()
-          const approvedList = []
+          const passedList = []
           
           Object.keys(applicationsData).forEach(uid => {
             Object.keys(applicationsData[uid]).forEach(appId => {
               const app = applicationsData[uid][appId]
-              if (app.status === 'approved') {
-                approvedList.push({
+              if (app.status === 'passed') {
+                passedList.push({
                   id: `${uid}-${appId}`,
                   uid: uid,
                   appId: appId,
@@ -83,7 +83,7 @@ function ManageElections() {
             })
           })
           
-          setApprovedCandidates(approvedList)
+          setPassedCandidates(passedList)
         }
 
         // Load voting status
@@ -134,13 +134,13 @@ function ManageElections() {
       return
     }
 
-    if (!formData.role) {
-      alert('Please select a role')
+    if (!formData.position) {
+      alert('Please select a position')
       return
     }
 
     try {
-      const selectedCandidate = approvedCandidates.find(c => c.id === formData.candidateId)
+      const selectedCandidate = passedCandidates.find(c => c.id === formData.candidateId)
       if (!selectedCandidate) {
         alert('Selected candidate not found')
         return
@@ -155,7 +155,7 @@ function ManageElections() {
         studentId: selectedCandidate.studentId,
         profilePicture: selectedCandidate.profilePicture || '',
         team: formData.team,
-        role: formData.role,
+        position: formData.position,
         candidateUid: selectedCandidate.uid,
         candidateAppId: selectedCandidate.appId,
         createdAt: new Date().toISOString()
@@ -167,7 +167,7 @@ function ManageElections() {
         await update(candidateRef, candidateData)
         setCandidates(prev => prev.map(c => c.id === editingCandidate.id ? { ...c, ...candidateData } : c))
         try {
-        await logActivity(userData.fullName, `Edited candidate: ${candidateData.fullName} (${candidateData.role} - ${candidateData.team})`)
+        await logActivity(userData.fullName, `Edited candidate: ${candidateData.fullName} (${candidateData.position} - ${candidateData.team})`)
         } catch (logError) {
         console.error('Logging failed:', logError)
         }
@@ -178,7 +178,7 @@ function ManageElections() {
         const newId = newRef.key
         setCandidates(prev => [...prev, { id: newId, ...candidateData }])
         try {
-        await logActivity(userData.fullName, `Added new candidate: ${candidateData.fullName} (${candidateData.role} - ${candidateData.team})`)
+        await logActivity(userData.fullName, `Added new candidate: ${candidateData.fullName} (${candidateData.position} - ${candidateData.team})`)
         } catch (logError) {
         console.error('Logging failed:', logError)
         }
@@ -187,7 +187,7 @@ function ManageElections() {
       setFormData({
         candidateId: '',
         team: '',
-        role: ''
+        position: ''
       })
       setShowAddModal(false)
       setEditingCandidate(null)
@@ -201,7 +201,7 @@ function ManageElections() {
     setFormData({
       candidateId: candidate.candidateUid ? `${candidate.candidateUid}-${candidate.candidateAppId}` : '',
       team: candidate.team || '',
-      role: candidate.role || ''
+      position: candidate.position || ''
     })
     setEditingCandidate(candidate)
     setShowAddModal(true)
@@ -221,7 +221,7 @@ function ManageElections() {
       setCandidates(prev => prev.filter(c => c.id !== deletingCandidate.id))
 
       try {
-      await logActivity(userData.fullName, `Deleted candidate: ${deletingCandidate.fullName} (${deletingCandidate.role} - ${deletingCandidate.team}) `)
+      await logActivity(userData.fullName, `Deleted candidate: ${deletingCandidate.fullName} (${deletingCandidate.position} - ${deletingCandidate.team}) `)
       } catch (logError) {
       console.error('Failed to log activity:', logError)
       }
@@ -234,9 +234,9 @@ function ManageElections() {
     }
   }
 
-  const getRoleCategory = (role) => {
-    if (sscRoles.includes(role)) return 'SSC'
-    if (iscRoles.includes(role)) return 'ISC'
+  const getPositionCategory = (position) => {
+    if (sscPositions.includes(position)) return 'SSC'
+    if (iscPositions.includes(position)) return 'ISC'
     return ''
   }
 
@@ -368,7 +368,7 @@ function ManageElections() {
   }
 
 
-  if (userData?.role !== 'admin') {
+  if (userData?.role !== 'admin' && userData?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -510,14 +510,14 @@ function ManageElections() {
           <div className="space-y-8">
             <div>
               <h2 className="text-xl font-semibold text-red-900 mb-6">SUPREME STUDENT COUNCIL CANDIDATES</h2>
-              {sscRoles.map(role => {
-                const roleCandidates = candidates.filter(c => c.role === role)
+              {sscPositions.map(position => {
+                const positionCandidates = candidates.filter(c => c.position === position)
                 return (
-                  <div key={role} className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{role}</h3>
-                    {roleCandidates.length > 0 ? (
+                  <div key={position} className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{position}</h3>
+                    {positionCandidates.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {roleCandidates.map(candidate => (
+                        {positionCandidates.map(candidate => (
                           <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
                             <div className="flex items-center gap-3 mb-2">
                               <img
@@ -538,13 +538,13 @@ function ManageElections() {
                             <div className="mt-3 flex justify-end gap-2">
                               <button
                                 onClick={() => handleEdit(candidate)}
-                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDelete(candidate)}
-                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
                               >
                                 Delete
                               </button>
@@ -563,20 +563,20 @@ function ManageElections() {
             <div>
               <h2 className="text-xl font-semibold text-red-900 mb-6">INSTITUTE STUDENT COUNCIL CANDIDATES</h2>
               {institutes.map(institute => {
-                const instituteCandidates = candidates.filter(c => getRoleCategory(c.role) === 'ISC' && c.institute === institute)
+                const instituteCandidates = candidates.filter(c => getPositionCategory(c.position) === 'ISC' && c.institute === institute)
                 return (
                   <div key={institute} className="mb-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-6">{institute}</h3>
                     {instituteCandidates.length > 0 ? (
                       <div className="space-y-6">
-                        {iscRoles.map(role => {
-                          const roleCandidates = instituteCandidates.filter(c => c.role === role)
+                        {iscPositions.map(position => {
+                          const positionCandidates = instituteCandidates.filter(c => c.position === position)
                           return (
-                            <div key={role}>
-                              <h4 className="text-md font-semibold text-gray-700 mb-3">{role}</h4>
-                              {roleCandidates.length > 0 ? (
+                            <div key={position}>
+                              <h4 className="text-md font-semibold text-gray-700 mb-3">{position}</h4>
+                              {positionCandidates.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {roleCandidates.map(candidate => (
+                                  {positionCandidates.map(candidate => (
                                     <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
                                       <div className="flex items-center gap-3 mb-2">
                                         <img
@@ -594,13 +594,13 @@ function ManageElections() {
                                       <div className="mt-3 justify-end flex gap-2">
                                         <button
                                           onClick={() => handleEdit(candidate)}
-                                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                          className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
                                         >
                                           Edit
                                         </button>
                                         <button
                                           onClick={() => handleDelete(candidate)}
-                                          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                          className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
                                         >
                                           Delete
                                         </button>
@@ -672,7 +672,7 @@ function ManageElections() {
                     setFormData({
                       candidateId: '',
                       team: '',
-                      role: ''
+                      position: ''
                     })
                   }}
                   className="text-gray-400 hover:text-gray-600"
@@ -686,7 +686,7 @@ function ManageElections() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Approved Candidate</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Candidate</label>
                     <select
                       value={formData.candidateId}
                       onChange={(e) => setFormData(prev => ({ ...prev, candidateId: e.target.value }))}
@@ -695,18 +695,18 @@ function ManageElections() {
                       disabled={!!editingCandidate}
                     >
                       <option value="">Select Candidate</option>
-                      {approvedCandidates
+                      {passedCandidates
                         .filter(ac => !candidates.some(c => c.candidateUid === ac.uid && c.candidateAppId === ac.appId)
                         || `${ac.uid}-${ac.appId}` === formData.candidateId
                       )
                         .map(candidate => (
                           <option key={candidate.id} value={candidate.id}>
-                            {candidate.lastName}, {candidate.firstName} - {candidate.institute}{candidate.studentId ? ` (${candidate.studentId})` : ''}
+                            {candidate.lastName}, {candidate.firstName} - {candidate.institute}
                           </option>
                       ))}
                     </select>
-                    {approvedCandidates.length === 0 && (
-                      <p className="text-sm text-gray-500 mt-1">No approved candidates available. Approve candidacy applications first.</p>
+                    {passedCandidates.length === 0 && (
+                      <p className="text-sm text-gray-500 mt-1">No candidates available. Passed candidates first.</p>
                     )}
                   </div>
                   <div>
@@ -722,20 +722,20 @@ function ManageElections() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
                     <select
-                      value={formData.role}
-                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                      value={formData.position}
+                      onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
                       className="w-full border rounded px-3 py-2"
                       required
                     >
                       <option value="">Select position</option>
                       <optgroup label="SSC">
-                        {sscRoles.map(role => (
-                          <option key={role} value={role}>{role}</option>
+                        {sscPositions.map(position => (
+                          <option key={position} value={position}>{position}</option>
                         ))}
                       </optgroup>
                       <optgroup label="ISC">
-                        {iscRoles.map(role => (
-                          <option key={role} value={role}>{role}</option>
+                        {iscPositions.map(position => (
+                          <option key={position} value={position}>{position}</option>
                         ))}
                       </optgroup>
                     </select>
@@ -756,7 +756,7 @@ function ManageElections() {
                       setFormData({
                         candidateId: '',
                         team: '',
-                        role: ''
+                        position: ''
                       })
                     }}
                     className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"

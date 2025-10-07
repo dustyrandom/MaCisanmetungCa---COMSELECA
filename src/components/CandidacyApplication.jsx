@@ -96,6 +96,7 @@ function CandidacyApplication() {
       const record = {
         applicant: {
           uid: user.uid,
+          studentId: userData?.studentId || '',
           profilePicture: userData?.profilePicture || '',
           fullName: userData?.fullName || '',
           firstName: userData?.firstName || '',

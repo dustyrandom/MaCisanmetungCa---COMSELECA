@@ -182,7 +182,7 @@ function Campaigns() {
                         )}
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">{s.candidateName || 'Unknown Candidate'}</div>
+                        <div className="font-semibold text-gray-900">{s.candidateName || 'Unknown Candidate'} - {s.position || ''}</div>
                         <div className="text-sm text-gray-600">{s.institute || ''}</div>
                       </div>
                     </div>

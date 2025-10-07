@@ -138,7 +138,7 @@ function CampaignSubmit() {
       const payload = {
         candidateId: candidateRecord.id,
         candidateName: (candidateRecord.fullName || userData?.fullName || ''),
-        role: candidateRecord.role || '',
+        position: candidateRecord.position || '',
         institute: (candidateRecord.institute || userData?.institute || ''),
         team: candidateRecord.team || '',
         submittedBy: user?.uid || '',

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { ref as dbRef, get } from 'firebase/database'
 import { db } from '../firebase'
 import NavBar from './NavBar'
+import CandidacyStatusTracker from './CandidacyStatusTracker'
 
 function Dashboard() {
   const { user, userData, loading } = useAuth()
@@ -67,15 +68,23 @@ function Dashboard() {
           <a href="/admin/manage-campaigns" className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 text-center">Manage Campaign Materials</a>
           <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center">Manage Elections</a>
           <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">Election Results</a>
-          <a href="/admin/manage-users" className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 text-center">Manage Users</a>
-          <a href="/admin/activity-log" className="bg-red-900 text-white px-4 py-2 rounded hover:bg-gray-800 text-center">Admin Activity Log</a>
+          {userData.role === 'superadmin' && (
+            <a href="/admin/manage-users" className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 text-center">Manage Users</a>
+          )}
+          {userData.role === 'superadmin' && (
+            <a href="/admin/activity-log" className="bg-red-900 text-white px-4 py-2 rounded hover:bg-gray-800 text-center">Admin Activity Log</a>
+          )}
         </div>
       </div>
     </div>
   )
 
   const renderVoterDashboard = () => (
+    
     <div className="space-y-6">
+      <div>
+        <CandidacyStatusTracker />
+      </div>
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4">Available Elections</h3>
         <div className="space-y-4">
@@ -113,6 +122,10 @@ function Dashboard() {
 
   const renderCandidateDashboard = () => (
     <div className="space-y-6">
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <CandidacyStatusTracker />
+      </div>
+
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4">Available Elections</h3>
         <div className="space-y-4">
@@ -159,6 +172,8 @@ function Dashboard() {
     }
 
     switch (userData.role) {
+      case 'superadmin':
+        return renderAdminDashboard()
       case 'admin':
         return renderAdminDashboard()
       case 'voter':

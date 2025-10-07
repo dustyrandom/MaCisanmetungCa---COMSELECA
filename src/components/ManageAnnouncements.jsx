@@ -14,7 +14,7 @@ function ManageAnnouncements() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null)
 
   useEffect(() => {
-    if (userData?.role === 'admin') {
+    if (userData?.role === 'admin' || userData?.role === 'superadmin') {
       fetchAnnouncements()
     } else {
       setLoading(false) // stop loader if not admin
@@ -109,7 +109,7 @@ function ManageAnnouncements() {
     })
   }
 
-  if (userData?.role !== 'admin') {
+  if (userData?.role !== 'admin' && userData?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />

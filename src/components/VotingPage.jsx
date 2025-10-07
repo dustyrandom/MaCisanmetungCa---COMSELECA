@@ -18,7 +18,7 @@ function VotingPage() {
   })
   const [hasVoted, setHasVoted] = useState(false)
 
-  const sscRoles = [
+  const sscPositions = [
     { name: 'President', maxVotes: 1 },
     { name: 'Vice President', maxVotes: 1 },
     { name: 'General Secretary', maxVotes: 1 },
@@ -32,7 +32,7 @@ function VotingPage() {
     { name: 'Logistics Officer', maxVotes: 2 }
   ]
 
-  const iscRoles = [
+  const iscPositions = [
     { name: 'Governor', maxVotes: 1 },
     { name: 'Vice Governor', maxVotes: 1 },
     { name: 'Board Member on Records', maxVotes: 1 },
@@ -101,42 +101,42 @@ function VotingPage() {
     loadCandidates()
   }, [user])
 
-  const getCandidatesForRole = (roleName, page) => {
+  const getCandidatesForPosition = (positionName, page) => {
     if (page === 1) {
       // SSC roles
-      return candidates.filter(c => c.role === roleName && sscRoles.some(role => role.name === c.role))
+      return candidates.filter(c => c.position === positionName && sscPositions.some(position => position.name === c.position))
     } else {
       // ISC roles
-      return candidates.filter(c => c.role === roleName && iscRoles.some(role => role.name === c.role))
+      return candidates.filter(c => c.position === position && iscPositions.some(position => position.name === c.position))
     }
   }
 
   const getCandidatesForInstitute = (institute) => {
-    return candidates.filter(c => iscRoles.some(role => role.name === c.role) && c.institute === institute)
+    return candidates.filter(c => iscPositions.some(position => position.name === c.position) && c.institute === institute)
   }
 
-  const handleVote = (role, candidateId, maxVotes = 1) => {
+  const handleVote = (position, candidateId, maxVotes = 1) => {
     setVotes(prev => {
       const newVotes = { ...prev }
       
       if (maxVotes > 1) {
         // Multi-select roles
-        if (!newVotes[role]) newVotes[role] = []
-        const currentVotes = newVotes[role] || []
+        if (!newVotes[position]) newVotes[rpositionole] = []
+        const currentVotes = newVotes[position] || []
         
         if (currentVotes.includes(candidateId)) {
-          newVotes[role] = currentVotes.filter(id => id !== candidateId)
+          newVotes[position] = currentVotes.filter(id => id !== candidateId)
         } else {
           if (currentVotes.length < maxVotes) {
-            newVotes[role] = [...currentVotes, candidateId]
+            newVotes[position] = [...currentVotes, candidateId]
           }
         }
       } else {
-        if (newVotes[role] === candidateId) {
+        if (newVotes[position] === candidateId) {
         // Deselect if clicking the same candidate again
-        newVotes[role] = null
+        newVotes[position] = null
       } else {
-        newVotes[role] = candidateId
+        newVotes[position] = candidateId
       }
       }
       
@@ -190,29 +190,29 @@ function VotingPage() {
         <p className="text-gray-600">Select your candidates for each position</p>
       </div>
 
-      {sscRoles.map(role => {
-        const roleCandidates = getCandidatesForRole(role.name, 1)
-        const isMultiSelect = role.maxVotes > 1
-        const currentVotes = votes[role.name] || []
+      {sscPositions.map(position => {
+        const positionCandidates = getCandidatesForPosition(position.name, 1)
+        const isMultiSelect = position.maxVotes > 1
+        const currentVotes = votes[position.name] || []
         const selectedCount = Array.isArray(currentVotes) ? currentVotes.length : (currentVotes ? 1 : 0)
         
         return (
-          <div key={role.name} className="bg-white rounded-lg shadow-md p-6">
+          <div key={position.name} className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{role.name}</h3>
+              <h3 className="text-lg font-semibold">{position.name}</h3>
               <span className="text-sm text-gray-600">
-                {selectedCount}/{role.maxVotes} selected
+                {selectedCount}/{position.maxVotes} selected
               </span>
             </div>
             {isMultiSelect && (
-              <p className="text-sm text-gray-600 mb-4">Select up to {role.maxVotes} candidates</p>
+              <p className="text-sm text-gray-600 mb-4">Select up to {position.maxVotes} candidates</p>
             )}
             
-            {roleCandidates.length === 0 ? (
+            {positionCandidates.length === 0 ? (
               <p className="text-gray-500 italic">No candidates for this position</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {roleCandidates.map(candidate => {
+                {positionCandidates.map(candidate => {
                   const isSelected = isMultiSelect 
                     ? currentVotes.includes(candidate.id)
                     : currentVotes === candidate.id
@@ -220,7 +220,7 @@ function VotingPage() {
                   return (
                     <div
                       key={candidate.id}
-                      onClick={() => handleVote(role.name, candidate.id, role.maxVotes)}
+                      onClick={() => handleVote(position.name, candidate.id, position.maxVotes)}
                       className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                         isSelected 
                           ? 'border-blue-500 bg-blue-50' 
@@ -279,31 +279,31 @@ function VotingPage() {
           <div key={institute} className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-semibold mb-6 text-red-900">{institute}</h3>
             
-            {iscRoles.map(role => {
-              const roleCandidates = getCandidatesForInstitute(institute).filter(c => c.role === role.name)
-              const currentVotes = votes[`${institute}-${role.name}`]
+            {iscPositions.map(position => {
+              const positionCandidates = getCandidatesForInstitute(institute).filter(c => c.position === position.name)
+              const currentVotes = votes[`${institute}-${position.name}`]
               const selectedCount = currentVotes ? 1 : 0
               
               return (
-                <div key={`${institute}-${role.name}`} className="mb-6">
+                <div key={`${institute}-${position.name}`} className="mb-6">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-lg font-medium">{role.name}</h4>
+                    <h4 className="text-lg font-medium">{position.name}</h4>
                     <span className="text-sm text-gray-600">
-                      {selectedCount}/{role.maxVotes} selected
+                      {selectedCount}/{position.maxVotes} selected
                     </span>
                   </div>
                   
-                  {roleCandidates.length === 0 ? (
+                  {positionCandidates.length === 0 ? (
                     <p className="text-gray-500 italic">No candidates for this position</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {roleCandidates.map(candidate => {
+                      {positionCandidates.map(candidate => {
                         const isSelected = currentVotes === candidate.id
                         
                         return (
                           <div
                             key={candidate.id}
-                            onClick={() => handleVote(`${institute}-${role.name}`, candidate.id, role.maxVotes)}
+                            onClick={() => handleVote(`${institute}-${position.name}`, candidate.id, position.maxVotes)}
                             className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                               isSelected 
                                 ? 'border-blue-500 bg-blue-50' 

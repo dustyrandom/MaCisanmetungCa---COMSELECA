@@ -15,7 +15,7 @@ function ManageNews() {
   const [selectedNews, setSelectedNews] = useState(null)
 
   useEffect(() => {
-    if (userData?.role === 'admin') {
+    if (userData?.role === 'admin' || userData?.role === 'superadmin' ) {
       fetchNews()
     } else {
       setLoading(false)
@@ -110,7 +110,7 @@ function ManageNews() {
     })
   }
 
-  if (userData?.role !== 'admin') {
+  if (userData?.role !== 'admin' && userData?.role !== 'superadmin' ) {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />

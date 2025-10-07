@@ -70,7 +70,7 @@ function ManageCampaigns() {
     )
   }
 
-  if (userData?.role !== "admin") {
+  if (userData?.role !== "admin" && userData?.role !== "superadmin") {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />

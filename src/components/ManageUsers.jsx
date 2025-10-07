@@ -47,7 +47,7 @@ function ManageUsers() {
       }
     }
 
-    if (userData?.role === 'admin') fetchUsers()
+    if (userData?.role === 'superadmin') fetchUsers()
     else setLoading(false)
   }, [userData])
 
@@ -141,7 +141,7 @@ function ManageUsers() {
       })
 
       // Related DB updates
-      const electionRef = dbRef(db, 'Election')
+      /* const electionRef = dbRef(db, 'Election')
       const electionSnap = await get(electionRef)
       if (electionSnap.exists()) {
         const electionData = electionSnap.val()
@@ -153,7 +153,6 @@ function ManageUsers() {
               fullName,
               email,
               institute,
-              role,
               studentId,
             })
           }
@@ -185,7 +184,7 @@ function ManageUsers() {
           voterInstitute: institute,
           voterStudentId: studentId,
         })
-      }
+      } */
 
       // Log Activity
       if (changes.length > 0) {
@@ -211,7 +210,7 @@ function ManageUsers() {
     }
   }
 
-  if (userData?.role !== 'admin') {
+  if (userData?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -235,9 +234,10 @@ function ManageUsers() {
 
   const getRoleBadge = (role) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800'
-      case 'candidate': return 'bg-purple-100 text-purple-800'
-      case 'voter': return 'bg-blue-100 text-blue-800'
+      case 'superadmin': return 'bg-indigo-100 text-indigo-800'
+      case 'admin': return 'bg-rose-100 text-rose-800'
+      case 'candidate': return 'bg-amber-100 text-amber-800'
+      case 'voter': return 'bg-green-100 text-green-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -330,6 +330,9 @@ function ManageUsers() {
                               Edit
                             </button>
                           )}
+                          {u.uid === user.uid &&(
+                            <p className='text-xs italic text-gray-700 whitespace-nowrap'>Current User</p>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -374,6 +377,7 @@ function ManageUsers() {
                 <option value="voter">Voter</option>
                 <option value="candidate">Candidate</option>
                 <option value="admin">Admin</option>
+                <option value="suoperadmin">Super Admin</option>
               </select>
             </div>
             <div className="mt-5 flex justify-end space-x-3">

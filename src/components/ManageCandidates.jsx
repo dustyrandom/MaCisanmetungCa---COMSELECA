@@ -5,7 +5,7 @@ import NavBar from './NavBar'
 import { ref as dbRef, get, update, set, remove, onValue } from 'firebase/database'
 import { logActivity } from '../utils/logActivity'
 
-function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId }) {
+function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId, setConfirmAction, setShowConfirmModal}) {
   const formatDateTime = (value) => {
     try {
       return value ? new Date(value).toLocaleString() : ''
@@ -83,14 +83,20 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
       {showActions && app.status === 'submitted' && (
         <div className="flex gap-3">
           <button
-            onClick={() => onUpdateStatus(app.uid, app.id, 'reviewed')}
+            onClick={() => {
+              setConfirmAction({ type: 'candidacy', action: 'review', uid: app.uid, appId: app.id });
+              setShowConfirmModal(true);
+            }}
             disabled={savingId === `${app.uid}-${app.id}`}
             className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
           </button>
           <button
-            onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
+            onClick={() => {
+              setConfirmAction({ type: 'candidacy', action: 'reject', uid: app.uid, appId: app.id });
+              setShowConfirmModal(true);
+            }}
             disabled={savingId === `${app.uid}-${app.id}`}
             className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
           >
@@ -109,7 +115,10 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
               {app.appointment.status === 'pending' && (
                 <div className="flex gap-3 mt-3">
                   <button
-                    onClick={() => onAppointmentDecision(app.uid, app.id, 'approved', app.appointment)}
+                    onClick={() => {
+                      setConfirmAction({ type: 'candidacy', action: 'approve', uid: app.uid, appId: app.id });
+                      setShowConfirmModal(true);
+                    }}
                     disabled={savingId === `${app.uid}-${app.id}-appt`}
                     className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                   >
@@ -131,7 +140,7 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
         </div>
       )}
 
-      {showActions && app.status === 'reviewed' && (
+      {/* {showActions && app.status === 'reviewed' && (
         <div className="flex gap-3 mt-3">
           <button
             onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
@@ -148,7 +157,86 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
           </button>
         </div>
-      )}
+      )} */}
+
+      {showActions && app.status === 'reviewed' && (
+      <div className="flex gap-3 mt-3">
+        {(() => {
+          // Determine if appointment has passed
+          const appointmentDate = app.appointment?.dateTime ? new Date(app.appointment.dateTime) : null;
+          const now = new Date();
+          const isFuture = appointmentDate && appointmentDate > now;
+          const disableButtons = savingId === `${app.uid}-${app.id}` || !app.appointment || (appointmentDate && appointmentDate > now || app.appointment.status === 'pending');
+
+          return (
+            <>
+              {/* <button
+                onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
+                disabled={disableButtons}
+                className={`px-4 py-2 rounded text-sm text-white ${
+                  disableButtons ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {savingId === `${app.uid}-${app.id}`
+                  ? 'Updating…'
+                  : isFuture
+                  ? 'Awaiting Screening'
+                  : 'Approve'}
+              </button>
+
+              <button
+                onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
+                disabled={disableButtons}
+                className={`px-4 py-2 rounded text-sm text-white ${
+                  disableButtons ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {savingId === `${app.uid}-${app.id}`
+                  ? 'Updating…'
+                  : isFuture
+                  ? 'Awaiting Screening'
+                  : 'Reject'}
+              </button> */}
+
+              <button
+                onClick={() => {
+                  setConfirmAction({ type: 'candidacy', action: 'passed', uid: app.uid, appId: app.id });
+                  setShowConfirmModal(true);
+                }}
+                disabled={disableButtons}
+                className={`px-4 py-2 rounded text-sm text-white ${
+                  disableButtons ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {savingId === `${app.uid}-${app.id}`
+                  ? 'Updating…'
+                  : !app.appointment || app.appointment?.status === 'pending' || isFuture
+                  ? 'Awaiting Screening'
+                  : 'Passed'}
+              </button>
+
+              <button
+                onClick={() => {
+                  setConfirmAction({ type: 'candidacy', action: 'failed', uid: app.uid, appId: app.id });
+                  setShowConfirmModal(true);
+                }}
+                disabled={disableButtons}
+                className={`px-4 py-2 rounded text-sm text-white ${
+                  disableButtons ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {savingId === `${app.uid}-${app.id}`
+                  ? 'Updating…'
+                  : !app.appointment || app.appointment?.status === 'pending' || isFuture
+                  ? 'Awaiting Screening'
+                  : 'Failed'}
+              </button>
+
+            </>
+          );
+        })()}
+      </div>
+    )}
     </div>
   )
 }
@@ -168,6 +256,8 @@ function ManageCandidates() {
   const [candidacyStatus, setCandidacyStatus] = useState({ startDate: '', endDate: '' });
   const [savingCandidacyStatus, setSavingCandidacyStatus] = useState(false);
   const [showCandidacyModal, setShowCandidacyModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // { type: 'candidacy' | 'appointment', action: 'approve' | 'reject' | 'review', uid, appId, appointment }
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [candidacyModalMessage, setCandidacyModalMessage] = useState('');
   const [candidacyModalError, setCandidacyModalError] = useState('');
 
@@ -251,7 +341,7 @@ function ManageCandidates() {
     }
   }
 
-  if (userData?.role === 'admin') {
+  if (userData?.role === 'admin' || userData?.role === 'superadmin' ) {
     fetchApplications()
   } else {
     setLoading(false)
@@ -277,7 +367,15 @@ function ManageCandidates() {
       }
       
       const updatedUser = applications.find(app => app.uid === uid)
-      logActivity(userData.fullName, `Updated candidacy status of ${updatedUser?.applicant?.fullName || uid} to ${status}`)
+      if (status === 'passed') {
+        logActivity(userData.fullName, `Passed candidate ${updatedUser?.applicant?.fullName || uid}`)
+      } else if (status === 'failed') {
+        logActivity(userData.fullName, `Failed candidate ${updatedUser?.applicant?.fullName || uid}`)
+      } else if (status === 'reviewed') {
+        logActivity(userData.fullName, `Reviewed candidacy application of ${updatedUser?.applicant?.fullName || uid}`)
+      } else if (status === 'rejected') {
+        logActivity(userData.fullName, `Rejected candidacy application of ${updatedUser?.applicant?.fullName || uid}`)
+      }
 
       // Send email notification
       await sendStatusEmail(uid, status)
@@ -288,17 +386,6 @@ function ManageCandidates() {
             ? { ...app, status, reviewedAt: new Date().toISOString() }
             : app
         )
-      )
-      
-
-      const updatedApp = applications.find(app => app.uid === uid && app.id === appId)
-      logActivity(
-        userData.fullName,
-        status === 'reviewed'
-          ? `Reviewed candidacy application of ${updatedApp?.applicant?.fullName || uid}`
-          : status === 'approved'
-            ? `Approved candidacy application of ${updatedApp?.applicant?.fullName || uid}`
-            : `Rejected candidacy application of ${updatedApp?.applicant?.fullName || uid}`
       )
 
       setMessage(`Application ${status} successfully! Email notification sent.${status === 'approved' ? ' User role updated to candidate.' : ''}`)
@@ -486,7 +573,7 @@ function ManageCandidates() {
 };
 
 
-  if (userData?.role !== 'admin') {
+  if (userData?.role !== 'admin' && userData?.role !== "superadmin") {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
@@ -701,6 +788,8 @@ function ManageCandidates() {
                       onUpdateStatus={updateApplicationStatus}
                       savingId={savingId}
                       showActions={true}
+                      setConfirmAction={setConfirmAction}     
+                      setShowConfirmModal={setShowConfirmModal} 
                     />
                   ))}
                 </div>
@@ -728,34 +817,14 @@ function ManageCandidates() {
                       savingId={savingId}
                       showActions={true}
                       showAppointment={false}
+                      setConfirmAction={setConfirmAction}     
+                      setShowConfirmModal={setShowConfirmModal} 
                     />
                   ))}
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
                   <p className="text-gray-500">No reviewed candicacy</p>
-                </div>
-              )}
-            </div>
-
-            {/* Approved Applications */}
-            <div>
-              <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Candidacy Applications</h2>
-              {applications.filter(app => app.status === 'approved').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'approved').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      savingId={savingId}
-                      showActions={false}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No approved candicacy</p>
                 </div>
               )}
             </div>
@@ -772,12 +841,62 @@ function ManageCandidates() {
                       onUpdateStatus={updateApplicationStatus}
                       savingId={savingId}
                       showActions={false}
+                      setConfirmAction={setConfirmAction}     
+                      setShowConfirmModal={setShowConfirmModal} 
                     />
                   ))}
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
                   <p className="text-gray-500">No rejected candidacy</p>
+                </div>
+              )}
+            </div>
+
+            {/* Passed Applications */}
+            <div>
+              <h2 className="text-lg font-semibold text-green-700 mb-4">Passed Candidates</h2>
+              {applications.filter(app => app.status === 'passed').length > 0 ? (
+                <div className="space-y-4">
+                  {applications.filter(app => app.status === 'passed').map((app) => (
+                    <ApplicationCard 
+                      key={`${app.uid}-${app.id}`} 
+                      app={app} 
+                      onUpdateStatus={updateApplicationStatus}
+                      savingId={savingId}
+                      showActions={false}
+                      setConfirmAction={setConfirmAction}     
+                      setShowConfirmModal={setShowConfirmModal} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                  <p className="text-gray-500">No approved candicacy</p>
+                </div>
+              )}
+            </div>
+
+            {/* Passed Applications */}
+            <div>
+              <h2 className="text-lg font-semibold text-green-700 mb-4">Failed Candidates</h2>
+              {applications.filter(app => app.status === 'failed').length > 0 ? (
+                <div className="space-y-4">
+                  {applications.filter(app => app.status === 'failed').map((app) => (
+                    <ApplicationCard 
+                      key={`${app.uid}-${app.id}`} 
+                      app={app} 
+                      onUpdateStatus={updateApplicationStatus}
+                      savingId={savingId}
+                      showActions={false}
+                      setConfirmAction={setConfirmAction}     
+                      setShowConfirmModal={setShowConfirmModal} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                  <p className="text-gray-500">No approved candicacy</p>
                 </div>
               )}
             </div>
@@ -829,14 +948,20 @@ function ManageCandidates() {
                       {showActions && (
                         <td className="px-6 py-4 whitespace-nowrap flex gap-2">
                           <button
-                            onClick={() => decideAppointment(app.uid, app.id, 'approved', app.appointment)}
+                            onClick={() => {
+                              setConfirmAction({ type: 'appointment', action: 'approve', uid: app.uid, appId: app.id, appointment: app.appointment });
+                              setShowConfirmModal(true);
+                            }}
                             disabled={savingId === `${app.uid}-${app.id}-appt`}
                             className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                           >
                             {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
                           </button>
                           <button
-                            onClick={() => decideAppointment(app.uid, app.id, 'rejected', app.appointment)}
+                            onClick={() => {
+                              setConfirmAction({ type: 'appointment', action: 'reject', uid: app.uid, appId: app.id, appointment: app.appointment });
+                              setShowConfirmModal(true);
+                            }}
                             disabled={savingId === `${app.uid}-${app.id}-appt`}
                             className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                           >
@@ -960,6 +1085,92 @@ function ManageCandidates() {
             </div>
           </div>
         )}
+
+        {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Action</h3>
+              <p className="text-gray-700 mb-6">
+                {confirmAction?.type === 'candidacy'
+                  ? `Are you sure you want to ${confirmAction.action} this candidacy application?`
+                  : `Are you sure you want to ${confirmAction.action} this screening appointment?`}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                  try {
+                    if (confirmAction.type === 'candidacy') {
+                    
+                      await updateApplicationStatus(
+                        confirmAction.uid,
+                        confirmAction.appId,
+                        confirmAction.action === 'review'
+                          ? 'reviewed'
+                          : confirmAction.action === 'approve'
+                          ? 'approved'
+                          : confirmAction.action === 'passed'
+                          ? 'passed'
+                          : confirmAction.action === 'failed'
+                          ? 'failed'
+                          : 'rejected'
+                      );
+                    } else if (confirmAction.type === 'appointment') {
+                      await decideAppointment(
+                        confirmAction.uid,
+                        confirmAction.appId,
+                        confirmAction.action === 'approve' ? 'approved' : 'rejected',
+                        confirmAction.appointment
+                      );
+                    }
+
+                    setApplications((prev) =>
+                      prev.map((app) =>
+                        app.uid === confirmAction.uid && app.id === confirmAction.appId
+                          ? {
+                              ...app,
+                              status:
+                                confirmAction.action === 'review'
+                                  ? 'reviewed'
+                                  : confirmAction.action === 'approve'
+                                  ? 'approved'
+                                  : 'rejected',
+                              reviewedAt: new Date().toISOString(),
+                            }
+                          : app
+                      )
+                    );
+
+                    setShowConfirmModal(false);
+
+                    setMessage(
+                      `${confirmAction.action.charAt(0).toUpperCase() + confirmAction.action.slice(1)} successful.`
+                    );
+                    setTimeout(() => setMessage(''), 3000);
+                  } catch (err) {
+                    console.error(err);
+                    setMessage('Action failed.');
+                    setTimeout(() => setMessage(''), 3000);
+                  }
+                }}
+                className={`px-4 py-2 text-white rounded ${ 
+                  confirmAction?.action === 'reject' ? 'bg-red-700 hover:bg-red-600' : 'bg-green-700 hover:bg-green-600'
+                }`}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
