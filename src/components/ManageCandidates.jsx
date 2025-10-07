@@ -32,8 +32,10 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
         return 'bg-yellow-100 text-yellow-800'
       case 'reviewed':
         return 'bg-blue-100 text-blue-800'
-      case 'approved':
+      case 'passed':
         return 'bg-green-100 text-green-800'
+        case 'failed':
+        return 'bg-gray-100 text-gray-800'
       case 'rejected':
         return 'bg-red-100 text-red-800'
       default:
@@ -502,11 +504,11 @@ function ManageCandidates() {
       let emailStatus = status
       let position = null
       
-      if (status === 'approved') {
+      if (status === 'passed') {
         emailStatus = 'passed'
         // You can customize position based on your needs
         position = 'Student Council Representative'
-      } else if (status === 'rejected') {
+      } else if (status === 'failed') {
         emailStatus = 'failed'
       }
       
@@ -778,7 +780,7 @@ function ManageCandidates() {
           <div className="space-y-8">
             {/* Pending Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-yellow-700 mb-4">Submitted Candidacy Applications</h2>
+              <h2 className="text-lg font-semibold text-yellow-800 mb-4">Submitted Candidacy Applications</h2>
               {applications.filter(app => app.status === 'submitted').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'submitted').map((app) => (
@@ -803,7 +805,7 @@ function ManageCandidates() {
             {/* Reviewed Applications (Screening) */}
             <div>
               <div className='mb-4'>
-                <h2 className="text-lg font-semibold text-blue-700">Reviewed Candidacy Applications</h2>
+                <h2 className="text-lg font-semibold text-blue-800">Reviewed Candidacy Applications</h2>
                 <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment</p>
               </div>
               {applications.filter(app => app.status === 'reviewed').length > 0 ? (
@@ -831,7 +833,7 @@ function ManageCandidates() {
 
             {/* Rejected Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Candidacy Applications</h2>
+              <h2 className="text-lg font-semibold text-red-800 mb-4">Rejected Candidacy Applications</h2>
               {applications.filter(app => app.status === 'rejected').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'rejected').map((app) => (
@@ -855,7 +857,7 @@ function ManageCandidates() {
 
             {/* Passed Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-green-700 mb-4">Passed Candidates</h2>
+              <h2 className="text-lg font-semibold text-green-800 mb-4">Passed Candidates</h2>
               {applications.filter(app => app.status === 'passed').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'passed').map((app) => (
@@ -872,14 +874,14 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No approved candicacy</p>
+                  <p className="text-gray-500">No passed candidates</p>
                 </div>
               )}
             </div>
 
             {/* Passed Applications */}
             <div>
-              <h2 className="text-lg font-semibold text-green-700 mb-4">Failed Candidates</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Failed Candidates</h2>
               {applications.filter(app => app.status === 'failed').length > 0 ? (
                 <div className="space-y-4">
                   {applications.filter(app => app.status === 'failed').map((app) => (
@@ -896,7 +898,7 @@ function ManageCandidates() {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No approved candicacy</p>
+                  <p className="text-gray-500">No failed candidates</p>
                 </div>
               )}
             </div>
@@ -1135,12 +1137,16 @@ function ManageCandidates() {
                         app.uid === confirmAction.uid && app.id === confirmAction.appId
                           ? {
                               ...app,
-                              status:
-                                confirmAction.action === 'review'
-                                  ? 'reviewed'
-                                  : confirmAction.action === 'approve'
-                                  ? 'approved'
-                                  : 'rejected',
+                            status:
+                            confirmAction.action === 'review'
+                              ? 'reviewed'
+                              : confirmAction.action === 'approve'
+                              ? 'approved'
+                              : confirmAction.action === 'passed'
+                              ? 'passed'
+                              : confirmAction.action === 'failed'
+                              ? 'failed'
+                              : 'rejected',
                               reviewedAt: new Date().toISOString(),
                             }
                           : app

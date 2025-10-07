@@ -150,7 +150,7 @@ const getIcon = (index) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
       <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-red-900">
-        My Candidacy Status
+        CANDIDACY STATUS TRACKERs
       </h3>
 
       {/* Container switches to vertical on mobile */}
