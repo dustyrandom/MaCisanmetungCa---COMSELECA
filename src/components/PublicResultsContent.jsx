@@ -49,7 +49,7 @@ function PublicResultsContent({ forceVisible = false }) {
   useEffect(() => {
     const loadCandidates = async () => {
       try {
-        const candidatesRef = dbRef(db, 'Election')
+        const candidatesRef = dbRef(db, 'candidates')
         const snapshot = await get(candidatesRef)
         if (snapshot.exists()) {
           const data = snapshot.val()

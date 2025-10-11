@@ -6,8 +6,8 @@ function About() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-
-      <section className="relative overflow-hidden">
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
           <div className="grid lg:grid-cols-5 gap-8 items-start">
             {/* Left: 60% heading + text */}
@@ -56,7 +56,8 @@ function About() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   )
 }

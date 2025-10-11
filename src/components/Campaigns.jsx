@@ -103,39 +103,41 @@ function Campaigns() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <div className="mb-6">
-              <div
-                className={`w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4`}
-              >
-                <svg
-                  className="w-8 h-8 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <div className="mb-6">
+                <div
+                  className={`w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d={
-                      campaignState === 'ended'
-                        ? 'M6 18L18 6M6 6l12 12'
-                        : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                    }
-                  />
-                </svg>
+                  <svg
+                    className="w-8 h-8 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={
+                        campaignState === 'ended'
+                          ? 'M6 18L18 6M6 6l12 12'
+                          : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                      }
+                    />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
+                <p className="text-gray-600">{statusMessage}</p>
               </div>
-              <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
-              <p className="text-gray-600">{statusMessage}</p>
+              <a
+                href="/dashboard"
+                className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg hover:bg-red-800 transition-colors"
+              >
+                Back to Dashboard
+              </a>
             </div>
-            <a
-              href="/dashboard"
-              className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg hover:bg-red-800 transition-colors"
-            >
-              Back to Dashboard
-            </a>
           </div>
         </div>
       </div>
@@ -146,13 +148,14 @@ function Campaigns() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaign</h1>
-        <p className="text-gray-600 mb-8">Campaign materials from candidates.</p>
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Campaign</h1>
+          <p className="text-gray-600 mb-8">Campaign materials from candidates.</p>
 
-        {items.length === 0 ? (
-          <div className="text-red-800 text-sm italic">No approved campaign materials yet.</div>
-        ) : (
+          {items.length === 0 ? (
+            <div className="text-red-800 text-sm italic">No approved campaign materials yet.</div>
+          ) : (
           <div className="space-y-6">
             {items.map((s) => {
               const userProfile = Object.values(userProfiles).find(
@@ -217,9 +220,10 @@ function Campaigns() {
               )
             })}
           </div>
-        )}
+          )}
 
-        <ImageModal src={fullscreenImage} isOpen={!!fullscreenImage} onClose={() => setFullscreenImage(null)} />
+          <ImageModal src={fullscreenImage} isOpen={!!fullscreenImage} onClose={() => setFullscreenImage(null)} />
+        </div>
       </div>
     </div>
   )

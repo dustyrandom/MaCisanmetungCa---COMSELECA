@@ -5,7 +5,17 @@ import NavBar from './NavBar'
 import { ref as dbRef, get, update, set, remove, onValue } from 'firebase/database'
 import { logActivity } from '../utils/logActivity'
 
-function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActions, showAppointment, savingId, setConfirmAction, setShowConfirmModal}) {
+const normalizeInstitute = (name) => {
+    switch (name) {
+      case 'Institute of Arts and Sciences': return 'IAS';
+      case 'Institute of Business and Computing Education': return 'IBCE';
+      case 'Institute of Teacher Education': return 'ITE';
+      case 'Institute of Hospitality and Tourism Management': return 'IHTM';
+      default: return name;
+    }
+  };
+
+function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointment, savingId, setConfirmAction, setShowConfirmModal }) {
   const formatDateTime = (value) => {
     try {
       return value ? new Date(value).toLocaleString() : ''
@@ -15,82 +25,90 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
   }
 
   const documentLabels = {
-  coc: "Certificate of Candidacy",
-  cog: "Certificate of Good Moral",
-  cor: "Certificate of Registration",
-  loa: "Leave of Absence",
-  goodMoral: "Good Moral Certificate",
-  psychologicalEvaluation: "Psychological Evaluation",
-  letterOfIntent: "Letter of Intent",
-  letterOfMotivation: "Letter of Motivation",
-  resignationLetter: "Resignation Letter",
+    coc: "Certificate of Candidacy",
+    cog: "Certificate of Good Moral",
+    cor: "Certificate of Registration",
+    loa: "Leave of Absence",
+    goodMoral: "Good Moral Certificate",
+    psychologicalEvaluation: "Psychological Evaluation",
+    letterOfIntent: "Letter of Intent",
+    letterOfMotivation: "Letter of Motivation",
+    resignationLetter: "Resignation Letter",
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'submitted':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       case 'reviewed':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'passed':
-        return 'bg-green-100 text-green-800'
-        case 'failed':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+        return 'bg-gray-100 text-gray-800';
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">{app.applicant?.fullName || 'Unknown'}</h3>
-          <p className="text-sm text-gray-600">{app.applicant?.email}</p>
+    <div className="relative bg-white rounded-xl shadow border border-gray-200 p-6 transition-transform hover:scale-[1.01]">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
+        <div className="min-w-0">
+          <h3 className="text-lg font-semibold text-gray-900 truncate">
+            {app.applicant?.fullName || 'Unknown'}
+          </h3>
+          <p className="text-sm text-gray-600 break-all">{app.applicant?.studentId || 'No Student ID'} • {app.applicant?.email}</p>
           <p className="text-sm text-gray-600">{app.applicant?.institute}</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
+        <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
           {app.status?.toUpperCase() || 'UNKNOWN'}
         </span>
       </div>
 
+      {/* Documents */}
       <div className="mb-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Submitted Documents:</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs break-words">
           {app.documents && Object.keys(app.documents).map((docKey) => (
             <a
               key={docKey}
               href={app.documents[docKey]}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
+              className="text-blue-600 hover:text-blue-800 underline truncate"
             >
-              {documentLabels[docKey] || docKey} {/* NEW DOCUMENT LABELS */}
+              {documentLabels[docKey] || docKey}
             </a>
           ))}
         </div>
       </div>
 
-      <div className="text-xs text-gray-500 mb-4">
-        Submitted: {new Date(app.createdAt).toLocaleString()}
+      {/* Dates */}
+      <div className="text-xs text-gray-500 mb-4 flex flex-col sm:flex-row gap-1 sm:gap-4">
+        <span>Submitted: {new Date(app.createdAt).toLocaleString()}</span>
         {app.reviewedAt && (
-          <span className="ml-4">
-            Reviewed: {new Date(app.reviewedAt).toLocaleString()}
-          </span>
+          <span>Reviewed: {new Date(app.reviewedAt).toLocaleString()}</span>
         )}
       </div>
 
+      {/* Action Buttons for Submitted */}
       {showActions && app.status === 'submitted' && (
-        <div className="flex gap-3">
+        <div className="flex flex-wrap justify-end items-center gap-3">
           <button
             onClick={() => {
               setConfirmAction({ type: 'candidacy', action: 'review', uid: app.uid, appId: app.id });
               setShowConfirmModal(true);
             }}
             disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            className={`px-4 py-2 rounded text-sm text-white transition ${
+              savingId === `${app.uid}-${app.id}`
+                ? 'bg-blue-300 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
           </button>
@@ -100,36 +118,51 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
               setShowConfirmModal(true);
             }}
             disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+            className={`px-4 py-2 rounded text-sm text-white transition ${
+              savingId === `${app.uid}-${app.id}`
+                ? 'bg-red-300 cursor-not-allowed'
+                : 'bg-red-500 hover:bg-red-600'
+            }`}
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
           </button>
         </div>
       )}
-      {showAppointment && app.status === 'reviewed' && (
-        <div className="space-y-3">
+
+      {/* Appointment Section */}
+      {/* {showAppointment && app.status === 'reviewed' && (
+        <div className="space-y-3 mt-3">
           {app.appointment ? (
-            <div className="border rounded p-3 text-sm">
-              <p className="font-medium mb-1">Screening Appointment</p>
+            <div className="border rounded-lg p-4 text-sm bg-gray-50">
+              <p className="font-medium mb-2 text-gray-800">Screening Appointment</p>
               <p><span className="text-gray-600">Status:</span> {app.appointment.status}</p>
               <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(app.appointment.dateTime)}</p>
               <p><span className="text-gray-600">Venue:</span> {app.appointment.venue}</p>
+
               {app.appointment.status === 'pending' && (
-                <div className="flex gap-3 mt-3">
+                <div className="flex flex-wrap gap-3 mt-4">
                   <button
                     onClick={() => {
                       setConfirmAction({ type: 'candidacy', action: 'approve', uid: app.uid, appId: app.id });
                       setShowConfirmModal(true);
                     }}
                     disabled={savingId === `${app.uid}-${app.id}-appt`}
-                    className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                    className={`px-4 py-2 rounded text-sm text-white transition ${
+                      savingId === `${app.uid}-${app.id}-appt`
+                        ? 'bg-green-300 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
                   >
                     {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve Appointment'}
                   </button>
                   <button
                     onClick={() => onAppointmentDecision(app.uid, app.id, 'rejected', app.appointment)}
                     disabled={savingId === `${app.uid}-${app.id}-appt`}
-                    className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+                    className={`px-4 py-2 rounded text-sm text-white transition ${
+                      savingId === `${app.uid}-${app.id}-appt`
+                        ? 'bg-red-300 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700'
+                    }`}
                   >
                     {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Reject Appointment'}
                   </button>
@@ -140,107 +173,67 @@ function ApplicationCard({ app, onUpdateStatus, onAppointmentDecision, showActio
             <p className="text-sm text-gray-600">No appointment submitted yet.</p>
           )}
         </div>
-      )}
-
-      {/* {showActions && app.status === 'reviewed' && (
-        <div className="flex gap-3 mt-3">
-          <button
-            onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
-            disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-          >
-            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Approve'}
-          </button>
-          <button
-            onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
-            disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white ${savingId === `${app.uid}-${app.id}` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
-          >
-            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
-          </button>
-        </div>
       )} */}
 
+      {/* Passed / Failed Buttons */}
       {showActions && app.status === 'reviewed' && (
-      <div className="flex gap-3 mt-3">
-        {(() => {
-          // Determine if appointment has passed
-          const appointmentDate = app.appointment?.dateTime ? new Date(app.appointment.dateTime) : null;
-          const now = new Date();
-          const isFuture = appointmentDate && appointmentDate > now;
-          const disableButtons = savingId === `${app.uid}-${app.id}` || !app.appointment || (appointmentDate && appointmentDate > now || app.appointment.status === 'pending');
+        <div className="flex flex-wrap justify-end items-center gap-3">
+          {(() => {
+            const appointmentDate = app.appointment?.dateTime ? new Date(app.appointment.dateTime) : null;
+            const now = new Date();
+            const isFuture = appointmentDate && appointmentDate > now;
+            const disableButtons =
+              savingId === `${app.uid}-${app.id}` ||
+              !app.appointment ||
+              (appointmentDate && appointmentDate > now) ||
+              app.appointment.status === 'pending';
 
-          return (
-            <>
-              {/* <button
-                onClick={() => onUpdateStatus(app.uid, app.id, 'approved')}
-                disabled={disableButtons}
-                className={`px-4 py-2 rounded text-sm text-white ${
-                  disableButtons ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                {savingId === `${app.uid}-${app.id}`
-                  ? 'Updating…'
-                  : isFuture
-                  ? 'Awaiting Screening'
-                  : 'Approve'}
-              </button>
+            return (
+              <>
+                <button
+                  onClick={() => {
+                    setConfirmAction({ type: 'candidacy', action: 'passed', uid: app.uid, appId: app.id });
+                    setShowConfirmModal(true);
+                  }}
+                  disabled={disableButtons}
+                  className={`px-4 py-2 rounded text-sm text-white transition ${
+                    disableButtons
+                      ? 'bg-emerald-300 cursor-not-allowed'
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
+                >
+                  {savingId === `${app.uid}-${app.id}`
+                    ? 'Updating…'
+                    : !app.appointment || app.appointment?.status === 'pending' || isFuture
+                    ? 'Awaiting Screening'
+                    : 'Passed'}
+                </button>
 
-              <button
-                onClick={() => onUpdateStatus(app.uid, app.id, 'rejected')}
-                disabled={disableButtons}
-                className={`px-4 py-2 rounded text-sm text-white ${
-                  disableButtons ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                {savingId === `${app.uid}-${app.id}`
-                  ? 'Updating…'
-                  : isFuture
-                  ? 'Awaiting Screening'
-                  : 'Reject'}
-              </button> */}
-
-              <button
-                onClick={() => {
-                  setConfirmAction({ type: 'candidacy', action: 'passed', uid: app.uid, appId: app.id });
-                  setShowConfirmModal(true);
-                }}
-                disabled={disableButtons}
-                className={`px-4 py-2 rounded text-sm text-white ${
-                  disableButtons ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                {savingId === `${app.uid}-${app.id}`
-                  ? 'Updating…'
-                  : !app.appointment || app.appointment?.status === 'pending' || isFuture
-                  ? 'Awaiting Screening'
-                  : 'Passed'}
-              </button>
-
-              <button
-                onClick={() => {
-                  setConfirmAction({ type: 'candidacy', action: 'failed', uid: app.uid, appId: app.id });
-                  setShowConfirmModal(true);
-                }}
-                disabled={disableButtons}
-                className={`px-4 py-2 rounded text-sm text-white ${
-                  disableButtons ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                {savingId === `${app.uid}-${app.id}`
-                  ? 'Updating…'
-                  : !app.appointment || app.appointment?.status === 'pending' || isFuture
-                  ? 'Awaiting Screening'
-                  : 'Failed'}
-              </button>
-
-            </>
-          );
-        })()}
-      </div>
-    )}
+                <button
+                  onClick={() => {
+                    setConfirmAction({ type: 'candidacy', action: 'failed', uid: app.uid, appId: app.id });
+                    setShowConfirmModal(true);
+                  }}
+                  disabled={disableButtons}
+                  className={`px-4 py-2 rounded text-sm text-white transition ${
+                    disableButtons
+                      ? 'bg-rose-300 cursor-not-allowed'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  {savingId === `${app.uid}-${app.id}`
+                    ? 'Updating…'
+                    : !app.appointment || app.appointment?.status === 'pending' || isFuture
+                    ? 'Awaiting Screening'
+                    : 'Failed'}
+                </button>
+              </>
+            );
+          })()}
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
 function ManageCandidates() {
@@ -262,7 +255,10 @@ function ManageCandidates() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [candidacyModalMessage, setCandidacyModalMessage] = useState('');
   const [candidacyModalError, setCandidacyModalError] = useState('');
-
+  // Filtering states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterInstitute, setFilterInstitute] = useState('');
 
 
   useEffect(() => {
@@ -291,7 +287,7 @@ function ManageCandidates() {
       }
 
       // Realtime appointmentStatus listener
-      const statusRef = dbRef(db, 'appointmentStatus')
+      const statusRef = dbRef(db, 'screeningAppointments')
       const unsubscribe = onValue(statusRef, async (snapshot) => {
         const now = new Date()
         let updatedStatus = { isActive: false, startDate: '', endDate: '', slots: {} }
@@ -301,9 +297,16 @@ function ManageCandidates() {
 
           if (updatedStatus.slots) {
             for (const slotKey of Object.keys(updatedStatus.slots)) {
-              if (new Date(slotKey) < now) {
+              const slot = updatedStatus.slots[slotKey]
+              const slotDate = new Date(slotKey)
+
+              // Skip deletion if slot is booked
+              const isBooked = slot?.available === false || slot?.status === 'booked'
+
+              // Delete only unbooked and past slots
+              if (slotDate < now && !isBooked) {
                 try {
-                  await remove(dbRef(db, `appointmentStatus/slots/${slotKey}`))
+                  await remove(dbRef(db, `screeningAppointments/slots/${slotKey}`))
                   delete updatedStatus.slots[slotKey] // remove from local state immediately
                 } catch (err) {
                   console.error('Failed to remove past slot', slotKey, err)
@@ -312,14 +315,18 @@ function ManageCandidates() {
             }
           }
         } else {
-          // If no snapshot, create default next day slot object
+          // If no snapshot, create default next-day slot object
           const nextDay = new Date()
           nextDay.setDate(nextDay.getDate() + 1)
           nextDay.setHours(9, 0, 0, 0)
+
           const end = new Date(nextDay)
           end.setHours(17, 0, 0, 0)
+
           const toLocalInput = (d) =>
-            new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+            new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+              .toISOString()
+              .slice(0, 16)
 
           updatedStatus = {
             isActive: false,
@@ -416,12 +423,12 @@ function ManageCandidates() {
       await set(historyRef, historyItem)
 
       const updatedUser = applications.find(app => app.uid === uid)
-      logActivity(userData.fullName, `${decision === 'approved' ? 'Approved' : 'Rejected'} screening appointment of ${updatedUser?.applicant?.fullName || uid}`)
+      logActivity(userData.fullName, `${decision === 'approved' ? 'Approved' : 'Declined'} screening appointment of ${updatedUser?.applicant?.fullName || uid}`)
 
       // Send email on decision
       if (decision === 'approved') {
         await sendAppointmentEmail(uid, appointment)
-      } else if (decision === 'rejected') {
+      } else if (decision === 'declined') {
         await sendAppointmentRejectedEmail(uid)
       }
 
@@ -430,7 +437,7 @@ function ManageCandidates() {
         appointment: { ...app.appointment, status: decision }
       } : app))
 
-      setMessage(`Appointment ${decision}. Email ${decision === 'approved' || decision === 'rejected' ? 'sent' : 'not sent'}.`)
+      setMessage(`Appointment ${decision}. Email ${decision === 'approved' || decision === 'declined' ? 'sent' : 'not sent'}.`)
       setTimeout(() => setMessage(''), 3000)
     } catch (e) {
       console.error('Failed to decide appointment', e)
@@ -477,13 +484,13 @@ function ManageCandidates() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: candidate.email,
-          status: 'appointmentRejected',
+          status: 'appointmentDeclined',
           fullName: candidate.fullName
         })
       })
       if (!response.ok) throw new Error('Email server error')
     } catch (e) {
-      console.error('Error sending appointment rejected email', e)
+      console.error('Error sending appointment declined email', e)
     }
   }
 
@@ -542,47 +549,49 @@ function ManageCandidates() {
   }
 
   const handleSaveCandidacySettings = async () => {
-  setSavingCandidacyStatus(true);
-  try {
-    const now = new Date();
-    const start = new Date(candidacyStatus.startDate);
-    const end = new Date(candidacyStatus.endDate);
+    setSavingCandidacyStatus(true);
+    try {
+      const now = new Date();
+      const start = new Date(candidacyStatus.startDate);
+      const end = new Date(candidacyStatus.endDate);
 
-    if (!candidacyStatus.startDate || !candidacyStatus.endDate) {
-      throw new Error('Please set both start and end date/time.');
+      if (!candidacyStatus.startDate || !candidacyStatus.endDate) {
+        throw new Error('Please set both start and end date/time.');
+      }
+      if (start < now) throw new Error('Start date/time cannot be in the past.');
+      if (end <= start) throw new Error('End date/time must be later than start date/time.');
+
+      await set(dbRef(db, 'candidacyStatus'), candidacyStatus);
+
+      logActivity(
+        userData.fullName,
+        `Updated candidacy period: ${start.toLocaleString()} → ${end.toLocaleString()}`
+      );
+
+      setCandidacyModalMessage('Candidacy period saved successfully!');
+      setCandidacyModalError('');
+      setShowCandidacyModal(true);
+    } catch (err) {
+      console.error(err);
+      setCandidacyModalError(err.message);
+      setCandidacyModalMessage('');
+      setShowCandidacyModal(true);
+    } finally {
+      setSavingCandidacyStatus(false);
     }
-    if (start < now) throw new Error('Start date/time cannot be in the past.');
-    if (end <= start) throw new Error('End date/time must be later than start date/time.');
-
-    await set(dbRef(db, 'candidacyStatus'), candidacyStatus);
-
-    logActivity(
-      userData.fullName,
-      `Updated candidacy period: ${start.toLocaleString()} → ${end.toLocaleString()}`
-    );
-
-    setCandidacyModalMessage('Candidacy period saved successfully!');
-    setCandidacyModalError('');
-    setShowCandidacyModal(true);
-  } catch (err) {
-    console.error(err);
-    setCandidacyModalError(err.message);
-    setCandidacyModalMessage('');
-    setShowCandidacyModal(true);
-  } finally {
-    setSavingCandidacyStatus(false);
-  }
-};
+  };
 
 
   if (userData?.role !== 'admin' && userData?.role !== "superadmin") {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600">You don't have permission to access this page.</p>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+              <p className="text-gray-600">You don't have permission to access this page.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -597,425 +606,507 @@ function ManageCandidates() {
     )
   }
 
+  // Filtering logic
+  const filteredApplications = applications.filter(app => {
+    const matchesSearch =
+      app.applicant?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.applicant?.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = !filterStatus || app.status === filterStatus;
+    const matchesInstitute = !filterInstitute || normalizeInstitute(app.applicant?.institute) === filterInstitute;
+
+    return matchesSearch && matchesStatus && matchesInstitute;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Candidacy Management</h1>
-          <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
-        </div>
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-red-900">Candidacy Management</h1>
+            <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
+          </div>
 
-        {/* Settings Tab Nav */}
-
-        <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex gap-6" aria-label="Tabs">
-            <button
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'candidacy' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('candidacy')}
-            >
-              Applications
-            </button>
-            <button
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'appointments' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('appointments')}
-            >
-              Screening Appointments
-            </button>
-            <button
-              className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Settings
-            </button>
-          </nav>
-        </div>
-
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-
-            <div className="bg-white mb-8 border rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Candidacy Submission</h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={candidacyStatus.startDate || ''}
-                    onChange={(e) => setCandidacyStatus(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    value={candidacyStatus.endDate || ''}
-                    onChange={(e) => setCandidacyStatus(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-            </div>
-            <div className="mt-4 flex justify-end">
+          {/* Settings Tab Nav */}
+          <div className="mb-6 border-b border-gray-200">
+            <nav className="-mb-px flex gap-6" aria-label="Tabs">
               <button
-                onClick={handleSaveCandidacySettings}
-                disabled={savingCandidacyStatus}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'candidacy' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('candidacy')}
               >
-                {savingCandidacyStatus ? 'Saving…' : 'Save Settings'}
+                Applications
               </button>
-            </div>
-            </div>
+              <button
+                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'appointments' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('appointments')}
+              >
+                Screening Appointments
+              </button>
+              <button
+                className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'settings' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                Settings
+              </button>
+            </nav>
+          </div>
 
-            <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Add Appointment Slot</label>
-                  <div className="flex gap-2">
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <div className="bg-white mb-8 border rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Candidacy Submission</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
                     <input
                       type="datetime-local"
-                      value={newSlot}
-                      onChange={(e) => setNewSlot(e.target.value)}
-                      className="border rounded px-3 py-2 flex-1"
+                      value={candidacyStatus.startDate || ''}
+                      onChange={(e) => setCandidacyStatus(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full border rounded px-3 py-2"
                     />
-                    <button
-                      onClick={async () => {
-                        if (!newSlot) {
-                          setMessage("Please select a date and time")
-                          setIsError(true)
-                          setTimeout(() => setMessage(""), 2000)
-                          return
-                        }
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={candidacyStatus.endDate || ''}
+                      onChange={(e) => setCandidacyStatus(prev => ({ ...prev, endDate: e.target.value }))}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleSaveCandidacySettings}
+                  disabled={savingCandidacyStatus}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {savingCandidacyStatus ? 'Saving…' : 'Save Settings'}
+                </button>
+              </div>
+              </div>
 
-                        const selectedDate = new Date(newSlot)
-                        const now = new Date()
-
-                        if (selectedDate < now) {
-                          setMessage("Cannot add a past date/time slot")
-                          setIsError(true)
-                          setTimeout(() => setMessage(""), 2000)
-                          return
-                        }
-
-                        try {
-                          const slotRef = dbRef(db, `appointmentStatus/slots/${newSlot}`)
-                          const existing = await get(slotRef)
-
-                          if (existing.exists()) {
-                            setMessage("This slot already exists")
+              <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Add Appointment Slot</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="datetime-local"
+                        value={newSlot}
+                        onChange={(e) => setNewSlot(e.target.value)}
+                        className="border rounded px-3 py-2 flex-1"
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!newSlot) {
+                            setMessage("Please select a date and time")
                             setIsError(true)
                             setTimeout(() => setMessage(""), 2000)
                             return
                           }
 
-                          await set(slotRef, { available: true })
-                          setNewSlot("")
-                          setMessage("Slot added successfully")
-                          setIsError(false)
-                          logActivity(userData.fullName, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
-                          setTimeout(() => setMessage(""), 2000)
-                        } catch (err) {
-                          console.error("Error adding slot", err)
-                          setMessage("Failed to add slot")
-                          setIsError(true)
-                          setTimeout(() => setMessage(""), 2000)
-                        }
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded"
-                    >
-                      Add Slot
-                    </button>
-                    
+                          const selectedDate = new Date(newSlot)
+                          const now = new Date()
+
+                          if (selectedDate < now) {
+                            setMessage("Cannot add a past date/time slot")
+                            setIsError(true)
+                            setTimeout(() => setMessage(""), 2000)
+                            return
+                          }
+
+                          try {
+                            const slotRef = dbRef(db, `screeningAppointments/slots/${newSlot}`)
+                            const existing = await get(slotRef)
+
+                            if (existing.exists()) {
+                              setMessage("This slot already exists")
+                              setIsError(true)
+                              setTimeout(() => setMessage(""), 2000)
+                              return
+                            }
+
+                            await set(slotRef, { available: true })
+                            setNewSlot("")
+                            setMessage("Slot added successfully")
+                            setIsError(false)
+                            logActivity(userData.fullName, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
+                            setTimeout(() => setMessage(""), 2000)
+                          } catch (err) {
+                            console.error("Error adding slot", err)
+                            setMessage("Failed to add slot")
+                            setIsError(true)
+                            setTimeout(() => setMessage(""), 2000)
+                          }
+                        }}
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600  text-white rounded"
+                      >
+                        Add Slot
+                      </button>
+                      
+                    </div>
+                    {message && (
+                      <p className={`mt-2 mb-4 text-sm ${isError ? "text-red-600" : "text-green-600"}`}>
+                        {message}
+                      </p>
+                    )}
                   </div>
-                  {message && (
-                    <p className={`mt-2 mb-4 text-sm ${isError ? "text-red-600" : "text-green-600"}`}>
-                      {message}
-                    </p>
+
+                  {/* Display slots */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-800 mb-2">Available Slots</h4>
+                    <ul className="space-y-1 text-sm text-gray-700">
+                      {appointmentStatus.slots && Object.keys(appointmentStatus.slots).length > 0
+                        ? Object.keys(appointmentStatus.slots).map((s) => (
+                            <li key={s} className="flex justify-between items-center border rounded px-3 py-1">
+                              <span>
+                                {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} {' '}
+                                {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className={appointmentStatus.slots[s].available ? "text-green-600" : "text-red-600"}>
+                                  {appointmentStatus.slots[s].available ? "Available" : "Booked"}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    setSlotToDelete(s)
+                                    setShowDeleteModal(true)
+                                  }}
+                                  className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>  
+                            </li>
+                          ))
+                        : <p>No slots created yet.</p>}
+                    </ul>
+                  </div>
+              </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filter Bar */}
+          {activeTab === 'candidacy' && (
+            <div className="bg-white shadow-sm rounded-2xl p-4 mb-6 border border-gray-100">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                {/* Search Bar */}
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Search Candidates
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Search by name or student ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-lg border focus:outline-none border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 px-3 py-2 text-sm shadow-sm transition placeholder-gray-500"
+                  />
+                </div>
+                {/* Filter Tab */}
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                  
+                  {/* Filter by Status */}
+                  <div className="flex-1 sm:flex-none">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Filter by Status
+                    </label>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="w-full sm:w-[160px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
+                    >
+                      <option value="">All Status</option>
+                      <option value="submitted">Submitted</option>
+                      <option value="reviewed">Reviewed</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="passed">Passed</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                  </div>
+                  {/* Filter by Institute */}
+                  <div className="flex-1 sm:flex-none">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Filter by Institute
+                    </label>
+                    <select
+                      value={filterInstitute}
+                      onChange={(e) => setFilterInstitute(e.target.value)}
+                      className="w-full sm:w-[160px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
+                    >
+                      <option value="">All</option>
+                      <option value="IAS">IAS</option>
+                      <option value="IBCE">IBCE</option>
+                      <option value="ITE">ITE</option>
+                      <option value="IHTM">IHTM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'candidacy' && (applications.length === 0 ? (
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <p className="text-gray-600">No candidacy applications found.</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Pending Applications */}
+              {(!filterStatus || filterStatus === 'submitted') && (
+                <div>
+                  <h2 className="text-lg font-semibold text-yellow-800 mb-4">Submitted Candidacy Applications</h2>
+                  {filteredApplications.filter(app => app.status === 'submitted').length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredApplications.filter(app => app.status === 'submitted').map((app) => (
+                        <ApplicationCard 
+                          key={`${app.uid}-${app.id}`} 
+                          app={app} 
+                          onUpdateStatus={updateApplicationStatus}
+                          savingId={savingId}
+                          showActions={true}
+                          setConfirmAction={setConfirmAction}     
+                          setShowConfirmModal={setShowConfirmModal} 
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                      <p className="text-gray-500">No candidacy awaiting review</p>
+                    </div>
                   )}
                 </div>
-
-                {/* Display slots */}
+              )}
+              
+              {/* Reviewed Applications (Screening) */}
+              {(!filterStatus || filterStatus === 'reviewed') && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-800 mb-2">Available Slots</h4>
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    {appointmentStatus.slots && Object.keys(appointmentStatus.slots).length > 0
-                      ? Object.keys(appointmentStatus.slots).map((s) => (
-                          <li key={s} className="flex justify-between items-center border rounded px-3 py-1">
-                            <span>
-                              {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} {' '}
-                              {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <span className={appointmentStatus.slots[s].available ? "text-green-600" : "text-red-600"}>
-                                {appointmentStatus.slots[s].available ? "Available" : "Booked"}
-                              </span>
-                              <button
-                                onClick={() => {
-                                  setSlotToDelete(s)
-                                  setShowDeleteModal(true)
-                                }}
-                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-                              >
-                                Delete
-                              </button>
-                            </div>  
-                          </li>
-                        ))
-                      : <p>No slots created yet.</p>}
-                  </ul>
-
-                </div>
-            </div>
-            
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'candidacy' && (applications.length === 0 ? (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <p className="text-gray-600">No candidacy applications found.</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Pending Applications */}
-            <div>
-              <h2 className="text-lg font-semibold text-yellow-800 mb-4">Submitted Candidacy Applications</h2>
-              {applications.filter(app => app.status === 'submitted').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'submitted').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      savingId={savingId}
-                      showActions={true}
-                      setConfirmAction={setConfirmAction}     
-                      setShowConfirmModal={setShowConfirmModal} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No candidacy awaiting review</p>
+                  <div className='mb-4'>
+                    <h2 className="text-lg font-semibold text-blue-800">Reviewed Candidacy Applications</h2>
+                    <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment</p>
+                  </div>
+                  {filteredApplications.filter(app => app.status === 'reviewed').length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredApplications.filter(app => app.status === 'reviewed').map((app) => (
+                        <ApplicationCard 
+                          key={`${app.uid}-${app.id}`} 
+                          app={app} 
+                          onUpdateStatus={updateApplicationStatus}
+                          onAppointmentDecision={decideAppointment}
+                          savingId={savingId}
+                          showActions={true}
+                          showAppointment={false}
+                          setConfirmAction={setConfirmAction}     
+                          setShowConfirmModal={setShowConfirmModal} 
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                      <p className="text-gray-500">No reviewed candicacy</p>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+              
 
-            {/* Reviewed Applications (Screening) */}
-            <div>
-              <div className='mb-4'>
-                <h2 className="text-lg font-semibold text-blue-800">Reviewed Candidacy Applications</h2>
-                <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment</p>
+              {/* Rejected Applications */}
+              {(!filterStatus || filterStatus === 'rejected') && (
+                <div>
+                  <h2 className="text-lg font-semibold text-red-800 mb-4">Rejected Candidacy Applications</h2>
+                  {filteredApplications.filter(app => app.status === 'rejected').length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredApplications.filter(app => app.status === 'rejected').map((app) => (
+                        <ApplicationCard 
+                          key={`${app.uid}-${app.id}`} 
+                          app={app} 
+                          onUpdateStatus={updateApplicationStatus}
+                          savingId={savingId}
+                          showActions={false}
+                          setConfirmAction={setConfirmAction}     
+                          setShowConfirmModal={setShowConfirmModal} 
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                      <p className="text-gray-500">No rejected candidacy</p>
+                    </div>
+                  )}
               </div>
-              {applications.filter(app => app.status === 'reviewed').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'reviewed').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      onAppointmentDecision={decideAppointment}
-                      savingId={savingId}
-                      showActions={true}
-                      showAppointment={false}
-                      setConfirmAction={setConfirmAction}     
-                      setShowConfirmModal={setShowConfirmModal} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No reviewed candicacy</p>
+              )}
+              
+
+              {/* Passed Applications */}
+              {(!filterStatus || filterStatus === 'passed') && (
+                <div>
+                <h2 className="text-lg font-semibold text-green-800 mb-4">Passed Candidates</h2>
+                {filteredApplications.filter(app => app.status === 'passed').length > 0 ? (
+                  <div className="space-y-4">
+                    {filteredApplications.filter(app => app.status === 'passed').map((app) => (
+                      <ApplicationCard 
+                        key={`${app.uid}-${app.id}`} 
+                        app={app} 
+                        onUpdateStatus={updateApplicationStatus}
+                        savingId={savingId}
+                        showActions={false}
+                        setConfirmAction={setConfirmAction}     
+                        setShowConfirmModal={setShowConfirmModal} 
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                    <p className="text-gray-500">No passed candidates</p>
+                  </div>
+                )}
+              </div>
+              )}
+              
+              {/* Failed Applications */}
+              {(!filterStatus || filterStatus === 'failed') && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">Failed Candidates</h2>
+                  {filteredApplications.filter(app => app.status === 'failed').length > 0 ? (
+                    <div className="space-y-4">
+                      {filteredApplications.filter(app => app.status === 'failed').map((app) => (
+                        <ApplicationCard 
+                          key={`${app.uid}-${app.id}`} 
+                          app={app} 
+                          onUpdateStatus={updateApplicationStatus}
+                          savingId={savingId}
+                          showActions={false}
+                          setConfirmAction={setConfirmAction}     
+                          setShowConfirmModal={setShowConfirmModal} 
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
+                      <p className="text-gray-500">No failed candidates</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+          ))}
 
-            {/* Rejected Applications */}
-            <div>
-              <h2 className="text-lg font-semibold text-red-800 mb-4">Rejected Candidacy Applications</h2>
-              {applications.filter(app => app.status === 'rejected').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'rejected').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      savingId={savingId}
-                      showActions={false}
-                      setConfirmAction={setConfirmAction}     
-                      setShowConfirmModal={setShowConfirmModal} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No rejected candidacy</p>
-                </div>
-              )}
-            </div>
+          {activeTab === 'appointments' && (() => {
+            const withAppointments = applications.filter(app => app.appointment)
+            const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
 
-            {/* Passed Applications */}
-            <div>
-              <h2 className="text-lg font-semibold text-green-800 mb-4">Passed Candidates</h2>
-              {applications.filter(app => app.status === 'passed').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'passed').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      savingId={savingId}
-                      showActions={false}
-                      setConfirmAction={setConfirmAction}     
-                      setShowConfirmModal={setShowConfirmModal} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No passed candidates</p>
-                </div>
-              )}
-            </div>
+            // Group appointments by date
+            const groupByDate = (apps) =>
+              apps.reduce((acc, app) => {
+                const date = new Date(app.appointment.dateTime).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                if (!acc[date]) acc[date] = []
+                acc[date].push(app)
+                return acc
+              }, {})
 
-            {/* Passed Applications */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Failed Candidates</h2>
-              {applications.filter(app => app.status === 'failed').length > 0 ? (
-                <div className="space-y-4">
-                  {applications.filter(app => app.status === 'failed').map((app) => (
-                    <ApplicationCard 
-                      key={`${app.uid}-${app.id}`} 
-                      app={app} 
-                      onUpdateStatus={updateApplicationStatus}
-                      savingId={savingId}
-                      showActions={false}
-                      setConfirmAction={setConfirmAction}     
-                      setShowConfirmModal={setShowConfirmModal} 
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                  <p className="text-gray-500">No failed candidates</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+            const renderTable = (apps, showActions = false) => {
+              const grouped = groupByDate(apps)
+              return Object.keys(grouped)
+                .sort((a, b) => new Date(a) - new Date(b))
+                .map(date => (
+                  <div key={date} className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+                    <div className="bg-gray-100 px-6 py-2 font-semibold text-gray-700">{date}</div>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Time</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                            {showActions && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {grouped[date]
+                            .sort((a, b) => new Date(a.appointment.dateTime) - new Date(b.appointment.dateTime))
+                            .map(app => (
+                              <tr key={`${app.uid}-${app.id}`} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(app.appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.appointment.venue || "-"}</td>
+                                {showActions && (
+                                  <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setConfirmAction({ type: 'appointment', action: 'approve', uid: app.uid, appId: app.id, appointment: app.appointment });
+                                        setShowConfirmModal(true);
+                                      }}
+                                      disabled={savingId === `${app.uid}-${app.id}-appt`}
+                                      className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                                    >
+                                      {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setConfirmAction({ type: 'appointment', action: 'decline', uid: app.uid, appId: app.id, appointment: app.appointment });
+                                        setShowConfirmModal(true);
+                                      }}
+                                      disabled={savingId === `${app.uid}-${app.id}-appt`}
+                                      className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-rose-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700'}`}
+                                    >
+                                      {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Decline'}
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))
+            }
 
-        {activeTab === 'appointments' && (() => {
-  const withAppointments = applications.filter(app => app.appointment)
-  const byStatus = (s) => withAppointments.filter(app => app.appointment.status === s)
-
-  // Group appointments by date
-  const groupByDate = (apps) =>
-    apps.reduce((acc, app) => {
-      const date = new Date(app.appointment.dateTime).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      if (!acc[date]) acc[date] = []
-      acc[date].push(app)
-      return acc
-    }, {})
-
-  const renderTable = (apps, showActions = false) => {
-    const grouped = groupByDate(apps)
-    return Object.keys(grouped)
-      .sort((a, b) => new Date(a) - new Date(b))
-      .map(date => (
-        <div key={date} className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
-          <div className="bg-gray-100 px-6 py-2 font-semibold text-gray-700">{date}</div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
-                  {showActions && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {grouped[date]
-                  .sort((a, b) => new Date(a.appointment.dateTime) - new Date(b.appointment.dateTime))
-                  .map(app => (
-                    <tr key={`${app.uid}-${app.id}`} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(app.appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.appointment.venue || "-"}</td>
-                      {showActions && (
-                        <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                          <button
-                            onClick={() => {
-                              setConfirmAction({ type: 'appointment', action: 'approve', uid: app.uid, appId: app.id, appointment: app.appointment });
-                              setShowConfirmModal(true);
-                            }}
-                            disabled={savingId === `${app.uid}-${app.id}-appt`}
-                            className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-green-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-                          >
-                            {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setConfirmAction({ type: 'appointment', action: 'reject', uid: app.uid, appId: app.id, appointment: app.appointment });
-                              setShowConfirmModal(true);
-                            }}
-                            disabled={savingId === `${app.uid}-${app.id}-appt`}
-                            className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
-                          >
-                            {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Reject'}
-                          </button>
-                        </td>
+                return (
+                  <div className="space-y-8">
+                    {/* Pending Appointments */}
+                    <div>
+                      <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
+                      {byStatus('pending').length > 0 ? renderTable(byStatus('pending'), true) : (
+                        <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+                          <p className="text-gray-500">No pending screening appointments</p>
+                        </div>
                       )}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+
+                    {/* Approved Appointments */}
+                    <div>
+                      <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
+                      {byStatus('approved').length > 0 ? renderTable(byStatus('approved')) : (
+                        <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+                          <p className="text-gray-500">No approved screening appointments</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rejected Appointments */}
+                    <div>
+                      <h2 className="text-lg font-semibold text-red-700 mb-4">Declined Screening Appointments</h2>
+                      {byStatus('rejected').length > 0 ? renderTable(byStatus('rejected')) : (
+                        <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
+                          <p className="text-gray-500">No rejected screening appointments</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+          })()}
         </div>
-      ))
-  }
-
-  return (
-    <div className="space-y-8">
-      {/* Pending Appointments */}
-      <div>
-        <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
-        {byStatus('pending').length > 0 ? renderTable(byStatus('pending'), true) : (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-            <p className="text-gray-500">No pending screening appointments</p>
-          </div>
-        )}
       </div>
-
-      {/* Approved Appointments */}
-      <div>
-        <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
-        {byStatus('approved').length > 0 ? renderTable(byStatus('approved')) : (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-            <p className="text-gray-500">No approved screening appointments</p>
-          </div>
-        )}
-      </div>
-
-      {/* Rejected Appointments */}
-      <div>
-        <h2 className="text-lg font-semibold text-red-700 mb-4">Rejected Screening Appointments</h2>
-        {byStatus('rejected').length > 0 ? renderTable(byStatus('rejected')) : (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-            <p className="text-gray-500">No rejected screening appointments</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-})()}
-
-      </div>
+      
 
         {showDeleteModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -1028,14 +1119,14 @@ function ManageCandidates() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="px-4 py-2 bg-gray-400 rounded hover:bg-gray-500"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={async () => {
                     try {
-                      await remove(dbRef(db, `appointmentStatus/slots/${slotToDelete}`))
+                      await remove(dbRef(db, `screeningAppointments/slots/${slotToDelete}`))
                       setAppointmentStatus(prev => {
                         const updated = { ...prev }
                         if (updated.slots) delete updated.slots[slotToDelete]
@@ -1079,7 +1170,7 @@ function ManageCandidates() {
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">
-                  <button onClick={() => setShowCandidacyModal(false)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+                  <button onClick={() => setShowCandidacyModal(false)} className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
                     Close
                   </button>
                 </div>
@@ -1094,9 +1185,19 @@ function ManageCandidates() {
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Action</h3>
               <p className="text-gray-700 mb-6">
-                {confirmAction?.type === 'candidacy'
-                  ? `Are you sure you want to ${confirmAction.action} this candidacy application?`
-                  : `Are you sure you want to ${confirmAction.action} this screening appointment?`}
+                {confirmAction?.type === 'candidacy' ? (
+                  <>
+                    Are you sure you want to{' '}
+                    <strong className="uppercase">{confirmAction.action}</strong>{' '}
+                    this candidacy application?
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to{' '}
+                    <strong className="uppercase">{confirmAction.action}</strong>{' '}
+                    this screening appointment?
+                  </>
+                )}
               </p>
               <div className="flex justify-end gap-3">
                 <button
@@ -1127,7 +1228,7 @@ function ManageCandidates() {
                       await decideAppointment(
                         confirmAction.uid,
                         confirmAction.appId,
-                        confirmAction.action === 'approve' ? 'approved' : 'rejected',
+                        confirmAction.action === 'approve' ? 'approved' : 'declined',
                         confirmAction.appointment
                       );
                     }
@@ -1176,7 +1277,6 @@ function ManageCandidates() {
           </div>
         </div>
       )}
-
     </div>
   )
 }

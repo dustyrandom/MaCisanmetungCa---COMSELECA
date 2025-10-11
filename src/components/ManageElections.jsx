@@ -48,7 +48,7 @@ function ManageElections() {
     const loadData = async () => {
       try {
         // Load election candidates
-        const candidatesRef = dbRef(db, 'Election')
+        const candidatesRef = dbRef(db, 'candidates')
         const candidatesSnapshot = await get(candidatesRef)
         if (candidatesSnapshot.exists()) {
           const data = candidatesSnapshot.val()
@@ -163,7 +163,7 @@ function ManageElections() {
 
       if (editingCandidate) {
         // Update existing candidate
-        const candidateRef = dbRef(db, `Election/${editingCandidate.id}`)
+        const candidateRef = dbRef(db, `candidates/${editingCandidate.id}`)
         await update(candidateRef, candidateData)
         setCandidates(prev => prev.map(c => c.id === editingCandidate.id ? { ...c, ...candidateData } : c))
         try {
@@ -173,7 +173,7 @@ function ManageElections() {
         }
       } else {
         // Add new candidate
-        const newCandidateRef = dbRef(db, 'Election')
+        const newCandidateRef = dbRef(db, 'candidates')
         const newRef = await push(newCandidateRef, candidateData)
         const newId = newRef.key
         setCandidates(prev => [...prev, { id: newId, ...candidateData }])
@@ -216,7 +216,7 @@ function ManageElections() {
     if (!deletingCandidate) return
     
     try {
-      const candidateRef = dbRef(db, `Election/${deletingCandidate.id}`)
+      const candidateRef = dbRef(db, `candidates/${deletingCandidate.id}`)
       await remove(candidateRef)
       setCandidates(prev => prev.filter(c => c.id !== deletingCandidate.id))
 
@@ -372,10 +372,12 @@ function ManageElections() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600">You don't have permission to access this page.</p>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+              <p className="text-gray-600">You don't have permission to access this page.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -393,54 +395,55 @@ function ManageElections() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Manage Elections</h1>
-          <p className="text-gray-600 mt-1">Manage candidates and voting period</p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('candidates')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'candidates'
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Manage Candidates
-              </button>
-              <button
-                onClick={() => setActiveTab('voting')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'voting'
-                    ? 'border-red-500 text-red-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Manage Voting
-              </button>
-            </nav>
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-red-900">Manage Elections</h1>
+            <p className="text-gray-600 mt-1">Manage candidates and voting period</p>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        {activeTab === 'candidates' && (
-          <>
-            <div className="mb-6">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Add Candidate
-              </button>
+          {/* Tab Navigation */}
+          <div className="mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('candidates')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'candidates'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Manage Candidates
+                </button>
+                <button
+                  onClick={() => setActiveTab('voting')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'voting'
+                      ? 'border-red-500 text-red-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Manage Voting
+                </button>
+              </nav>
             </div>
+          </div>
 
-          </>
-        )}
+          {/* Tab Content */}
+          {activeTab === 'candidates' && (
+            <>
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
+                >
+                  Add Candidate
+                </button>
+              </div>
+
+            </>
+          )}
 
         {activeTab === 'voting' && (
           <div className="space-y-6">
@@ -493,7 +496,7 @@ function ManageElections() {
                 <button
                   onClick={handleSaveVotingSettings}
                   disabled={saving}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
                 >
                   {saving ? 'Saving...' : 'Save Settings'}
                 </button>
@@ -520,11 +523,13 @@ function ManageElections() {
                         {positionCandidates.map(candidate => (
                           <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
                             <div className="flex items-center gap-3 mb-2">
-                              <img
-                                src={candidate.profilePicture || '/default-profile.png'}
-                                alt={candidate.fullName}
-                                className="w-20 h-20 rounded-full object-cover border border-gray-300"
-                              />
+                              {candidate.profilePicture ? (
+                                <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                              ) : (
+                                <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                  {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
                               <div>
                                 <h4 className="font-semibold">{candidate.fullName}</h4>
                                 <p className="text-sm text-gray-600">{candidate.email}</p>
@@ -579,11 +584,13 @@ function ManageElections() {
                                   {positionCandidates.map(candidate => (
                                     <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
                                       <div className="flex items-center gap-3 mb-2">
-                                        <img
-                                          src={candidate.profilePicture || '/default-profile.png'}
-                                          alt={candidate.fullName}
-                                          className="w-20 h-20 rounded-full object-cover border border-gray-300"
-                                        />
+                                        {candidate.profilePicture ? (
+                                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                        ) : (
+                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                          </div>
+                                        )}
                                         <div>
                                           <h5 className="font-semibold">{candidate.fullName}</h5>
                                           <p className="text-sm text-gray-600">{candidate.email}</p>
@@ -625,6 +632,8 @@ function ManageElections() {
           </div>
         )}
       </div>
+      </div>
+      
 
       {/* Voting Status Modal */}
       {showVoteModal && (
@@ -741,13 +750,7 @@ function ManageElections() {
                     </select>
                   </div>
                 </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                  >
-                    {editingCandidate ? 'Update' : 'Add'} Candidate
-                  </button>
+                <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -759,9 +762,15 @@ function ManageElections() {
                         position: ''
                       })
                     }}
-                    className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
+                  >
+                    {editingCandidate ? 'Update' : 'Add'} Candidate
                   </button>
                 </div>
               </form>

@@ -11,23 +11,27 @@ function NavBar() {
 
   const isActive = (path) => location.pathname === path
 
-  const baseLink = 'font-semibold'
-  const activeClasses = 'text-red-900 border-b border-red-900'
+  const baseLink = 'font-semibold transition-colors duration-200 tracking-wide'
+  const activeClasses = 'text-red-900 border-b-2 border-red-900'
   const inactiveClasses = 'text-red-800 hover:text-red-600'
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm fixed top-0 left-0 w-full z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo and Title */}
-          <div className="flex items-center space-x-3">
-            <img src={iconHeader} alt="MaCisanmetungCa Icon" className="h-12 w-12" />
-            <div>
-              <h1 className="text-2xl font-bold text-red-800">MaCisanmetungCa</h1>
-              <p className="text-sm text-gray-600">MABALACAT CITY COLLEGE - COMSELECA</p>
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            <img src={iconHeader} alt="MaCisanmetungCa Icon" className="h-10 w-10 sm:h-12 sm:w-12" />
+            <div className="flex flex-col">
+              <h1 className="text-lg sm:text-2xl font-bold text-red-800 whitespace-nowrap">
+                MaCisanmetungCa
+              </h1>
+              <p className="text-[11px] sm:text-sm text-gray-600 whitespace-nowrap">
+                MABALACAT CITY COLLEGE - COMSELECA
+              </p>
             </div>
           </div>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-5 relative">
             <Link to="/" className={`${baseLink} ${isActive('/') ? activeClasses : inactiveClasses}`}>HOME</Link>
@@ -36,54 +40,74 @@ function NavBar() {
             <Link to="/vote" className={`${baseLink} ${isActive('/vote') ? activeClasses : inactiveClasses}`}>VOTE</Link>
             <Link to="/result" className={`${baseLink} ${isActive('/result') ? activeClasses : inactiveClasses}`}>RESULT</Link>
             <Link to="/about" className={`${baseLink} ${isActive('/about') ? activeClasses : inactiveClasses}`}>ABOUT</Link>
+
             {!user && (
               <Link to="/login" className={`${baseLink} ${isActive('/login') ? activeClasses : inactiveClasses}`}>LOG IN</Link>
             )}
+
             {user && (
               <>
                 {isEmailVerified() && (
                   <Link to="/dashboard" className={`${baseLink} ${isActive('/dashboard') ? activeClasses : inactiveClasses}`}>DASHBOARD</Link>
                 )}
-              <div className="ml-2 relative">
-                <button
-                  type="button"
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 focus:outline-none"
-                  aria-haspopup="menu"
-                  aria-expanded={isProfileOpen}
-                >
-                  {userData?.profilePicture ? (
-                    <img
-                      className="h-8 w-8 rounded-full object-cover"
-                      src={userData.profilePicture}
-                      alt="Profile"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
-                      {(userData?.fullName || '').slice(0,2).toUpperCase()}
+
+                <div className="ml-2 relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center gap-2 focus:outline-none"
+                    aria-haspopup="menu"
+                    aria-expanded={isProfileOpen}
+                  >
+                    {userData?.profilePicture ? (
+                      <img
+                        className="h-8 w-8 rounded-full object-cover"
+                        src={userData.profilePicture}
+                        alt="Profile"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
+                        {(userData?.fullName || '').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm text-gray-700 font-medium hidden lg:inline truncate max-w-[120px]">
+                      {userData?.fullName || 'User'}
+                    </span>
+                    <svg
+                      className="h-4 w-4 text-gray-600"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" />
+                    </svg>
+                  </button>
+
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-20 animate-fadeIn">
+                      <div className="py-1 text-sm">
+                        <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-600 whitespace-nowrap">
+                          Role: {userData?.role?.toUpperCase() || 'VOTER'}
+                        </div>
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setIsProfileOpen(false)
+                            logout()
+                          }}
+                          className="w-full text-left px-4 py-2 text-red-700 hover:bg-red-50"
+                        >
+                          Sign out
+                        </button>
+                      </div>
                     </div>
                   )}
-                  <span className="text-sm text-gray-700 font-medium hidden lg:inline">{userData?.fullName || 'User'}</span>
-                  <svg className="h-4 w-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"/></svg>
-                </button>
-                {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-20">
-                    <div className="py-1 text-sm">
-                      <div className="px-4 py-2 border-b border-gray-100 text-xs text-gray-600">
-                        Role: {userData?.role?.toUpperCase() || 'VOTER'}
-                      </div>
-                      <Link 
-                        to="/profile" 
-                        onClick={() => setIsProfileOpen(false)}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
-                      >
-                        Profile
-                      </Link>
-                      <button onClick={() => { setIsProfileOpen(false); logout() }} className="w-full text-left px-4 py-2 text-red-700 hover:bg-red-50">Sign out</button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
               </>
             )}
           </nav>
@@ -104,50 +128,55 @@ function NavBar() {
             </svg>
           </button>
         </div>
+
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden px-4 pb-3 space-y-1">
+          <div className="md:hidden px-4 pb-4 space-y-2 bg-white border-t border-gray-100 animate-fadeIn">
             <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/') ? 'inline-block border-b border-red-900' : ''}`}>HOME</span>
+              <span className={`${baseLink} ${isActive('/') ? 'inline-block border-b-2 border-red-900' : ''}`}>HOME</span>
             </Link>
             <Link to="/candidates" className={`block py-2 text-base ${isActive('/candidates') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/candidates') ? 'inline-block border-b border-red-900' : ''}`}>CANDIDATES</span>
+              <span className={`${baseLink} ${isActive('/candidates') ? 'inline-block border-b-2 border-red-900' : ''}`}>CANDIDATES</span>
             </Link>
             <Link to="/campaigns" className={`block py-2 text-base ${isActive('/campaigns') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/campaigns') ? 'inline-block border-b border-red-900' : ''}`}>CAMPAIGN</span>
+              <span className={`${baseLink} ${isActive('/campaigns') ? 'inline-block border-b-2 border-red-900' : ''}`}>CAMPAIGN</span>
             </Link>
             <Link to="/vote" className={`block py-2 text-base ${isActive('/vote') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/vote') ? 'inline-block border-b border-red-900' : ''}`}>VOTE</span>
+              <span className={`${baseLink} ${isActive('/vote') ? 'inline-block border-b-2 border-red-900' : ''}`}>VOTE</span>
             </Link>
             <Link to="/result" className={`block py-2 text-base ${isActive('/result') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/result') ? 'inline-block border-b border-red-900' : ''}`}>RESULT</span>
+              <span className={`${baseLink} ${isActive('/result') ? 'inline-block border-b-2 border-red-900' : ''}`}>RESULT</span>
             </Link>
             <Link to="/about" className={`block py-2 text-base ${isActive('/about') ? 'text-red-900' : 'text-red-800'}`}>
-              <span className={`${baseLink} ${isActive('/about') ? 'inline-block border-b border-red-900' : ''}`}>ABOUT</span>
+              <span className={`${baseLink} ${isActive('/about') ? 'inline-block border-b-2 border-red-900' : ''}`}>ABOUT</span>
             </Link>
+
             {!user && (
               <Link to="/login" className={`block py-2 text-base ${isActive('/login') ? 'text-red-900' : 'text-red-800'}`}>
-                <span className={`${baseLink} ${isActive('/login') ? 'inline-block border-b border-red-900' : ''}`}>LOG IN</span>
+                <span className={`${baseLink} ${isActive('/login') ? 'inline-block border-b-2 border-red-900' : ''}`}>LOG IN</span>
               </Link>
             )}
+
             {user && (
               <>
                 {isEmailVerified() && (
                   <Link to="/dashboard" className={`block py-2 text-base ${isActive('/dashboard') ? 'text-red-900' : 'text-red-800'}`}>
-                    <span className={`${baseLink} ${isActive('/dashboard') ? 'inline-block border-b border-red-900' : ''}`}>DASHBOARD</span>
+                    <span className={`${baseLink} ${isActive('/dashboard') ? 'inline-block border-b-2 border-red-900' : ''}`}>DASHBOARD</span>
                   </Link>
                 )}
-                <div className="py-2 flex justify-between items-center">
-                  <Link 
-                        to="/profile" 
-                        onClick={() => setIsProfileOpen(false)}
-                        className="text-gray-700 hover:bg-gray-50"
-                      >
-                      <span className="text-sm text-gray-700">{userData?.fullName || 'User'}</span>
-                      </Link>
+                <div className="py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsProfileOpen(false)}
+                    className="text-gray-700 hover:bg-gray-50 text-sm truncate"
+                  >
+                    {userData?.fullName || 'User'}
+                  </Link>
                   <span className="text-xs text-gray-500">Role: {userData?.role?.toUpperCase() || 'VOTER'}</span>
                 </div>
-                <button onClick={logout} className="py-2 text-red-700">Sign Out</button>
+                <button onClick={logout} className="py-2 text-red-700 font-semibold hover:underline">
+                  Sign Out
+                </button>
               </>
             )}
           </div>
@@ -158,5 +187,3 @@ function NavBar() {
 }
 
 export default NavBar
-
-

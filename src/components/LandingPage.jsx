@@ -89,9 +89,9 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-
-      {/* Hero Banner Section */}
-      <BannerCarousel />
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        {/* Hero Banner Section */}
+        <BannerCarousel />
 
       {/* News and Announcements Section */}
       <section className="py-8 sm:py-16 bg-gray-100">
@@ -192,6 +192,7 @@ function LandingPage() {
         </div>
       </section>
 
+      </div>
       {/* Content Modal */}
       {modalContent && (
         <ContentModal

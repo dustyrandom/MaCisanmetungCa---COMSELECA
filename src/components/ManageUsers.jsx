@@ -214,10 +214,12 @@ function ManageUsers() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600">You don't have permission to access this page.</p>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+              <p className="text-gray-600">You don't have permission to access this page.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -245,34 +247,35 @@ function ManageUsers() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Manage Users</h1>
-          <p className="text-gray-600 mt-1">View and manage user accounts and roles</p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search users by Student ID"
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            className="border px-3 py-2 rounded w-64"
-          />
-        </div>
-
-        {message && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800">{message}</p>
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-red-900">Manage Users</h1>
+            <p className="text-gray-600 mt-1">View and manage user accounts and roles</p>
           </div>
-        )}
 
-        {users.length === 0 ? (
+          {/* Search Bar */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search users by Student ID"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              className="px-3 py-2 w-64  rounded-lg border focus:outline-none border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm shadow-sm transition placeholder-gray-500"
+            />
+          </div>
+
+          {message && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-blue-800">{message}</p>
+            </div>
+          )}
+
+          {users.length === 0 ? (
           <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
             <p className="text-gray-600">No users found.</p>
           </div>
-        ) : (
+          ) : (
           <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -347,7 +350,8 @@ function ManageUsers() {
               </table>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Edit Modal */}

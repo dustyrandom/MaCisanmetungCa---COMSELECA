@@ -30,7 +30,6 @@ function CandidacyStatusTracker() {
         setCurrentStatus(status);
         setAppointmentStatus(appointment);
 
-        // Determine active step
         let step = -1;
         if (status === 'submitted') step = 0;
         else if (status === 'reviewed' || status === 'rejected') step = 1;
@@ -79,65 +78,45 @@ function CandidacyStatusTracker() {
     },
   ];
 
-const getIcon = (index) => {
-  // Step 0: Submitted
-  if (index === 0) {
-    if (currentStatus === 'submitted') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'reviewed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'rejected') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'passed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'failed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-  }
-
-  // Step 1: Reviewed / Rejected
-  if (index === 1) {
-    if (currentStatus === 'reviewed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'submitted') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
-    if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-    if (currentStatus === 'passed' || currentStatus === 'failed' ) return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-  }
-
-  // Step 2: Screening
-  if (index === 2) {
-    if (appointmentStatus === 'approved') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (appointmentStatus === 'rejected') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (appointmentStatus === 'pending') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-  }
-
-  // Step 3: Screening Result
-  if (index === 3) {
-    if (appointmentStatus === 'approved') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (appointmentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-    if (appointmentStatus === 'pending') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
-    if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-  }
-
-  // Step 4: Final
-  if (index === 4) {
-    if (currentStatus === 'passed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
-    if (currentStatus === 'failed') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-    if (appointmentStatus === 'approved') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
-    if (appointmentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-    if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
-  }
-
-  return <span className="text-gray-400 font-semibold">{index + 1}</span>;
-};
-
+  const getIcon = (index) => {
+    if (index === 0) {
+      if (['submitted', 'reviewed', 'rejected', 'passed', 'failed'].includes(currentStatus))
+        return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+    }
+    if (index === 1) {
+      if (currentStatus === 'reviewed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+      if (currentStatus === 'submitted') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
+      if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
+      if (['passed', 'failed'].includes(currentStatus)) return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+    }
+    if (index === 2) {
+      if (['approved', 'rejected', 'pending'].includes(appointmentStatus))
+        return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+      if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
+    }
+    if (index === 3) {
+      if (appointmentStatus === 'approved') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+      if (appointmentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
+      if (appointmentStatus === 'pending') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
+      if (currentStatus === 'rejected') return <XCircleIcon className="w-6 h-6 text-red-600" />;
+    }
+    if (index === 4) {
+      if (currentStatus === 'passed') return <CheckCircleIcon className="w-6 h-6 text-green-600" />;
+      if (currentStatus === 'failed') return <XCircleIcon className="w-6 h-6 text-red-600" />;
+      if (appointmentStatus === 'approved') return <ClockIcon className="w-6 h-6 text-yellow-600" />;
+      if (['rejected', 'rejected_final'].includes(currentStatus)) return <XCircleIcon className="w-6 h-6 text-red-600" />;
+    }
+    return <span className="text-gray-400 font-semibold">{index + 1}</span>;
+  };
 
   const getCircleBg = (index) => {
     if (index === 1 && currentStatus === 'rejected') return 'bg-red-100';
     if (index === 1 && currentStatus === 'submitted') return 'bg-yellow-100';
-
-    if (index === 2 && appointmentStatus === 'rejected') return 'bg-green-100';
-    if (index === 2 && appointmentStatus === 'pending') return 'bg-green-100';
+    if (index === 2 && ['rejected', 'pending'].includes(appointmentStatus)) return 'bg-green-100';
     if (index === 2 && currentStatus === 'rejected') return 'bg-red-100';
-
     if (index === 3 && appointmentStatus === 'rejected') return 'bg-red-100';
     if (index === 3 && appointmentStatus === 'pending') return 'bg-yellow-100';
     if (index === 3 && currentStatus === 'rejected') return 'bg-red-100';
-
     if (index === 4 && currentStatus === 'failed') return 'bg-red-100';
     if (index === 4 && currentStatus === 'passed') return 'bg-green-100';
     if (index === 4 && appointmentStatus === 'approved') return 'bg-yellow-100';
@@ -148,44 +127,42 @@ const getIcon = (index) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div className="p-6 mb-6">
       <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-gray-800">
-        CANDIDACY STATUS TRACKER
+        CANDIDACY APPLICATION STEPS
       </h3>
 
-      {/* Container switches to vertical on mobile */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center relative gap-y-6 sm:gap-y-0 sm:gap-x-6">
+      {/* Responsiveness Fix: Icons stay aligned, labels adjust */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start w-full relative gap-y-6 sm:gap-y-0 sm:gap-x-6">
         {steps.map((step, index) => (
           <div
             key={step.key}
-            className="flex sm:flex-col items-center sm:items-center text-center sm:flex-1 relative"
+            className="relative flex flex-col items-center sm:flex-col sm:flex-1 text-center sm:text-center"
           >
-            <div className="relative flex sm:flex-col items-center sm:justify-center mb-0 sm:mb-2">
-              <div
-                className={`w-10 h-10 flex items-center justify-center rounded-full z-10 transition-colors duration-300 ${getCircleBg(
-                  index
-                )}`}
-              >
-                {getIcon(index)}
-              </div>
+            {/* Circle/Icon - Fixed position */}
+            <div
+              className={`w-10 h-10 flex items-center justify-center rounded-full z-10 transition-colors duration-300 ${getCircleBg(
+                index
+              )}`}
+            >
+              {getIcon(index)}
             </div>
+
+            {/* Label - Responsive alignment */}
             <span
-              className={`mt-2 text-xs sm:text- font-medium leading-tight ${
+              className={`mt-3 sm:mt-2 text-xs sm:text-sm font-medium leading-tight text-center ${
                 index <= currentStep ? 'text-green-700' : 'text-gray-600'
               } 
               ${index === 1 && currentStatus === 'submitted' ? 'text-yellow-700' : ''}
               ${index === 1 && currentStatus === 'rejected' ? 'text-red-700' : ''}
-
               ${index === 2 && appointmentStatus === 'pending' ? 'text-green-700' : ''}
               ${index === 2 && appointmentStatus === 'approved' ? 'text-green-700' : ''} 
               ${index === 2 && appointmentStatus === 'rejected' ? 'text-green-700' : ''} 
               ${index === 2 && currentStatus === 'rejected' ? 'text-red-700' : ''} 
-
               ${index === 3 && appointmentStatus === 'approved' ? 'text-green-700' : ''} 
               ${index === 3 && appointmentStatus === 'rejected' ? 'text-red-700' : ''} 
               ${index === 3 && appointmentStatus === 'pending' ? 'text-yellow-700' : ''} 
               ${index === 3 && currentStatus === 'rejected' ? 'text-red-700' : ''} 
-
               ${index === 4 
                 ? currentStatus === 'passed'
                   ? 'text-green-700'
@@ -197,9 +174,7 @@ const getIcon = (index) => {
                         ? 'text-red-700'
                         : ''
                 : ''
-              }
-              `}
-              
+              }`}
             >
               {step.label}
             </span>

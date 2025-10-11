@@ -46,7 +46,7 @@ function VotingPage() {
   useEffect(() => {
     const loadCandidates = async () => {
       try {
-        const candidatesRef = dbRef(db, 'Election')
+        const candidatesRef = dbRef(db, 'candidates')
         const candidatesSnapshot = await get(candidatesRef)
         if (candidatesSnapshot.exists()) {
           const data = candidatesSnapshot.val()
@@ -228,11 +228,13 @@ function VotingPage() {
                       }`}
                     >
 
-                      <img
-                        src={candidate.profilePicture || '/default-profile.png'}
-                        alt={`${candidate.firstName} ${candidate.lastName}`}
-                        className="w-20 h-20 rounded-full object-cover border border-gray-300"
-                      />
+                      {candidate.profilePicture ? (
+                        <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                      ) : (
+                        <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                          {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
 
                       <div>
                         <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
@@ -310,11 +312,13 @@ function VotingPage() {
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
-                            <img
-                              src={candidate.profilePicture || '/default-profile.png'}
-                              alt={`${candidate.firstName} ${candidate.lastName}`}
-                              className="w-20 h-20 rounded-full object-cover border border-gray-300"
-                            />
+                            {candidate.profilePicture ? (
+                                <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                              ) : (
+                                <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                  {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
                             <div>
                               <h5 className="font-medium">{candidate.lastName}, {candidate.firstName}</h5>
                               <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
@@ -350,28 +354,30 @@ function VotingPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <div className="mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-green-900 mb-2">Vote Submitted Successfully</h1>
+                <p className="text-gray-600 mb-4">
+                  Thank you for participating in the election. Your vote has been recorded.
+                </p>
+                <p className="text-sm text-gray-500">
+                  You can only vote once per election period.
+                </p>
               </div>
-              <h1 className="text-2xl font-bold text-green-900 mb-2">Vote Submitted Successfully</h1>
-              <p className="text-gray-600 mb-4">
-                Thank you for participating in the election. Your vote has been recorded.
-              </p>
-              <p className="text-sm text-gray-500">
-                You can only vote once per election period.
-              </p>
+              <a
+                href="/dashboard"
+                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Back to Dashboard
+              </a>
             </div>
-            <a
-              href="/dashboard"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Back to Dashboard
-            </a>
           </div>
         </div>
       </div>
@@ -413,29 +419,31 @@ function VotingPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <div className="mb-6">
-              <div className={`w-16 h-16 ${votingState === 'ended' ? 'bg-red-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                {votingState === 'ended' ? (
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                )}
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <div className="mb-6">
+                <div className={`w-16 h-16 ${votingState === 'ended' ? 'bg-red-100' : 'bg-red-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  {votingState === 'ended' ? (
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                </div>
+                <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
+                <p className="text-gray-600">{statusMessage}</p>
               </div>
-              <h1 className="text-2xl font-bold text-red-900 mb-2">{statusTitle}</h1>
-              <p className="text-gray-600">{statusMessage}</p>
+              <a
+                href="/dashboard"
+                className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg hover:bg-red-800 transition-colors"
+              >
+                Back to Dashboard
+              </a>
             </div>
-            <a
-              href="/dashboard"
-              className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg hover:bg-red-800 transition-colors"
-            >
-              Back to Dashboard
-            </a>
           </div>
         </div>
       </div>
@@ -446,13 +454,15 @@ function VotingPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <h1 className="text-2xl font-bold text-green-600 mb-4">Vote Submitted Successfully!</h1>
-            <p className="text-gray-600 mb-6">Thank you for participating in the election.</p>
-            <a href="/dashboard" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-              Return to Dashboard
-            </a>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <h1 className="text-2xl font-bold text-green-600 mb-4">Vote Submitted Successfully!</h1>
+              <p className="text-gray-600 mb-6">Thank you for participating in the election.</p>
+              <a href="/dashboard" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                Return to Dashboard
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -462,7 +472,7 @@ function VotingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="pt-24 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex justify-center mb-6">
             <div className="flex items-center space-x-4">
@@ -485,6 +495,7 @@ function VotingPage() {
             </p>
           </div>
         </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {currentPage === 1 ? renderSSCPage() : renderISCPage()}
 
@@ -516,6 +527,7 @@ function VotingPage() {
               Submit Votes
             </button>
           )}
+        </div>
         </div>
       </div>
     </div>

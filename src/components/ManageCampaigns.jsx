@@ -74,10 +74,12 @@ function ManageCampaigns() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600">You don't have permission to access this page.</p>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+              <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+              <p className="text-gray-600">You don't have permission to access this page.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -239,120 +241,122 @@ function ManageCampaigns() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-red-900">Manage Campaign</h1>
-          <p className="text-gray-600 mt-1">Manage candidates campaign materials and campaign period</p>
-        </div>
+      <div className="pt-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="mb-2">
+            <h1 className="text-2xl font-bold text-red-900">Manage Campaign</h1>
+            <p className="text-gray-600 mt-1">Manage candidates campaign materials and campaign period</p>
+          </div>
   
-        <div className="px-4 py-6 sm:px-0">
-            {/* Campaign Settings */}
-            <div className="bg-white mb-8 border rounded-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
-                  <input type="datetime-local" value={campaignStatus.startDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, startDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+          <div className="px-4 py-6 sm:px-0">
+              {/* Campaign Settings */}
+              <div className="bg-white mb-8 border rounded-lg p-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">Settings</h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
+                    <input type="datetime-local" value={campaignStatus.startDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, startDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
+                    <input type="datetime-local" value={campaignStatus.endDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, endDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date & Time</label>
-                  <input type="datetime-local" value={campaignStatus.endDate || ''} onChange={(e) => setCampaignStatus(prev => ({ ...prev, endDate: e.target.value }))} className="w-full border rounded px-3 py-2" />
+                <div className="mt-4 flex justify-end">
+                  <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    {savingStatus ? 'Saving…' : 'Save Settings'}
+                  </button>
                 </div>
               </div>
-              <div className="mt-4 flex justify-end">
-                <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                  {savingStatus ? 'Saving…' : 'Save Settings'}
-                </button>
+
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Filter:</span>
+                  <select value={filter} onChange={e => setFilter(e.target.value)} className="border rounded px-3 py-1 text-sm">
+                    <option value="all">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Filter:</span>
-                <select value={filter} onChange={e => setFilter(e.target.value)} className="border rounded px-3 py-1 text-sm">
-                  <option value="all">All</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
+              {/* Submissions */}
+              {loading ? (
+                <div className="text-gray-500">Loading…</div>
+              ) : (
+                <div className="space-y-8">
+                  {(filter === 'all' || filter === 'pending') && (
+                    <div>
+                      <h2 className="text-lg font-semibold text-yellow-800 mb-3">Pending</h2>
+                      <div className="space-y-4">
+                        {submissions.filter(s => (s.status || 'pending') === 'pending').length === 0 ? (
+                          <div className="text-sm text-gray-500">No pending campaign materials</div>
+                        ) : (
+                          submissions.filter(s => (s.status || 'pending') === 'pending').map(renderSubmissionCard)
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-            {/* Submissions */}
-            {loading ? (
-              <div className="text-gray-500">Loading…</div>
-            ) : (
-              <div className="space-y-8">
-                {(filter === 'all' || filter === 'pending') && (
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-3">Pending</h2>
-                    <div className="space-y-4">
-                      {submissions.filter(s => (s.status || 'pending') === 'pending').length === 0 ? (
-                        <div className="text-sm text-gray-500">No pending campaign materials</div>
-                      ) : (
-                        submissions.filter(s => (s.status || 'pending') === 'pending').map(renderSubmissionCard)
-                      )}
+                  {(filter === 'all' || filter === 'approved') && (
+                    <div>
+                      <h2 className="text-lg font-semibold text-green-700 mb-3">Approved</h2>
+                      <div className="space-y-4">
+                        {submissions.filter(s => (s.status || 'pending') === 'approved').length === 0 ? (
+                          <div className="text-sm text-gray-500">No approved campaign materials</div>
+                        ) : (
+                          submissions.filter(s => (s.status || 'pending') === 'approved').map(renderSubmissionCard)
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {(filter === 'all' || filter === 'rejected') && (
+                    <div>
+                      <h2 className="text-lg font-semibold text-red-800 mb-3">Rejected</h2>
+                      <div className="space-y-4">
+                        {submissions.filter(s => (s.status || 'pending') === 'rejected').length === 0 ? (
+                          <div className="text-sm text-gray-500">No rejected campaign materials</div>
+                        ) : (
+                          submissions.filter(s => (s.status || 'pending') === 'rejected').map(renderSubmissionCard)
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            
+
+            <ImageModal src={fullscreenImage} isOpen={!!fullscreenImage} onClose={() => setFullscreenImage(null)} />
+
+            {/* Campaign / Vote Modal */}
+            {showVoteModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                  <div className="p-6">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${voteModalError ? 'bg-red-100' : 'bg-green-100'}`}>
+                        <svg className={`w-5 h-5 ${voteModalError ? 'text-red-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={voteModalError ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'} />
+                        </svg>
+                      </div>
+                      <div>
+                        {voteModalMessage && <h4 className="text-lg font-semibold text-gray-900 mb-1">Success</h4>}
+                        {voteModalError && <h4 className="text-lg font-semibold text-gray-900 mb-1">Update Failed</h4>}
+                        <p className="text-gray-700">{voteModalMessage || voteModalError}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                      <button onClick={() => setShowVoteModal(false)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+                        Close
+                      </button>
                     </div>
                   </div>
-                )}
-
-                {(filter === 'all' || filter === 'approved') && (
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-3">Approved</h2>
-                    <div className="space-y-4">
-                      {submissions.filter(s => (s.status || 'pending') === 'approved').length === 0 ? (
-                        <div className="text-sm text-gray-500">No approved campaign materials</div>
-                      ) : (
-                        submissions.filter(s => (s.status || 'pending') === 'approved').map(renderSubmissionCard)
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {(filter === 'all' || filter === 'rejected') && (
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-3">Rejected</h2>
-                    <div className="space-y-4">
-                      {submissions.filter(s => (s.status || 'pending') === 'rejected').length === 0 ? (
-                        <div className="text-sm text-gray-500">No rejected campaign materials</div>
-                      ) : (
-                        submissions.filter(s => (s.status || 'pending') === 'rejected').map(renderSubmissionCard)
-                      )}
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
             )}
-          
-
-          <ImageModal src={fullscreenImage} isOpen={!!fullscreenImage} onClose={() => setFullscreenImage(null)} />
-
-          {/* Campaign / Vote Modal */}
-          {showVoteModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-                <div className="p-6">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${voteModalError ? 'bg-red-100' : 'bg-green-100'}`}>
-                      <svg className={`w-5 h-5 ${voteModalError ? 'text-red-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={voteModalError ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7'} />
-                      </svg>
-                    </div>
-                    <div>
-                      {voteModalMessage && <h4 className="text-lg font-semibold text-gray-900 mb-1">Success</h4>}
-                      {voteModalError && <h4 className="text-lg font-semibold text-gray-900 mb-1">Update Failed</h4>}
-                      <p className="text-gray-700">{voteModalMessage || voteModalError}</p>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex justify-end">
-                    <button onClick={() => setShowVoteModal(false)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

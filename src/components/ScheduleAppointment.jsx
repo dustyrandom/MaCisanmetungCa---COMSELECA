@@ -40,7 +40,7 @@ function ScheduleAppointment() {
             decidedAt: d.decidedAt,
             dateTime: d.dateTime,
             venue: d.venue,
-            status: d.decision === 'submitted' ? 'pending' : undefined
+            status: d.decision === 'submitted' ? 'Pending' : undefined
           }))
           const out = normalized.sort((a, b) => new Date(b.decidedAt) - new Date(a.decidedAt))
           setHistory(out)
@@ -55,7 +55,7 @@ function ScheduleAppointment() {
           }
         }
         // Load appointment status
-        const swSnap = await get(dbRef(db, 'appointmentStatus'))
+        const swSnap = await get(dbRef(db, 'screeningAppointments'))
         if (swSnap.exists()) setAppointmentStatus(swSnap.val())
       } catch (e) {
         console.error('Failed to load appointment data', e)
@@ -64,7 +64,7 @@ function ScheduleAppointment() {
       }
 
       // Load slots
-      const slotsRef = dbRef(db, "appointmentStatus/slots")
+      const slotsRef = dbRef(db, "screeningAppointments/slots")
       const slotsSnap = await get(slotsRef)
       if (slotsSnap.exists()) {
         const data = slotsSnap.val()
@@ -123,7 +123,7 @@ function ScheduleAppointment() {
       const apptRef = dbRef(db, `candidacyApplications/${user.uid}/${application.id}/appointment`)
       await set(apptRef, appt)
 
-      await set(dbRef(db, `appointmentStatus/slots/${dateTime}/available`), false)
+      await set(dbRef(db, `screeningAppointments/slots/${dateTime}/available`), false)
 
       setMessage('Appointment submitted. Awaiting admin approval.')
       setApplication(prev => prev ? { ...prev, appointment: appt } : prev)

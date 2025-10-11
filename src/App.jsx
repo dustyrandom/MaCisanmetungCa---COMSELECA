@@ -30,6 +30,7 @@ import Campaigns from './components/Campaigns'
 import Profile from './components/Profile'
 import Candidates from './components/Candidates'
 import ActivityLog from './components/ActivityLog'
+import ElectionArchives from './components/ElectionArchives'
 //import ResetPassword from './components/ResetPassword'
 
 function App() {
@@ -122,6 +123,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ActivityLog />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/election-archives" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ElectionArchives />
                 </ProtectedRoute>
               } 
             />
