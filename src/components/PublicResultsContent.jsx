@@ -151,8 +151,8 @@ function PublicResultsContent({ forceVisible = false }) {
             <p className="text-sm">The official election results will be announced soon through our public channels. Please check back later.</p>
           </div>
           <div className="mt-6 text-center">
-            <a href="/" className="inline-block px-5 py-2 rounded-md bg-red-900 text-white hover:bg-red-800">Return to Home</a>
-          </div>
+            <a href="/" className="inline-block px-5 py-2 rounded-lg font-medium bg-red-800 text-white hover:bg-red-900">Return to Home</a>
+          </div> 
         </div>
       </div>
     )

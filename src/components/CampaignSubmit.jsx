@@ -25,7 +25,7 @@ function CampaignSubmit() {
     const loadCandidate = async () => {
       try {
         if (!user) return
-        const snap = await get(dbRef(db, 'Election'))
+        const snap = await get(dbRef(db, 'candidates'))
         if (snap.exists()) {
           const list = Object.entries(snap.val()).map(([id, v]) => ({ id, ...v }))
           // Try to match by email first, fallback to name

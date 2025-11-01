@@ -73,7 +73,7 @@ function Dashboard() {
             <>
               <a href="/admin/election-archives" className="bg-teal-800 text-white px-4 py-2 rounded-md hover:bg-teal-700 text-center text-sm sm:text-base">Election Archives</a>
               <a href="/admin/manage-users" className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-center text-sm sm:text-base">Manage Users</a>
-              <a href="/admin/activity-log" className="bg-red-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 text-center text-sm sm:text-base">Admin Activity Log</a>
+              <a href="/admin/activity-log" className="bg-red-800 text-white px-4 py-2 rounded-md hover:bg-red-900 text-center text-sm sm:text-base">Admin Activity Log</a>
             </>
           )}
         </div>
@@ -93,7 +93,7 @@ function Dashboard() {
           <div className="border border-gray-200 p-4 rounded-lg hover:shadow-sm transition">
             <h4 className="font-semibold text-gray-800">Student Council Elections 2025</h4>
             <p className="text-gray-600 text-sm">Vote for your student council representatives</p>
-            <a href="/vote" className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">Vote Now</a>
+            <a href="/vote" className="mt-3 inline-block bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900 text-sm font-medium">Vote Now</a>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ function Dashboard() {
         <div className="flex flex-wrap gap-3">
           <a
             href="/candidacy-application"
-            className={`inline-block px-4 py-2 rounded-md text-sm ${
+            className={`inline-block px-4 py-2 rounded-lg text-sm font-medium ${
               !isCandidacyActive() || hasSubmittedCandidacy
                 ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                 : 'bg-red-900 text-white hover:bg-red-800'
@@ -153,6 +153,19 @@ function Dashboard() {
     </div>
   )
 
+  const renderAccessDenied = () => (
+    <div className="bg-gray-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+            <h1 className="text-xl font-bold text-red-900 mb-4">Access Denied</h1>
+            <p className="text-gray-600">You don't have permission to access this page.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   const renderDashboardContent = () => {
     if (loading) {
       return (
@@ -173,6 +186,7 @@ function Dashboard() {
       )
     }
 
+
     switch (userData.role) {
       case 'superadmin':
       case 'admin':
@@ -182,9 +196,9 @@ function Dashboard() {
       case 'candidate':
         return renderCandidateDashboard()
       default:
-        return <div className="text-center py-16 text-gray-700">Unknown role</div>
+        return renderAccessDenied()
+      } 
     }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

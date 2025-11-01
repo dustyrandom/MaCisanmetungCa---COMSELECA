@@ -15,6 +15,7 @@ function CandidacyApplication() {
   const [hasExistingApplication, setHasExistingApplication] = useState(false)
   const [applicationStatus, setApplicationStatus] = useState(null)
   const [checkingExisting, setCheckingExisting] = useState(true)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [files, setFiles] = useState({
     coc: null,
     cor: null,
@@ -64,7 +65,7 @@ function CandidacyApplication() {
     return await getDownloadURL(sref)
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setSubmitted(true)
     setMessage('')
@@ -75,8 +76,14 @@ function CandidacyApplication() {
         return
       }
     }
+    setShowConfirmModal(true)
+  }
 
+  const confirmSubmit = async () => {
+    setShowConfirmModal(false)
     setLoading(true)
+    setMessage('')
+
     try {
       const appCollectionRef = dbRef(db, `candidacyApplications/${user.uid}`)
       const newAppRef = push(appCollectionRef)
@@ -90,8 +97,10 @@ function CandidacyApplication() {
         uploads[key] = await uploadAndGetUrl(file, `${basePath}/${key}_${file.name}`)
       }
       // optional files
-      if (files.loa) uploads.loa = await uploadAndGetUrl(files.loa, `${basePath}/loa_${files.loa.name}`)
-      if (files.resignationLetter) uploads.resignationLetter = await uploadAndGetUrl(files.resignationLetter, `${basePath}/resignationLetter_${files.resignationLetter.name}`)
+      if (files.loa)
+        uploads.loa = await uploadAndGetUrl(files.loa, `${basePath}/loa_${files.loa.name}`)
+      if (files.resignationLetter)
+        uploads.resignationLetter = await uploadAndGetUrl(files.resignationLetter, `${basePath}/resignationLetter_${files.resignationLetter.name}`)
 
       const record = {
         applicant: {
@@ -174,7 +183,7 @@ function CandidacyApplication() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-1-">
           <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
             <div className={`mx-auto h-16 w-16 ${statusDisplay.iconColor} mb-6`}>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,12 +219,11 @@ function CandidacyApplication() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-20">
         <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
           <h1 className="text-xl font-bold text-red-900">Candidacy Application</h1>
           <p className="text-sm text-gray-600 mt-1">Upload all required documents (PDF or image files):</p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl shadow border border-gray-200">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -373,12 +381,41 @@ function CandidacyApplication() {
           )}
 
           <div className="flex justify-end gap-3">
-            <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-50">
-              {loading ? 'Submitting...' : 'Submit Application'}
+            <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-red-800 text-white font-medium hover:bg-red-900 disabled:opacity-50">
+              {loading ? 'Submitting...' : 'Submit'}
             </button>
           </div>
         </form>
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Submission</h3>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to <strong className="uppercase">submit</strong> your candidacy application?
+                <br />
+                You will not be able to change your uploaded documents after submission.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-gray-500 hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmSubmit}
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -47,11 +47,13 @@ function CandidacyStatusTracker() {
   }, [user]);
 
   const steps = [
-    { key: 'submitted', label: 'Submitted Candidacy' },
+  { key: 'submitted', label: 'Submitted Candidacy' },
     {
       key: 'reviewed',
       label:
-        currentStatus === 'rejected'
+        (currentStatus === 'passed' || currentStatus === 'failed')
+          ? 'Reviewed Candidacy' // ✅ when final result exists, lock it to "Reviewed"
+          : currentStatus === 'rejected'
           ? 'Rejected Candidacy'
           : currentStatus === 'reviewed'
           ? 'Reviewed Candidacy'
@@ -71,7 +73,7 @@ function CandidacyStatusTracker() {
       key: 'final',
       label:
         currentStatus === 'failed'
-          ? 'Unqualified Candidate '
+          ? 'Unqualified Candidate'
           : currentStatus === 'passed'
           ? 'Qualified Candidate'
           : 'Qualified / Unqualified Candidate',
@@ -112,8 +114,10 @@ function CandidacyStatusTracker() {
   const getCircleBg = (index) => {
     if (index === 1 && currentStatus === 'rejected') return 'bg-red-100';
     if (index === 1 && currentStatus === 'submitted') return 'bg-yellow-100';
+    if (index === 2 && appointmentStatus === 'approved') return 'bg-green-100';
     if (index === 2 && ['rejected', 'pending'].includes(appointmentStatus)) return 'bg-green-100';
     if (index === 2 && currentStatus === 'rejected') return 'bg-red-100';
+    if (index === 3 && appointmentStatus === 'approved') return 'bg-green-100';
     if (index === 3 && appointmentStatus === 'rejected') return 'bg-red-100';
     if (index === 3 && appointmentStatus === 'pending') return 'bg-yellow-100';
     if (index === 3 && currentStatus === 'rejected') return 'bg-red-100';
@@ -172,7 +176,9 @@ function CandidacyStatusTracker() {
                       ? 'text-yellow-700'
                       : appointmentStatus === 'rejected'
                         ? 'text-red-700'
-                        : ''
+                        : currentStatus === 'rejected' // ✅ if step 1 is rejected, make this red too
+                          ? 'text-red-700'
+                          : ''
                 : ''
               }`}
             >

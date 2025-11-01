@@ -104,10 +104,10 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
               setShowConfirmModal(true);
             }}
             disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white transition ${
+            className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
               savingId === `${app.uid}-${app.id}`
-                ? 'bg-blue-300 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
+                ? 'bg-indigo-300 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700'
             }`}
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
@@ -118,10 +118,10 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
               setShowConfirmModal(true);
             }}
             disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded text-sm text-white transition ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition ${
               savingId === `${app.uid}-${app.id}`
                 ? 'bg-red-300 cursor-not-allowed'
-                : 'bg-red-500 hover:bg-red-600'
+                : 'bg-red-600 hover:bg-red-700'
             }`}
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
@@ -196,10 +196,10 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
                     setShowConfirmModal(true);
                   }}
                   disabled={disableButtons}
-                  className={`px-4 py-2 rounded text-sm text-white transition ${
+                  className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
                     disableButtons
-                      ? 'bg-emerald-300 cursor-not-allowed'
-                      : 'bg-emerald-600 hover:bg-emerald-700'
+                      ? 'bg-green-300 cursor-not-allowed'
+                      : 'bg-green-500 hover:bg-green-600'
                   }`}
                 >
                   {savingId === `${app.uid}-${app.id}`
@@ -215,10 +215,10 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
                     setShowConfirmModal(true);
                   }}
                   disabled={disableButtons}
-                  className={`px-4 py-2 rounded text-sm text-white transition ${
+                  className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
                     disableButtons
                       ? 'bg-rose-300 cursor-not-allowed'
-                      : 'bg-rose-600 hover:bg-rose-700'
+                      : 'bg-red-500 hover:bg-red-600'
                   }`}
                 >
                   {savingId === `${app.uid}-${app.id}`
@@ -370,7 +370,7 @@ function ManageCandidates() {
       await update(appRef, updateData)
       
       // If approved, change user role to candidate
-      if (status === 'approved') {
+      if (status === 'passed') {
         const userRef = dbRef(db, `users/${uid}`)
         await update(userRef, { role: 'candidate' })
       }
@@ -624,8 +624,8 @@ function ManageCandidates() {
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-red-900">Candidacy Management</h1>
-            <p className="text-gray-600 mt-1">Candidacy and screening appointments</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Candidacy Management</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Candidacy and screening appointments</p>
           </div>
 
           {/* Settings Tab Nav */}
@@ -655,7 +655,7 @@ function ManageCandidates() {
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="bg-white mb-8 border rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Candidacy Submission</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Manage Candidacy Submission</h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date & Time</label>
@@ -680,7 +680,7 @@ function ManageCandidates() {
                 <button
                   onClick={handleSaveCandidacySettings}
                   disabled={savingCandidacyStatus}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {savingCandidacyStatus ? 'Saving…' : 'Save Settings'}
                 </button>
@@ -691,8 +691,8 @@ function ManageCandidates() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Add Appointment Slot</label>
-                    <div className="flex gap-2">
+                    <label className="block text-base font-medium text-gray-700 mb-2">Add Appointment Slot</label>
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="datetime-local"
                         value={newSlot}
@@ -742,7 +742,7 @@ function ManageCandidates() {
                             setTimeout(() => setMessage(""), 2000)
                           }
                         }}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600  text-white rounded"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
                       >
                         Add Slot
                       </button>
@@ -757,7 +757,7 @@ function ManageCandidates() {
 
                   {/* Display slots */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-800 mb-2">Available Slots</h4>
+                    <h4 className="text-base font-medium text-gray-700 mb-2">Available Slots</h4>
                     <ul className="space-y-1 text-sm text-gray-700">
                       {appointmentStatus.slots && Object.keys(appointmentStatus.slots).length > 0
                         ? Object.keys(appointmentStatus.slots).map((s) => (
@@ -766,8 +766,8 @@ function ManageCandidates() {
                                 {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} {' '}
                                 {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              <div className="flex items-center gap-3">
-                                <span className={appointmentStatus.slots[s].available ? "text-green-600" : "text-red-600"}>
+                              <div className="flex items-center gap-3 font-semibold">
+                                <span className={appointmentStatus.slots[s].available ? "text-green-700" : "text-red-700"}>
                                   {appointmentStatus.slots[s].available ? "Available" : "Booked"}
                                 </span>
                                 <button
@@ -775,14 +775,14 @@ function ManageCandidates() {
                                     setSlotToDelete(s)
                                     setShowDeleteModal(true)
                                   }}
-                                  className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                                  className="px-2 py-1 text-xs bg-red-600 text-white rounded-md font-medium hover:bg-red-700"
                                 >
                                   Delete
                                 </button>
                               </div>  
                             </li>
                           ))
-                        : <p>No slots created yet.</p>}
+                        : <p className='text-xs sm:text-sm text-gray-500'>No slots created yet.</p>}
                     </ul>
                   </div>
               </div>
@@ -852,7 +852,7 @@ function ManageCandidates() {
 
           {activeTab === 'candidacy' && (applications.length === 0 ? (
             <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
-              <p className="text-gray-600">No candidacy applications found.</p>
+              <p className="text-sm sm:text-base text-gray-500">No candidacy applications found.</p>
             </div>
           ) : (
             <div className="space-y-8">
@@ -876,7 +876,7 @@ function ManageCandidates() {
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                      <p className="text-gray-500">No candidacy awaiting review</p>
+                      <p className="text-sm sm:text-base text-gray-500">No candidacy awaiting review</p>
                     </div>
                   )}
                 </div>
@@ -907,7 +907,7 @@ function ManageCandidates() {
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                      <p className="text-gray-500">No reviewed candicacy</p>
+                      <p className="text-sm sm:text-base text-gray-500">No reviewed candicacy</p>
                     </div>
                   )}
                 </div>
@@ -934,7 +934,7 @@ function ManageCandidates() {
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                      <p className="text-gray-500">No rejected candidacy</p>
+                      <p className="text-sm sm:text-base text-gray-500">No rejected candidacy</p>
                     </div>
                   )}
               </div>
@@ -961,7 +961,7 @@ function ManageCandidates() {
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                    <p className="text-gray-500">No passed candidates</p>
+                    <p className="text-sm sm:text-base text-gray-500">No passed candidates</p>
                   </div>
                 )}
               </div>
@@ -987,7 +987,7 @@ function ManageCandidates() {
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg shadow border border-gray-200 p-6 text-center">
-                      <p className="text-gray-500">No failed candidates</p>
+                      <p className="text-sm sm:text-base text-gray-500">No failed candidates</p>
                     </div>
                   )}
                 </div>
@@ -1045,7 +1045,7 @@ function ManageCandidates() {
                                         setShowConfirmModal(true);
                                       }}
                                       disabled={savingId === `${app.uid}-${app.id}-appt`}
-                                      className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                                      className={`px-3 py-1 rounded-lg font-medium text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                                     >
                                       {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
                                     </button>
@@ -1055,7 +1055,7 @@ function ManageCandidates() {
                                         setShowConfirmModal(true);
                                       }}
                                       disabled={savingId === `${app.uid}-${app.id}-appt`}
-                                      className={`px-3 py-1 rounded text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-rose-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700'}`}
+                                      className={`px-3 py-1 rounded-lg font-medium text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-rose-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700'}`}
                                     >
                                       {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Decline'}
                                     </button>
@@ -1077,7 +1077,7 @@ function ManageCandidates() {
                       <h2 className="text-lg font-semibold text-yellow-700 mb-4">Pending Screening Appointments</h2>
                       {byStatus('pending').length > 0 ? renderTable(byStatus('pending'), true) : (
                         <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-                          <p className="text-gray-500">No pending screening appointments</p>
+                          <p className="text-sm sm:text-base text-gray-500">No pending screening appointments</p>
                         </div>
                       )}
                     </div>
@@ -1087,7 +1087,7 @@ function ManageCandidates() {
                       <h2 className="text-lg font-semibold text-green-700 mb-4">Approved Screening Appointments</h2>
                       {byStatus('approved').length > 0 ? renderTable(byStatus('approved')) : (
                         <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-                          <p className="text-gray-500">No approved screening appointments</p>
+                          <p className="text-sm sm:text-base text-gray-500">No approved screening appointments</p>
                         </div>
                       )}
                     </div>
@@ -1097,7 +1097,7 @@ function ManageCandidates() {
                       <h2 className="text-lg font-semibold text-red-700 mb-4">Declined Screening Appointments</h2>
                       {byStatus('rejected').length > 0 ? renderTable(byStatus('rejected')) : (
                         <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-                          <p className="text-gray-500">No rejected screening appointments</p>
+                          <p className="text-sm sm:text-base text-gray-500">No rejected screening appointments</p>
                         </div>
                       )}
                     </div>
@@ -1113,13 +1113,13 @@ function ManageCandidates() {
             <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Slot</h3>
               <p className="text-gray-700 mb-6">
-                Delete slot on <span className="font-medium">{new Date(slotToDelete).toLocaleString()}</span>?<br/>
+                Delete slot on <span className="font-medium text-gray-800">{new Date(slotToDelete).toLocaleString()}</span>?<br/>
                 This action cannot be undone.
               </p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 bg-gray-400 rounded hover:bg-gray-500"
+                  className="px-4 py-2 text-white bg-gray-500 rounded-lg font-medium hover:bg-gray-600"
                 >
                   Cancel
                 </button>
@@ -1143,7 +1143,7 @@ function ManageCandidates() {
                       setTimeout(() => setMessage(""), 2000)
                     }
                   }}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  className="px-4 py-2 bg-red-600 font-medium text-white rounded-lg hover:bg-red-700"
                 >
                   Delete
                 </button>
@@ -1202,7 +1202,7 @@ function ManageCandidates() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowConfirmModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-gray-500 hover:bg-gray-600"
                 >
                   Cancel
                 </button>
@@ -1266,8 +1266,8 @@ function ManageCandidates() {
                     setTimeout(() => setMessage(''), 3000);
                   }
                 }}
-                className={`px-4 py-2 text-white rounded ${ 
-                  confirmAction?.action === 'reject' ? 'bg-red-700 hover:bg-red-600' : 'bg-green-700 hover:bg-green-600'
+                className={`px-4 py-2 text-white rounded-lg font-medium ${ 
+                  confirmAction?.action === 'reject' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
                 }`}
                 >
                   Confirm

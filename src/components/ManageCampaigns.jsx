@@ -230,9 +230,9 @@ function ManageCampaigns() {
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-3">
-          {s.status !== 'approved' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'approved')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'bg-green-300 text-white' : 'bg-green-600 text-white hover:bg-green-700'}`}>Approve</button>}
-          {s.status !== 'rejected' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'rejected')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'bg-yellow-300 text-white' : 'bg-yellow-600 text-white hover:bg-yellow-700'}`}>Reject</button>}
-          <button disabled={savingId === s.id} onClick={() => deleteSubmission(s)} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'bg-red-300 text-white' : 'bg-red-600 text-white hover:bg-red-700'}`}>Delete</button>
+          {s.status !== 'approved' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'approved')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-eemrald-300 text-white' : 'rounded-lg font-medium bg-emerald-600 text-white hover:bg-emerald-700'}`}>Approve</button>}
+          {s.status !== 'rejected' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'rejected')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-rose-300 text-white' : 'rounded-lg font-medium bg-rose-600 text-white hover:bg-rose-700'}`}>Reject</button>}
+          <button disabled={savingId === s.id} onClick={() => deleteSubmission(s)} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-red-300 text-white' : 'rounded-lg font-medium bg-red-600 text-white hover:bg-red-700'}`}>Delete</button>
         </div>
       </div>
     )
@@ -244,8 +244,8 @@ function ManageCampaigns() {
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="mb-2">
-            <h1 className="text-2xl font-bold text-red-900">Manage Campaign</h1>
-            <p className="text-gray-600 mt-1">Manage candidates campaign materials and campaign period</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Manage Campaign</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage candidates campaign materials and campaign period</p>
           </div>
   
           <div className="px-4 py-6 sm:px-0">
@@ -263,7 +263,7 @@ function ManageCampaigns() {
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                  <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                     {savingStatus ? 'Saving…' : 'Save Settings'}
                   </button>
                 </div>
@@ -348,7 +348,7 @@ function ManageCampaigns() {
                       </div>
                     </div>
                     <div className="mt-6 flex justify-end">
-                      <button onClick={() => setShowVoteModal(false)} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+                      <button onClick={() => setShowVoteModal(false)} className="bg-gray-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-gray-600">
                         Close
                       </button>
                     </div>

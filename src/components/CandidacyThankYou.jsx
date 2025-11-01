@@ -3,9 +3,9 @@ import NavBar from './NavBar'
 
 function CandidacyThankYou() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-hidden">
       <NavBar />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-10">
         <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
           <div className="mx-auto h-16 w-16 text-green-600 mb-6">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@ function CandidacyThankYou() {
           <div className="space-y-3">
             <Link 
               to="/dashboard" 
-              className="inline-block bg-red-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-800"
+              className="inline-block bg-red-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-900"
             >
               Go to Dashboard
             </Link>

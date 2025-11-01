@@ -70,7 +70,7 @@ function Candidates({ forceVisible = false }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center mb-8">
           <h2 className="text-2xl font-extrabold text-red-900">MACIPANYULUNGCA PARTIES AND CANDIDATES</h2>
-          <p className="text-lg text-gray-700">STUDENT COUNCIL ELECTIONS 2025</p>
+          <p className="text-lg text-gray-700">Student Council Elections 2025</p>
           </div>
 
           {/* Tab Navigation */}
@@ -105,10 +105,10 @@ function Candidates({ forceVisible = false }) {
           {activeTab === 'positions' && (
             <>
               {/* SSC Candidates */}
+              <h2 className="text-xl font-bold text-red-900 mb-6 text-center">
+                  SUPREME STUDENT COUNCIL
+              </h2>
               <div className="mb-12 border border-gray-300 rounded-xl bg-white shadow-sm p-6">
-                <h2 className="text-xl font-bold text-red-900 mb-6 text-center">
-                  Supreme Student Council
-                </h2>
                 {sscPositions.map(position => {
                   const positionCandidates = candidates.filter(c => c.position === position)
                   return (
@@ -149,7 +149,7 @@ function Candidates({ forceVisible = false }) {
               {/* ISC Candidates grouped by institute */}
               <div>
                 <h2 className="text-xl font-bold text-red-900 mb-6 text-center">
-                  INSTITUTE STUDENT COUNCIL (ISC)
+                  INSTITUTE STUDENT COUNCIL
                 </h2>
                 {institutes.map(institute => {
                   const instituteCandidates = candidates.filter(

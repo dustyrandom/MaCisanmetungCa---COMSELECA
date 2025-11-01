@@ -8,7 +8,7 @@ import BannerCarousel from './BannerCarousel'
 import ContentModal from './ContentModal'
 
 function LandingPage() {
-  const { user, userData, loading, isEmailVerified, logout } = useAuth()
+  const {loading, logout } = useAuth()
   const [news, setNews] = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [contentLoading, setContentLoading] = useState(true)

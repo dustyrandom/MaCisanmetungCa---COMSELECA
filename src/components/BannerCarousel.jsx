@@ -4,6 +4,7 @@ import banner2 from '../assets/banner/banner2.png'
 import banner3 from '../assets/banner/banner3.png'
 import banner4 from '../assets/banner/banner4.png'
 
+
 function BannerCarousel() {
   const banners = [
     { src: banner1, alt: 'Student Elections 2025 Banner 1' },

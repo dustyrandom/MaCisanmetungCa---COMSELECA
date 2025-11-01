@@ -57,18 +57,18 @@ function AdminModal({
   }
 
   const handleDelete = async () => {
-      try {
-        await onDelete()
-        onClose()
-      } catch (error) {
-        console.error('Error deleting item:', error)
-      } finally {
-        setLoading(false)
-      }
+    try {
+      await onDelete()
+      onClose()
+    } catch (error) {
+      console.error('Error deleting item:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const getTypeIcon = (type) => (type === 'news' ? '📰' : '📢')
-  const getTypeColor = (type) => (type === 'news' ? 'text-emerald-800' : 'text-emerald-800')
+  /* const getTypeIcon = (type) => (type === 'news' ? '📰' : '📢') */
+  const getTypeColor = (type) => (type === 'news' ? 'text-gray-900' : 'text-gray-800')
 
   const getModalTitle = () => {
     switch (mode) {
@@ -104,19 +104,11 @@ function AdminModal({
           ${mode === 'delete' ? 'p-5' : 'p-6'}`}
         >
           <div className="flex items-center space-x-3">
-            <span className="text-3xl">{getTypeIcon(type)}</span>
+            {/* <span className="text-3xl">{getTypeIcon(type)}</span> */}
             <h2 className={`text-2xl font-semibold tracking-tight ${getTypeColor(type)}`}>
               {getModalTitle()}
             </h2>
           </div>
-          {/* <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button> */}
         </div>
 
         {/* Content */}
@@ -139,10 +131,10 @@ function AdminModal({
                 </svg>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-900">
-                Delete “{initialData?.title}”?
+              <h3 className="text-lg font-semibold text-gray-700">
+                Delete "<span className='text-gray-900'>{initialData?.title}</span>”?
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm sm:text-base text-gray-500">
                 This action cannot be undone.
               </p>
             </div>
@@ -200,15 +192,16 @@ function AdminModal({
         >
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-lg bg-gray-400 text-white hover:bg-gray-500 focus:ring-2 focus:ring-offset-1 focus:ring-gray-400 transition disabled:opacity-50"
+            className="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition disabled:opacity-50"
             disabled={loading}
           >
             Cancel
           </button>
+
           {mode === 'delete' ? (
             <button
               onClick={handleDelete}
-              className="px-5 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition disabled:opacity-50"
+              className="px-5 py-2.5 rounded-lg font-medium bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50"
               disabled={loading}
             >
               {loading ? 'Deleting...' : 'Delete'}
@@ -216,7 +209,11 @@ function AdminModal({
           ) : (
             <button
               onClick={handleSubmit}
-              className="px-5 py-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-2 focus:ring-offset-1 focus:ring-emerald-400 transition disabled:opacity-50"
+              className={`px-5 py-2.5 font-medium rounded-lg text-white transition disabled:opacity-50
+                ${mode === 'edit'
+                  ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-400'
+                  : 'bg-green-600 hover:bg-green-700 focus:ring-green-400'
+                }`}
               disabled={loading}
             >
               {loading ? 'Saving...' : mode === 'edit' ? 'Update' : 'Add'}

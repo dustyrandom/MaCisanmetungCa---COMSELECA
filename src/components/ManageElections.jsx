@@ -436,7 +436,7 @@ function ManageElections() {
               <div className="mb-6">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
+                  className="bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-600"
                 >
                   Add Candidate
                 </button>
@@ -512,12 +512,12 @@ function ManageElections() {
         {activeTab === 'candidates' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">SUPREME STUDENT COUNCIL CANDIDATES</h2>
+              <h2 className="text-xl font-bold text-red-900 mb-6">SUPREME STUDENT COUNCIL CANDIDATES</h2>
               {sscPositions.map(position => {
                 const positionCandidates = candidates.filter(c => c.position === position)
                 return (
                   <div key={position} className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{position}</h3>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">{position}</h3>
                     {positionCandidates.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {positionCandidates.map(candidate => (
@@ -531,11 +531,11 @@ function ManageElections() {
                                 </div>
                               )}
                               <div>
-                                <h4 className="font-semibold">{candidate.fullName}</h4>
+                                <h4 className="font-semibold text-gray-900">{candidate.fullName}</h4>
                                 <p className="text-sm text-gray-600">{candidate.email}</p>
                                 <p className="text-sm text-gray-600">{candidate.institute}</p>
                                 {/* <p className="text-sm text-gray-600">{candidate.studentId}</p> */}
-                                <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                                <p className="text-sm text-emerald-700">Party: {candidate.team ? candidate.team: 'Independent'}</p>
                               </div>
                             </div>
                             
@@ -558,7 +558,7 @@ function ManageElections() {
                         ))}
                       </div>
                     ) : (
-                      <p className=" text-red-800 italic text-sm">No candidates for this position yet.</p>
+                      <p className="text-sm sm:text-base text-gray-500 italic">No candidates for this position yet.</p>
                     )}
                   </div>
                 )
@@ -566,69 +566,83 @@ function ManageElections() {
             </div>
 
             <div>
-              <h2 className="text-xl font-semibold text-red-900 mb-6">INSTITUTE STUDENT COUNCIL CANDIDATES</h2>
+              <h2 className="text-xl font-bold text-red-900 mb-6">
+                INSTITUTE STUDENT COUNCIL CANDIDATES
+              </h2>
               {institutes.map(institute => {
-                const instituteCandidates = candidates.filter(c => getPositionCategory(c.position) === 'ISC' && c.institute === institute)
+                const instituteCandidates = candidates.filter(
+                  c => getPositionCategory(c.position) === 'ISC' && c.institute === institute
+                )
                 return (
                   <div key={institute} className="mb-8">
                     <h3 className="text-lg font-semibold text-gray-800 mb-6">{institute}</h3>
-                    {instituteCandidates.length > 0 ? (
-                      <div className="space-y-6">
-                        {iscPositions.map(position => {
-                          const positionCandidates = instituteCandidates.filter(c => c.position === position)
-                          return (
-                            <div key={position}>
-                              <h4 className="text-md font-semibold text-gray-700 mb-3">{position}</h4>
-                              {positionCandidates.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {positionCandidates.map(candidate => (
-                                    <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                      <div className="flex items-center gap-3 mb-2">
-                                        {candidate.profilePicture ? (
-                                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
-                                        ) : (
-                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
-                                          </div>
-                                        )}
-                                        <div>
-                                          <h5 className="font-semibold">{candidate.fullName}</h5>
-                                          <p className="text-sm text-gray-600">{candidate.email}</p>
-                                          {/* <p className="text-sm text-gray-600">{candidate.studentId}</p> */}
-                                          <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                    {/* Always show positions, even if no candidates */}
+                    <div className="space-y-6">
+                      {iscPositions.map(position => {
+                        const positionCandidates = instituteCandidates.filter(c => c.position === position)
+                        return (
+                          <div key={position}>
+                            <h4 className="text-md font-semibold text-gray-700 mb-3">{position}</h4>
+                            {positionCandidates.length > 0 ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {positionCandidates.map(candidate => (
+                                  <div
+                                    key={candidate.id}
+                                    className="bg-white rounded-lg shadow-md p-4"
+                                  >
+                                    <div className="flex items-center gap-3 mb-2">
+                                      {candidate.profilePicture ? (
+                                        <img
+                                          src={candidate.profilePicture}
+                                          alt="Profile"
+                                          className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                                        />
+                                      ) : (
+                                        <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                          {(candidate.fullName || 'U')
+                                            .slice(0, 2)
+                                            .toUpperCase()}
                                         </div>
-                                      </div>
-                                      <div className="mt-3 justify-end flex gap-2">
-                                        <button
-                                          onClick={() => handleEdit(candidate)}
-                                          className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          onClick={() => handleDelete(candidate)}
-                                          className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
-                                        >
-                                          Delete
-                                        </button>
+                                      )}
+                                      <div>
+                                        <h5 className="font-semibold">{candidate.fullName}</h5>
+                                        <p className="text-sm text-gray-600">{candidate.email}</p>
+                                        <p className="text-sm text-green-600">
+                                          Party: {candidate.team ? candidate.team : 'Independent'}
+                                        </p>
                                       </div>
                                     </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className=" text-red-800 italic text-sm">No candidates for this position yet.</p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <p className=" text-red-800 italic text-sm">No candidates for this institute yet.</p>
-                    )}
+                                    <div className="mt-3 justify-end flex gap-2">
+                                      <button
+                                        onClick={() => handleEdit(candidate)}
+                                        className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                                      >
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => handleDelete(candidate)}
+                                        className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm sm:text-base text-gray-500 italic">
+                                No candidates for this position yet.
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })}
             </div>
+
           </div>
         )}
       </div>
@@ -770,7 +784,7 @@ function ManageElections() {
                     type="submit"
                     className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
                   >
-                    {editingCandidate ? 'Update' : 'Add'} Candidate
+                    {editingCandidate ? 'Update' : 'Add'}
                   </button>
                 </div>
               </form>

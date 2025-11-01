@@ -207,10 +207,10 @@ function Profile() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-24">
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile Management</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-red-900 mb-6">Profile Management</h1>
 
             <div className="space-y-6">
               {/* Profile Picture */}
@@ -276,7 +276,7 @@ function Profile() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowChangePassword(true)}
-                  className="px-5 py-3 text-sm font-medium text-white bg-red-900 rounded-md hover:bg-red-800"
+                  className="px-5 py-3 text-sm font-medium text-white bg-red-800 rounded-md hover:bg-red-900"
                 >
                   Change Password
                 </button>

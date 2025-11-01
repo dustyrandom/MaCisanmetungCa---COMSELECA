@@ -6,11 +6,13 @@ import { db } from '../firebase'
 
 function VotingPage() {
   const { user, userData } = useAuth()
-  const [currentPage, setCurrentPage] = useState(1) // 1 = SSC, 2 = ISC
+  const [currentPage, setCurrentPage] = useState(1) // 1 = SSC, 2 = ISC, 3 = Review
   const [candidates, setCandidates] = useState([])
   const [votes, setVotes] = useState({})
   const [loading, setLoading] = useState(true)
   const [submitted, setSubmitted] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmAction, setConfirmAction] = useState(null)
   const [votingStatus, setVotingStatus] = useState({
     isActive: false,
     startDate: '',
@@ -170,7 +172,7 @@ function VotingPage() {
           body: JSON.stringify({
             to: user.email,
             status: 'voteThankYou',
-            name: userData.fullName,
+            fullName: userData.fullName,
             details: { announcementDate: votingStatus?.endDate ? new Date(votingStatus.endDate).toLocaleString() : '' }
           })
         })
@@ -186,7 +188,7 @@ function VotingPage() {
   const renderSSCPage = () => (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-red-900 mb-2">Student Supreme Council (SSC)</h2>
+        <h2 className="text-2xl font-bold text-red-900 mb-2">Supreme Student Council (SSC)</h2>
         <p className="text-gray-600">Select your candidates for each position</p>
       </div>
 
@@ -341,6 +343,87 @@ function VotingPage() {
     )
   }
 
+  const renderReviewPage = () => {
+    const allVotes = votes || {}
+
+    const getCandidateById = (id) => candidates.find(c => c.id === id)
+
+    const renderCandidateCard = (candidate) => (
+      <div
+        key={candidate.id}
+        className="flex items-center gap-4 p-4 border-2 rounded-lg bg-blue-50 border-blue-400"
+      >
+        {candidate.profilePicture ? (
+          <img
+            src={candidate.profilePicture}
+            alt="Profile"
+            className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+          />
+        ) : (
+          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+          </div>
+        )}
+        <div>
+          <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
+          <p className="text-sm text-gray-600">{candidate.institute}</p>
+          <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team : 'Independent'}</p>
+        </div>
+      </div>
+    )
+
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-900 mb-2">Review Your Votes</h2>
+          <p className="text-gray-600">Please review your selections before submitting.</p>
+        </div>
+
+        {/* SSC Votes */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold text-red-900 mb-4">Student Supreme Council (SSC)</h3>
+          {sscPositions.map(position => {
+            const selected = allVotes[position.name]
+            if (!selected || (Array.isArray(selected) && selected.length === 0)) return null
+
+            const selectedCandidates = Array.isArray(selected)
+              ? selected.map(id => getCandidateById(id)).filter(Boolean)
+              : [getCandidateById(selected)].filter(Boolean)
+
+            return (
+              <div key={position.name} className="mb-6">
+                <h4 className="font-medium mb-2">{position.name}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedCandidates.map(c => renderCandidateCard(c))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ISC Votes */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-semibold text-red-900 mb-4">Institute Student Council (ISC)</h3>
+          {Object.keys(allVotes)
+            .filter(key => key.includes('-')) // institute-based keys
+            .map(key => {
+              const selectedId = allVotes[key]
+              const candidate = getCandidateById(selectedId)
+              if (!candidate) return null
+
+              const [institute, position] = key.split('-')
+              return (
+                <div key={key} className="mb-6">
+                  <h4 className="font-medium mb-2">{position} - <span className="text-gray-600">{institute}</span></h4>
+                  {renderCandidateCard(candidate)}
+                </div>
+              )
+            })}
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -473,35 +556,51 @@ function VotingPage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       <div className="pt-24 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex justify-center mb-6">
+        <div>
+          <div className="flex justify-center mb-2">
             <div className="flex items-center space-x-4">
+              {/* Step 1 */}
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentPage === 1 ? 'bg-red-900 text-white' : 'bg-gray-300 text-gray-600'
-              }`}>
-                1
-              </div>
+              }`}>1</div>
               <div className="w-16 h-1 bg-gray-300 rounded"></div>
+
+              {/* Step 2 */}
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentPage === 2 ? 'bg-red-900 text-white' : 'bg-gray-300 text-gray-600'
-              }`}>
-                2
-              </div>
+              }`}>2</div>
+              <div className="w-16 h-1 bg-gray-300 rounded"></div>
+
+              {/* Step 3 */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                currentPage === 3 ? 'bg-red-900 text-white' : 'bg-gray-300 text-gray-600'
+              }`}>3</div>
             </div>
           </div>
-          <div className="text-center">
+          {/* <div className="text-center">
             <p className="text-sm text-gray-600">
-              Page {currentPage} of 2 - {currentPage === 1 ? 'SSC Elections' : 'ISC Elections'}
+              Page {currentPage} of 3 - {
+                currentPage === 1 
+                  ? 'SSC Elections' 
+                  : currentPage === 2 
+                  ? 'ISC Elections' 
+                  : 'Review & Submit'
+              }
             </p>
-          </div>
+          </div> */}
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {currentPage === 1 ? renderSSCPage() : renderISCPage()}
+        {currentPage === 1 
+          ? renderSSCPage() 
+          : currentPage === 2 
+          ? renderISCPage() 
+          : renderReviewPage()
+        }
 
         <div className="mt-12 flex justify-between">
           <button
-            onClick={() => setCurrentPage(1)}
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
             className={`px-6 py-2 rounded-lg font-medium ${
               currentPage === 1 
@@ -509,27 +608,67 @@ function VotingPage() {
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
-            Previous
+            Back
           </button>
-          
-          {currentPage === 1 ? (
+
+          {currentPage < 3 ? (
             <button
-              onClick={() => setCurrentPage(2)}
+              onClick={() => setCurrentPage(prev => prev + 1)}
               className="bg-blue-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
             >
               Next
             </button>
           ) : (
             <button
-              onClick={submitVotes}
+              onClick={() => {
+                setConfirmAction({ type: 'vote', action: 'submit' })
+                setShowConfirmModal(true)
+              }}
               className="bg-green-700 text-white px-8 py-2 rounded-lg font-medium hover:bg-green-600"
             >
-              Submit Votes
+              Submit
             </button>
           )}
         </div>
         </div>
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Submission</h3>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to <strong className="uppercase">submit</strong> your votes?
+                <br />
+                You will not be able to change your selections after submission.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-gray-500 hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await submitVotes()
+                      setShowConfirmModal(false)
+                    } catch (error) {
+                      console.error('Vote submission failed:', error)
+                      setShowConfirmModal(false)
+                    }
+                  }}
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-green-600 hover:bg-green-700"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

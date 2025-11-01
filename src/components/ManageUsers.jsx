@@ -250,7 +250,7 @@ function ManageUsers() {
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-red-900">Manage Users</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Manage Users</h1>
             <p className="text-gray-600 mt-1">View and manage user accounts and roles</p>
           </div>
 
@@ -261,7 +261,7 @@ function ManageUsers() {
               placeholder="Search users by Student ID"
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
-              className="px-3 py-2 w-64  rounded-lg border focus:outline-none border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm shadow-sm transition placeholder-gray-500"
+              className="px-3 py-2 w-64  rounded-lg border focus:outline-none border-gray-300 bg-white text-gray-900 focus:ring-1 focus:ring-gray-500 focus:border-gray-500 text-sm shadow-sm transition placeholder-gray-500"
             />
           </div>
 
@@ -381,7 +381,7 @@ function ManageUsers() {
                 <option value="voter">Voter</option>
                 <option value="candidate">Candidate</option>
                 <option value="admin">Admin</option>
-                <option value="suoperadmin">Super Admin</option>
+                <option value="superadmin">Super Admin</option>
               </select>
             </div>
             <div className="mt-5 flex justify-end space-x-3">

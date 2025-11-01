@@ -132,14 +132,18 @@ function ManageAnnouncements() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-10">
+        <div className="max-w-5xl mx-auto p-8 mb-10">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-emerald-800">Manage Announcements</h1>
+            <div className='mb-2'>
+              <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Manage Announcements</h1>
+              <p className='text-sm sm:text-base text-gray-600 mt-1'>Add, edit, and delete announcements.</p>
+            </div>
+            
             <button
               onClick={openAddModal}
-              className="px-5 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 transition"
+              className="px-5 py-2.5 text-sm sm:text-base rounded-lg w-15 sm:w-20 bg-green-600 text-white font-medium hover:bg-green-700 transition"
             >
-              + Add Announcement
+              Add
             </button>
           </div>
 
@@ -147,7 +151,7 @@ function ManageAnnouncements() {
           <div className="space-y-6">
             {announcements.length === 0 ? (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-10 text-center">
-                <p className="text-gray-500">No announcements yet. Add your first announcement!</p>
+                <p className="text-sm sm:text-base text-gray-500">No announcements yet.</p>
               </div>
             ) : (
               announcements.map((announcement) => (
@@ -157,13 +161,13 @@ function ManageAnnouncements() {
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{announcement.title}</h3>
-                      <p className="text-sm text-gray-500">{formatDate(announcement.date)}</p>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{announcement.title}</h3>
+                      <p className="ttext-xs sm:text-sm text-gray-500">{formatDate(announcement.date)}</p>
                     </div>
                     <div className="flex space-x-3">
                       <button
                         onClick={() => handleEdit(announcement)}
-                        className="text-amber-500 hover:text-amber-600 font-medium transition-colors"
+                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                       >
                         Edit
                       </button>
@@ -175,7 +179,7 @@ function ManageAnnouncements() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {announcement.content}
                   </p>
                 </div>

@@ -13,7 +13,7 @@ function NavBar() {
 
   const baseLink = 'font-semibold transition-colors duration-200 tracking-wide'
   const activeClasses = 'text-red-900 border-b-2 border-red-900'
-  const inactiveClasses = 'text-red-800 hover:text-red-600'
+  const inactiveClasses = 'text-red-800 hover:text-red-900'
 
   return (
     <header className="bg-white shadow-sm fixed top-0 left-0 w-full z-40">
@@ -116,7 +116,7 @@ function NavBar() {
           <button
             type="button"
             aria-label="Open menu"
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-red-900 hover:text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-600"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-red-800 hover:text-red-900 hover:bg-red-50 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-red-600"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@ function NavBar() {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden px-4 pb-4 space-y-2 bg-white border-t border-gray-100 animate-fadeIn">
-            <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-900' : 'text-red-800'}`}>
+            <Link to="/" className={`block py-2 text-base ${isActive('/') ? 'text-red-800' : 'text-red-900'}`}>
               <span className={`${baseLink} ${isActive('/') ? 'inline-block border-b-2 border-red-900' : ''}`}>HOME</span>
             </Link>
             <Link to="/candidates" className={`block py-2 text-base ${isActive('/candidates') ? 'text-red-900' : 'text-red-800'}`}>
@@ -160,21 +160,38 @@ function NavBar() {
             {user && (
               <>
                 {isEmailVerified() && (
-                  <Link to="/dashboard" className={`block py-2 text-base ${isActive('/dashboard') ? 'text-red-900' : 'text-red-800'}`}>
-                    <span className={`${baseLink} ${isActive('/dashboard') ? 'inline-block border-b-2 border-red-900' : ''}`}>DASHBOARD</span>
+                  <Link
+                    to="/dashboard"
+                    className={`block py-2 text-base ${isActive('/dashboard') ? 'text-red-900' : 'text-red-800'}`}
+                  >
+                    <span
+                      className={`${baseLink} ${
+                        isActive('/dashboard') ? 'inline-block border-b-2 border-red-900' : ''
+                      }`}
+                    >
+                      DASHBOARD
+                    </span>
                   </Link>
                 )}
-                <div className="py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+
+                {/* Profile and Role Row */}
+                <div className="py-2 flex items-center justify-between text-sm border-t border-gray-100 pt-2">
                   <Link
                     to="/profile"
                     onClick={() => setIsProfileOpen(false)}
-                    className="text-gray-700 hover:bg-gray-50 text-sm truncate"
+                    className="text-gray-700 hover:text-blue-600 underline truncate"
                   >
                     {userData?.fullName || 'User'}
                   </Link>
-                  <span className="text-xs text-gray-500">Role: {userData?.role?.toUpperCase() || 'VOTER'}</span>
+                  <span className="text-xs text-gray-500">
+                    {userData?.role ? userData.role.toUpperCase() : 'VOTER'}
+                  </span>
                 </div>
-                <button onClick={logout} className="py-2 text-red-700 font-semibold hover:underline">
+
+                <button
+                  onClick={logout}
+                  className="py-2 text-red-700 font-semibold hover:underline"
+                >
                   Sign Out
                 </button>
               </>
