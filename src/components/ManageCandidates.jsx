@@ -680,9 +680,9 @@ function ManageCandidates() {
                 <button
                   onClick={handleSaveCandidacySettings}
                   disabled={savingCandidacyStatus}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-red-800 hover:bg-red-900 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {savingCandidacyStatus ? 'Saving…' : 'Save Settings'}
+                  {savingCandidacyStatus ? 'Saving…' : 'Save'}
                 </button>
               </div>
               </div>

@@ -175,11 +175,11 @@ function ActivityLog() {
             <div className="flex gap-2">
               <button
                 onClick={handleExport}
-                className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-600 transition"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
               >
                 Export CSV
               </button>
-              <label className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-600 transition cursor-pointer">
+              <label className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition cursor-pointer">
                 Import CSV
                 <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
               </label>

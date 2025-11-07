@@ -538,7 +538,7 @@ export default function ElectionArchives() {
 
               <div className="flex gap-3 justify-end">
                 <button
-                  className={`${archiveTitle.trim() ? "bg-red-700 hover:bg-red-600" : "bg-gray-400 cursor-not-allowed"} text-white px-5 py-2 rounded-md font-medium transition`}
+                  className={`${archiveTitle.trim() ? "bg-red-800 hover:bg-red-900" : "bg-gray-400 cursor-not-allowed"} text-white px-5 py-2 rounded-lg font-medium transition`}
                   onClick={() => archiveTitle.trim() && setShowConfirm(true)}
                   disabled={!archiveTitle.trim() || isArchiving}
                 >
@@ -574,7 +574,7 @@ export default function ElectionArchives() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{arc.title}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{arc.archivedAt ? new Date(arc.archivedAt).toLocaleString() : ""}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="px-3 py-1 rounded text-white text-sm bg-green-700 hover:bg-green-600 transition" onClick={() => handleDownloadArchive(arc)}>Download</button>
+                        <button className="px-3 py-1 rounded-lg font-medium text-white text-sm bg-green-600 hover:bg-green-700 transition" onClick={() => handleDownloadArchive(arc)}>Download</button>
                       </td>
                     </tr>
                   ))
@@ -618,7 +618,7 @@ export default function ElectionArchives() {
 
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100 text-gray-700"
+                  className="px-4 py-2 rounded-lg font-medium border hover:bg-gray-600 bg-gray-500 text-white"
                   onClick={() => {
                     setShowConfirm(false);
                     setConfirmText("");
@@ -629,7 +629,7 @@ export default function ElectionArchives() {
                 <button
                   className={`px-4 py-2 rounded-md text-white font-medium ${
                     confirmText === "CONFIRM"
-                      ? "bg-green-700 hover:bg-green-600"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
                       : "bg-gray-400 cursor-not-allowed"
                   }`}
                   onClick={handleArchiveElection}

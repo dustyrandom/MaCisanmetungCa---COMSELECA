@@ -240,7 +240,7 @@ function Profile() {
                         type="file"
                         accept="image/*"
                         onChange={handleProfilePictureChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                        className="block w-full text-sm text-gray-500 file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                       />
                       <p className="mt-1 text-xs text-gray-500">JPG, PNG or GIF. Max 5MB.</p>
                     </div>
@@ -248,7 +248,7 @@ function Profile() {
                       <button
                         onClick={removeProfilePicture}
                         disabled={loading}
-                        className="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100"
+                        className="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100"
                       >
                         Remove
                       </button>
@@ -276,7 +276,7 @@ function Profile() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setShowChangePassword(true)}
-                  className="px-5 py-3 text-sm font-medium text-white bg-red-800 rounded-md hover:bg-red-900"
+                  className="px-5 py-3 text-sm font-medium text-white bg-red-800 rounded-lg hover:bg-red-900"
                 >
                   Change Password
                 </button>
@@ -453,21 +453,21 @@ function Profile() {
                 </div>
               )}
 
-              <div className="flex justify-between pt-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
                     resetPasswordFields();
                     setShowChangePassword(false);
                   }}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200"
+                  className="px-4 py-2 text-sm  font-medium text-white rounded-lg bg-gray-500 hover:bg-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="px-4 py-2 text-sm rounded-lg bg-green-800 text-white hover:bg-green-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
                 >
                   {passwordLoading ? 'Updating...' : 'Update Password'}
                 </button>

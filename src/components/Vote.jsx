@@ -82,7 +82,7 @@ function Vote() {
             <div className="pt-4 text-center">
               <a
                 href="/voting"
-                className="inline-flex items-center justify-center px-10 py-4 rounded-full bg-blue-600 text-white font-extrabold shadow-lg hover:bg-blue-700"
+                className="inline-flex items-center justify-center px-10 py-4 rounded-full bg-red-800 text-white font-extrabold shadow-lg hover:bg-red-900"
               >
                 VOTE NOW
               </a>

@@ -328,7 +328,7 @@ function ManageUsers() {
                           {u.uid !== user.uid && (
                             <button
                               onClick={() => openEditModal(u)}
-                              className="text-red-800 hover:text-red-700 font-medium"
+                              className="text-blue-600 hover:text-blue-700 font-medium"
                             >
                               Edit
                             </button>
@@ -385,8 +385,8 @@ function ManageUsers() {
               </select>
             </div>
             <div className="mt-5 flex justify-end space-x-3">
-              <button onClick={closeEditModal} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-red-900 text-white rounded hover:bg-red-800">Save Changes</button>
+              <button onClick={closeEditModal} className="px-4 py-2 bg-gray-500 rounded-lg font-medium text-white hover:bg-gray-600">Cancel</button>
+              <button onClick={handleSave} className="px-4 py-2 bg-red-800 text-white rounded-lg font-medium hover:bg-red-900">Save Changes</button>
             </div>
           </div>
         </div>

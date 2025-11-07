@@ -120,11 +120,13 @@ function Candidates({ forceVisible = false }) {
                             <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
                               {/* Profile picture */}
                               <div className="flex-shrink-0">
-                                <img
-                                  src={candidate.profilePicture || '/default-avatar.png'} // fallback image
-                                  alt={`${candidate.firstName} ${candidate.lastName}`}
-                                  className="w-20 h-20 rounded-full object-cover"
-                                />
+                                {candidate.profilePicture ? (
+                                  <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                ) : (
+                                  <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                    {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Candidate info */}
@@ -170,11 +172,13 @@ function Candidates({ forceVisible = false }) {
                                     <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
                                       {/* Profile picture */}
                                       <div className="flex-shrink-0">
-                                        <img
-                                          src={candidate.profilePicture || '/default-avatar.png'} // fallback image
-                                          alt={`${candidate.firstName} ${candidate.lastName}`}
-                                          className="w-20 h-20 rounded-full object-cover"
-                                        />
+                                        {candidate.profilePicture ? (
+                                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                        ) : (
+                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                          </div>
+                                        )}
                                       </div>
 
                                       {/* Candidate info */}

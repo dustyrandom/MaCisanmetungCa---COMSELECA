@@ -436,7 +436,7 @@ function ManageElections() {
               <div className="mb-6">
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-600"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700"
                 >
                   Add Candidate
                 </button>
@@ -496,9 +496,9 @@ function ManageElections() {
                 <button
                   onClick={handleSaveVotingSettings}
                   disabled={saving}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="bg-red-800 text-white px-6 py-2 font-medium rounded-lg hover:bg-red-900 transition-colors"
                 >
-                  {saving ? 'Saving...' : 'Save Settings'}
+                  {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
@@ -521,15 +521,17 @@ function ManageElections() {
                     {positionCandidates.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {positionCandidates.map(candidate => (
-                          <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
+                          <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4 flex flex-col">
                             <div className="flex items-center gap-3 mb-2">
-                              {candidate.profilePicture ? (
-                                <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
-                              ) : (
-                                <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                                  {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                <div className="flex-shrink-0">
+                                  {candidate.profilePicture ? (
+                                    <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                  ) : (
+                                    <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                      {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
                               <div>
                                 <h4 className="font-semibold text-gray-900">{candidate.fullName}</h4>
                                 <p className="text-sm text-gray-600">{candidate.email}</p>
@@ -540,18 +542,18 @@ function ManageElections() {
                             </div>
                             
                             
-                            <div className="mt-3 flex justify-end gap-2">
-                              <button
-                                onClick={() => handleEdit(candidate)}
-                                className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                              >
-                                Edit
-                              </button>
+                            <div className="mt-auto flex justify-end gap-2">
                               <button
                                 onClick={() => handleDelete(candidate)}
-                                className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                                className="bg-red-600 text-white px-3 py-1 rounded-lg font-medium text-sm hover:bg-red-700"
                               >
                                 Delete
+                              </button>
+                              <button
+                                onClick={() => handleEdit(candidate)}
+                                className="bg-blue-600 text-white px-3 py-1 rounded-lg font-medium text-sm hover:bg-blue-670000"
+                              >
+                                Edit
                               </button>
                             </div>
                           </div>
@@ -588,22 +590,18 @@ function ManageElections() {
                                 {positionCandidates.map(candidate => (
                                   <div
                                     key={candidate.id}
-                                    className="bg-white rounded-lg shadow-md p-4"
+                                    className="bg-white rounded-lg shadow-md p-4 flex flex-col"
                                   >
                                     <div className="flex items-center gap-3 mb-2">
-                                      {candidate.profilePicture ? (
-                                        <img
-                                          src={candidate.profilePicture}
-                                          alt="Profile"
-                                          className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-                                        />
-                                      ) : (
-                                        <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                                          {(candidate.fullName || 'U')
-                                            .slice(0, 2)
-                                            .toUpperCase()}
-                                        </div>
-                                      )}
+                                      <div className="flex-shrink-0">
+                                        {candidate.profilePicture ? (
+                                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                        ) : (
+                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                          </div>
+                                        )}
+                                      </div>
                                       <div>
                                         <h5 className="font-semibold">{candidate.fullName}</h5>
                                         <p className="text-sm text-gray-600">{candidate.email}</p>
@@ -612,18 +610,18 @@ function ManageElections() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="mt-3 justify-end flex gap-2">
-                                      <button
-                                        onClick={() => handleEdit(candidate)}
-                                        className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-                                      >
-                                        Edit
-                                      </button>
+                                    <div className="mt-auto justify-end flex gap-2">
                                       <button
                                         onClick={() => handleDelete(candidate)}
                                         className="bg-red-700 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
                                       >
                                         Delete
+                                      </button>
+                                      <button
+                                        onClick={() => handleEdit(candidate)}
+                                        className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                                      >
+                                        Edit
                                       </button>
                                     </div>
                                   </div>
@@ -776,13 +774,13 @@ function ManageElections() {
                         position: ''
                       })
                     }}
-                    className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-emerald-500 text-white px-4 py-2 rounded hover:bg-emerald-600"
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700"
                   >
                     {editingCandidate ? 'Update' : 'Add'}
                   </button>
@@ -827,21 +825,21 @@ function ManageElections() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={confirmDelete}
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                  Delete Candidate
-                </button>
+              <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
                     setShowDeleteModal(false)
                     setDeletingCandidate(null)
                   }}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600"
                 >
                   Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700"
+                >
+                  Delete Candidate
                 </button>
               </div>
             </div>

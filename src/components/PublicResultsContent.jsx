@@ -309,12 +309,18 @@ function PublicResultsContent({ forceVisible = false }) {
                       key={c.id}
                       className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
                     >
-                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
-                        <img
-                          src={c.profile}
-                          alt={c.name}
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="flex-shrink-0">
+                        {c.profile && c.profile !== "/default-avatar.png" ? (
+                          <img
+                            className="h-16 w-16 rounded-full object-cover border border-gray-200"
+                            src={c.profile}
+                            alt={c.name || "Candidate"}
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
+                            {(c.name || "U").slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex-1">
@@ -552,12 +558,18 @@ function PublicResultsContent({ forceVisible = false }) {
                             key={c.id}
                             className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border"
                           >
-                            <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200">
-                              <img
-                                src={c.profile}
-                                alt={c.name}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="flex-shrink-0">
+                              {c.profile && c.profile !== "/default-avatar.png" ? (
+                                <img
+                                  className="h-16 w-16 rounded-full object-cover border border-gray-200"
+                                  src={c.profile}
+                                  alt={c.name || "Candidate"}
+                                />
+                              ) : (
+                                <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
+                                  {(c.name || "U").slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
                             </div>
 
                             <div className="flex-1">

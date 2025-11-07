@@ -230,13 +230,15 @@ function VotingPage() {
                       }`}
                     >
 
-                      {candidate.profilePicture ? (
-                        <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
-                      ) : (
-                        <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                          {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
+                      <div className="flex-shrink-0">
+                        {candidate.profilePicture ? (
+                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                        ) : (
+                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
 
                       <div>
                         <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
@@ -314,13 +316,15 @@ function VotingPage() {
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                           >
-                            {candidate.profilePicture ? (
+                            <div className="flex-shrink-0">
+                              {candidate.profilePicture ? (
                                 <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
                               ) : (
                                 <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
                                   {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
                                 </div>
                               )}
+                            </div>
                             <div>
                               <h5 className="font-medium">{candidate.lastName}, {candidate.firstName}</h5>
                               <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
@@ -353,17 +357,15 @@ function VotingPage() {
         key={candidate.id}
         className="flex items-center gap-4 p-4 border-2 rounded-lg bg-blue-50 border-blue-400"
       >
-        {candidate.profilePicture ? (
-          <img
-            src={candidate.profilePicture}
-            alt="Profile"
-            className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-          />
-        ) : (
-          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
-          </div>
-        )}
+        <div className="flex-shrink-0">
+          {candidate.profilePicture ? (
+            <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+          ) : (
+            <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+              {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+            </div>
+          )}
+        </div>
         <div>
           <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
           <p className="text-sm text-gray-600">{candidate.institute}</p>
@@ -605,7 +607,7 @@ function VotingPage() {
             className={`px-6 py-2 rounded-lg font-medium ${
               currentPage === 1 
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                : 'bg-gray-700 text-white hover:bg-gray-600'
+                : 'bg-gray-500 text-white hover:bg-gray-600'
             }`}
           >
             Back
@@ -614,7 +616,7 @@ function VotingPage() {
           {currentPage < 3 ? (
             <button
               onClick={() => setCurrentPage(prev => prev + 1)}
-              className="bg-blue-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-600"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700"
             >
               Next
             </button>
@@ -624,7 +626,7 @@ function VotingPage() {
                 setConfirmAction({ type: 'vote', action: 'submit' })
                 setShowConfirmModal(true)
               }}
-              className="bg-green-700 text-white px-8 py-2 rounded-lg font-medium hover:bg-green-600"
+              className="bg-red-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-900"
             >
               Submit
             </button>
@@ -660,7 +662,7 @@ function VotingPage() {
                       setShowConfirmModal(false)
                     }
                   }}
-                  className="px-4 py-2 text-white rounded-lg font-medium bg-green-600 hover:bg-green-700"
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700"
                 >
                   Confirm
                 </button>

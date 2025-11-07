@@ -230,9 +230,9 @@ function ManageCampaigns() {
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-3">
-          {s.status !== 'approved' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'approved')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-eemrald-300 text-white' : 'rounded-lg font-medium bg-emerald-600 text-white hover:bg-emerald-700'}`}>Approve</button>}
-          {s.status !== 'rejected' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'rejected')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-rose-300 text-white' : 'rounded-lg font-medium bg-rose-600 text-white hover:bg-rose-700'}`}>Reject</button>}
           <button disabled={savingId === s.id} onClick={() => deleteSubmission(s)} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-red-300 text-white' : 'rounded-lg font-medium bg-red-600 text-white hover:bg-red-700'}`}>Delete</button>
+          {s.status !== 'approved' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'approved')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-emerald-300 text-white' : 'rounded-lg font-medium bg-emerald-600 text-white hover:bg-emerald-700'}`}>Approve</button>}
+          {s.status !== 'rejected' && <button disabled={savingId === s.id} onClick={() => updateStatus(s, 'rejected')} className={`px-3 py-1 rounded text-sm ${savingId === s.id ? 'rounded-lg font-medium bg-rose-300 text-white' : 'rounded-lg font-medium bg-rose-600 text-white hover:bg-rose-700'}`}>Reject</button>}
         </div>
       </div>
     )
@@ -263,8 +263,8 @@ function ManageCampaigns() {
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    {savingStatus ? 'Saving…' : 'Save Settings'}
+                  <button onClick={handleSaveCampaignSettings} disabled={savingStatus} className="bg-red-800 hover:bg-red-900 text-white font-medium rounded-lg px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    {savingStatus ? 'Saving…' : 'Save'}
                   </button>
                 </div>
               </div>
@@ -301,7 +301,7 @@ function ManageCampaigns() {
 
                   {(filter === 'all' || filter === 'approved') && (
                     <div>
-                      <h2 className="text-lg font-semibold text-green-700 mb-3">Approved</h2>
+                      <h2 className="text-lg font-semibold text-green-800 mb-3">Approved</h2>
                       <div className="space-y-4">
                         {submissions.filter(s => (s.status || 'pending') === 'approved').length === 0 ? (
                           <div className="text-sm text-gray-500">No approved campaign materials</div>

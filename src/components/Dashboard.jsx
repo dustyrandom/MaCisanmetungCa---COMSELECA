@@ -107,15 +107,15 @@ function Dashboard() {
             className={`inline-block px-4 py-2 rounded-lg text-sm font-medium ${
               !isCandidacyActive() || hasSubmittedCandidacy
                 ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                : 'bg-red-900 text-white hover:bg-red-800'
+                : 'bg-red-800 text-white hover:bg-red-900'
             }`}
             aria-disabled={!isCandidacyActive() || hasSubmittedCandidacy}
             onClick={(e) => (!isCandidacyActive() || hasSubmittedCandidacy) && e.preventDefault()}
           >
-            Apply for Candidacy
+            Submit Candidacy
           </a>
           {canSeeSchedule && (
-            <a href="/schedule-appointment" className="inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">Go to Screening Appointment</a>
+            <a href="/schedule-appointment" className="inline-block bg-blue-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-900 text-sm">Go to Screening Appointment</a>
           )}
         </div>
       </div>
@@ -145,7 +145,7 @@ function Dashboard() {
           <div className="border border-gray-200 p-4 rounded-lg hover:shadow-sm transition">
             <h4 className="font-semibold text-gray-800">Student Council Election 2025</h4>
             <div className="mt-4">
-              <a href="/campaign" className="inline-block bg-red-900 text-white px-4 py-2 rounded-md hover:bg-red-800 text-sm">Submit Campaign Materials</a>
+              <a href="/campaign" className="inline-block bg-red-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-900 text-sm">Submit Campaign Materials</a>
             </div>
           </div>
         </div>
