@@ -507,7 +507,7 @@ const handleExport = async () => {
                 ) : (
                   getFilteredVotes().map((vote, index) => (
                     <div key={vote.uid} className="bg-white rounded-lg shadow p-6">
-                      <div className="flex justify-between items-start mb-4">
+                    <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">{vote.voterName}</h3>
                           <p className="text-gray-600">{vote.voterstudentId}</p>
@@ -525,9 +525,11 @@ const handleExport = async () => {
                           >
                             {expandedVotes[vote.uid] ? 'Hide Votes' : 'Show Votes'}
                           </button>
-                          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                            Vote #{index + 1}
-                          </span>
+                          {/* <div className="flex-shrink-0">
+                            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium break-words max-w-[90px] sm:max-w-none text-center truncate">
+                              Vote #{index + 1}
+                            </span>
+                          </div> */}
                         </div>
                       </div>
 
