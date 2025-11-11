@@ -478,20 +478,25 @@ const handleExport = async () => {
             {/* Tab Content */}
             {activeTab === 'voters' && (
               <div className="space-y-6">
-                {/* Voter Details Filter */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Institute:</label>
-                  <select
-                    value={voterFilter}
-                    onChange={(e) => setVoterFilter(e.target.value)}
-                    className="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                  >
-                    <option value="All">All</option>
-                    <option value="IAS">IAS</option>
-                    <option value="IBCE">IBCE</option>
-                    <option value="IHTM">IHTM</option>
-                    <option value="ITE">ITE</option>
-                  </select>
+
+                {/* Filter Dropdown */}
+                <div className="flex justify-start mb-6">
+                  <div className="flex-1 sm:flex-none">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Filter by Institute
+                    </label>
+                    <select
+                      value={voterFilter}
+                      onChange={(e) => setVoterFilter(e.target.value)}
+                      className="w-full sm:w-[180px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
+                    >
+                      <option value="All">All</option>
+                      <option value="IAS">IAS</option>
+                      <option value="IBCE">IBCE</option>
+                      <option value="IHTM">IHTM</option>
+                      <option value="ITE">ITE</option>
+                    </select>
+                  </div>
                 </div>
 
                 {getFilteredVotes().length === 0 ? (
@@ -639,9 +644,9 @@ const handleExport = async () => {
                                                         {/* <span className="text-gray-500 ml-2">({getCandidateRole(candidateId)})</span> */}
                                                       </div>
                                                     </div>
-                                                    <div className="text-right">
+                                                    {/* <div className="text-right">
                                                       <span className="text-sm text-gray-500">{getCandidateInstitute(candidateId)}</span>
-                                                    </div>
+                                                    </div> */}
                                                   </div>
                                                 ))}
                                               </div>

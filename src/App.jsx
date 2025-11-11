@@ -31,7 +31,7 @@ import Profile from './components/Profile'
 import Candidates from './components/Candidates'
 import ActivityLog from './components/ActivityLog'
 import ElectionArchives from './components/ElectionArchives'
-//import ResetPassword from './components/ResetPassword'
+/* import ResetPassword from './components/ResetPassword' */
 
 function App() {
   return (
@@ -71,14 +71,12 @@ function App() {
                 </PublicRoute>
               } 
             />
-            {/*<Route 
+            {/* <Route 
               path="/reset-password" 
               element={
-                <PublicRoute>
                   <ResetPassword />
-                </PublicRoute>
               } 
-            />*/}
+            /> */}
             <Route 
               path="/candidacy-application" 
               element={
