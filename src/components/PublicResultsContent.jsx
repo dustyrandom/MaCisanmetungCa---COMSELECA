@@ -46,24 +46,57 @@ function PublicResultsContent({ forceVisible = false }) {
     'Institute of Hospitality and Tourism Management'
   ]
 
+  const [filterInstitute, setFilterInstitute] = useState("");
+
+
   useEffect(() => {
     const loadCandidates = async () => {
-      try {
-        const candidatesRef = dbRef(db, 'candidates')
-        const snapshot = await get(candidatesRef)
-        if (snapshot.exists()) {
-          const data = snapshot.val()
-          const list = Object.keys(data).map(id => ({ id, ...data[id] }))
-          setCandidates(list)
-        } else {
-          setCandidates([])
-        }
-      } catch (e) {
-        console.error('Failed to load Election candidates:', e)
-      } finally {
-        setLoadingTeams(false)
+    try {
+      // Fetch both candidates and users
+      const [candidatesSnap, usersSnap] = await Promise.all([
+        get(dbRef(db, 'candidates')),
+        get(dbRef(db, 'users'))
+      ]);
+
+      if (candidatesSnap.exists()) {
+        const candidatesData = candidatesSnap.val();
+        const usersData = usersSnap.exists() ? usersSnap.val() : {};
+
+        const list = Object.keys(candidatesData).map(id => {
+          const c = candidatesData[id];
+
+          // Match user by email or studentId
+          const matchingUser = Object.values(usersData).find(
+            u =>
+              (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
+              (u.studentId && u.studentId === c.studentId)
+          );
+
+          // Profile picture priority: users → candidates → fallback
+          const profilePicture =
+            (matchingUser && matchingUser.profilePicture) ||
+            c.profilePicture ||
+            null;
+
+          return {
+            id,
+            ...c,
+            profilePicture,
+            fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+          };
+        });
+
+        setCandidates(list);
+      } else {
+        setCandidates([]);
       }
+    } catch (e) {
+      console.error('Failed to load election candidates:', e);
+    } finally {
+      setLoadingTeams(false);
     }
+    };
+
     const loadVoterCountsForBar = async () => {
       try {
         const [votesSnap, usersSnap] = await Promise.all([
@@ -160,45 +193,69 @@ function PublicResultsContent({ forceVisible = false }) {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-4 sm:p-6">
-          <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
-            {barData.map((d) => (
-              <div key={d.name} className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />
-                <span className="text-sm font-medium text-gray-800">{d.name}</span>
-              </div>
-            ))}
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
+              {barData.map((d) => (
+                <div key={d.name} className="flex items-center gap-2">
+                  <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: d.color }} />
+                  <span className="text-sm font-medium text-gray-800">{d.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="h-[380px] sm:h-[420px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} />
+                  <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'PERCENTAGE', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const p = payload[0].payload
+                      return (
+                        <div className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm shadow">
+                          <div className="font-medium text-gray-800">{p.name}</div>
+                          <div className="text-gray-600">Responses: {p.raw} / {p.total}</div>
+                          <div className="text-gray-600">Percentage: {p.value}%</div>
+                        </div>
+                      )
+                    }
+                    return null
+                  }} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {barData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="h-[380px] sm:h-[420px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} barSize={56} barCategoryGap="24%" barGap={12} margin={{ top: 12, right: 16, left: 8, bottom: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} />
-                <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} axisLine={{ stroke: '#e5e7eb' }} tickLine={{ stroke: '#e5e7eb' }} label={{ value: 'PERCENTAGE', angle: -90, position: 'insideLeft', offset: 10, fill: '#374151', fontSize: 12 }} />
-                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const p = payload[0].payload
-                    return (
-                      <div className="bg-white border border-gray-200 rounded-md px-3 py-2 text-sm shadow">
-                        <div className="font-medium text-gray-800">{p.name}</div>
-                        <div className="text-gray-600">Responses: {p.raw} / {p.total}</div>
-                        <div className="text-gray-600">Percentage: {p.value}%</div>
-                      </div>
-                    )
-                  }
-                  return null
-                }} />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                  {barData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        </div>
+
+        {/* Filter Dropdown */}
+        <div className="flex justify-start mb-6">
+          <div className="flex-1 sm:flex-none">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Filter by Institute
+            </label>
+            <select
+              value={filterInstitute}
+              onChange={(e) => setFilterInstitute(e.target.value)}
+              className="w-full sm:w-[180px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
+            >
+              <option value="">All</option>
+              <option value="SSC">SSC</option>
+              <option value="IAS">IAS</option>
+              <option value="IBCE">IBCE</option>
+              <option value="ITE">ITE</option>
+              <option value="IHTM">IHTM</option>
+            </select>
           </div>
         </div>
       </div>
+      
 
       {/* SSC Position Results */}
       {/* <div className="mt-12">
@@ -241,8 +298,11 @@ function PublicResultsContent({ forceVisible = false }) {
         )}
       </div> */}
 
+      
+
       {/* SSC Position Results */}
-      <div className="mt-12">
+      {(!filterInstitute || filterInstitute === "SSC") && (
+        <div className="mt-12">
         <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
           Supreme Student Council
         </h3>
@@ -314,11 +374,16 @@ function PublicResultsContent({ forceVisible = false }) {
                           <img
                             className="h-16 w-16 rounded-full object-cover border border-gray-200"
                             src={c.profile}
-                            alt={c.name || "Candidate"}
+                            alt="Profile"
                           />
                         ) : (
                           <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
-                            {(c.name || "U").slice(0, 2).toUpperCase()}
+                            {(() => {
+                              const parts = (c.name || "U").split(',').map(p => p.trim());
+                              const lastNameInitial = parts[0]?.[0] || '';
+                              const firstNameInitial = parts[1]?.[0] || '';
+                              return (firstNameInitial + lastNameInitial).toUpperCase();
+                            })()}
                           </div>
                         )}
                       </div>
@@ -356,6 +421,7 @@ function PublicResultsContent({ forceVisible = false }) {
           )
         })}
       </div>
+      )}
 
       {/* ISC Position Results by Institute */}
       {/* <div className="mt-12">
@@ -453,14 +519,33 @@ function PublicResultsContent({ forceVisible = false }) {
           })}
         </div>
       </div> */}
-
+      
       {/* ISC Position Results */}
-      <div className="mt-12">
+      {(!filterInstitute ||
+        ["IAS", "IBCE", "ITE", "IHTM"].includes(filterInstitute)) && (
+        <div className="mt-12">
         <h3 className="text-center text-2xl font-bold text-gray-800 mb-6">
           Institute Student Council
         </h3>
 
-        {["Institute of Arts and Sciences", "Institute of Business and Computing Education", "Institute of Hospitality and Tourism Management", "Institute of Teacher Education"].map(instituteFull => {
+        {[
+          "Institute of Arts and Sciences",
+          "Institute of Business and Computing Education",
+          "Institute of Hospitality and Tourism Management",
+          "Institute of Teacher Education"
+        ]
+          .filter(instituteFull => {
+            const shortNameMap = {
+              "Institute of Arts and Sciences": "IAS",
+              "Institute of Business and Computing Education": "IBCE",
+              "Institute of Hospitality and Tourism Management": "IHTM",
+              "Institute of Teacher Education": "ITE",
+            }
+            // Show all if no filter, or match only the selected short name
+            return !filterInstitute || shortNameMap[instituteFull] === filterInstitute
+          })
+          .map(instituteFull => {
+
           const shortNameMap = {
             "Institute of Arts and Sciences": "IAS",
             "Institute of Business and Computing Education": "IBCE",
@@ -563,11 +648,16 @@ function PublicResultsContent({ forceVisible = false }) {
                                 <img
                                   className="h-16 w-16 rounded-full object-cover border border-gray-200"
                                   src={c.profile}
-                                  alt={c.name || "Candidate"}
+                                  alt="Profile"
                                 />
                               ) : (
                                 <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
-                                  {(c.name || "U").slice(0, 2).toUpperCase()}
+                                  {(() => {
+                                    const parts = (c.name || "U").split(',').map(p => p.trim());
+                                    const lastNameInitial = parts[0]?.[0] || '';
+                                    const firstNameInitial = parts[1]?.[0] || '';
+                                    return (firstNameInitial + lastNameInitial).toUpperCase();
+                                  })()}
                                 </div>
                               )}
                             </div>
@@ -607,7 +697,7 @@ function PublicResultsContent({ forceVisible = false }) {
           )
         })}
       </div>
-
+      )}
     </>
   )
 }

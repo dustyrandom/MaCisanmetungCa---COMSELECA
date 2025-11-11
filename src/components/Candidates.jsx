@@ -27,25 +27,55 @@ function Candidates({ forceVisible = false }) {
   ]
 
   useEffect(() => {
-    const loadCandidates = async () => {
-      try {
-        const candidatesRef = dbRef(db, 'candidates')
-        const snapshot = await get(candidatesRef)
-        if (snapshot.exists()) {
-          const data = snapshot.val()
-          const list = Object.keys(data).map(id => ({ id, ...data[id] }))
-          setCandidates(list)
-        } else {
-          setCandidates([])
-        }
-      } catch (e) {
-        console.error('Failed to load election candidates:', e)
-      } finally {
-        setLoading(false)
+  const loadCandidates = async () => {
+    try {
+      const [candidatesSnap, usersSnap] = await Promise.all([
+        get(dbRef(db, 'candidates')),
+        get(dbRef(db, 'users'))
+      ])
+
+      if (candidatesSnap.exists()) {
+        const candidatesData = candidatesSnap.val()
+        const usersData = usersSnap.exists() ? usersSnap.val() : {}
+
+        const list = Object.keys(candidatesData).map(id => {
+          const c = candidatesData[id]
+
+          // Find matching user (by email or studentId)
+          const matchingUser = Object.values(usersData).find(
+            u =>
+              (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
+              (u.studentId && u.studentId === c.studentId)
+          )
+
+          // Determine profile picture priority: users DB → candidates DB → fallback
+          const profilePicture =
+            (matchingUser && matchingUser.profilePicture) || 
+            c.profilePicture || 
+            null  // we'll handle null in the JSX with fallback avatar
+
+          return {
+            id,
+            ...c,
+            profilePicture,
+            fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+          }
+        })
+
+        setCandidates(list)
+      } else {
+        setCandidates([])
       }
+    } catch (e) {
+      console.error('Failed to load election candidates:', e)
+    } finally {
+      setLoading(false)
     }
-    loadCandidates()
-  }, [])
+  }
+
+  loadCandidates()
+}, [])
+
 
   const combinedPositionsOrder = [...sscPositions, ...iscPositions]
 
@@ -121,10 +151,19 @@ function Candidates({ forceVisible = false }) {
                               {/* Profile picture */}
                               <div className="flex-shrink-0">
                                 {candidate.profilePicture ? (
-                                  <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                  <img
+                                    src={candidate.profilePicture}
+                                    alt={candidate.fullName || 'Profile'}
+                                    className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                                  />
                                 ) : (
-                                  <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                                    {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                  <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
+                                    {(candidate.fullName || 'U')
+                                      .split(' ')
+                                      .map(n => n[0])
+                                      .join('')
+                                      .slice(0, 2)
+                                      .toUpperCase()}
                                   </div>
                                 )}
                               </div>
@@ -173,10 +212,19 @@ function Candidates({ forceVisible = false }) {
                                       {/* Profile picture */}
                                       <div className="flex-shrink-0">
                                         {candidate.profilePicture ? (
-                                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                          <img
+                                            src={candidate.profilePicture}
+                                            alt={candidate.fullName || 'Profile'}
+                                            className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                                          />
                                         ) : (
-                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                                            {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
+                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
+                                            {(candidate.fullName || 'U')
+                                              .split(' ')
+                                              .map(n => n[0])
+                                              .join('')
+                                              .slice(0, 2)
+                                              .toUpperCase()}
                                           </div>
                                         )}
                                       </div>
