@@ -385,8 +385,8 @@ const handleExport = async () => {
                     disabled={votes.length === 0}
                     className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
                       votes.length === 0
-                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-green-700 text-white border-green-700 hover:bg-green-600 transition'
+                        ? 'bg-gray-100 text-gray-400 font-medium rounded-lg border-gray-200 cursor-not-allowed'
+                        : 'bg-green-600 text-white font-medium rounded-lg border-green-700 hover:bg-green-600 transition'
                     }`}
                     title="Export votes"
                   >

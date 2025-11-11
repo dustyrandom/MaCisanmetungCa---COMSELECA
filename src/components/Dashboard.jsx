@@ -60,7 +60,12 @@ function Dashboard() {
   const renderAdminDashboard = () => (
     <div className="space-y-6">
       <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-        <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Admin Controls</h3>
+        {userData.role === 'superadmin' && (
+          <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Super Admin Controls</h3>
+        )}
+        {userData.role === 'admin' && (
+          <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Admin Controls</h3>
+        )}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
           <a href="/admin/manage-news" className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-500 text-center text-sm sm:text-base">Manage News</a>
           <a href="/admin/manage-announcements" className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-500 text-center text-sm sm:text-base">Manage Announcements</a>
