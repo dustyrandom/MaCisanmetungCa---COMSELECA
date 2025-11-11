@@ -15,12 +15,11 @@ import {
 
 function PublicResultsContent({ forceVisible = false }) {
   const [candidates, setCandidates] = useState([])
-  const [loadingTeams, setLoadingTeams] = useState(true)
   const [barData, setBarData] = useState([
     { name: 'IAS', value: 0, color: '#10b981' },
     { name: 'IBCE', value: 0, color: '#f59e0b' },
-    { name: 'ITE', value: 0, color: '#3b82f6' },
     { name: 'IHTM', value: 0, color: '#ec4899' },
+    { name: 'ITE', value: 0, color: '#3b82f6' },
   ])
 
   const institutePopulation = {
@@ -34,16 +33,11 @@ function PublicResultsContent({ forceVisible = false }) {
   const [publicVisible, setPublicVisible] = useState(true)
   const [votes, setVotes] = useState([])
 
-  const pieColors = ['#ef4444', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#f43f5e', '#22c55e', '#eab308']
   const sscPositions = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
-  const iscPositions = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
-  const institutes = [
-    'Institute of Arts and Sciences',
-    'Institute of Business and Computing Education',
-    'Institute of Teacher Education',
-    'Institute of Hospitality and Tourism Management'
+  const iscPositions = [
+    'Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources'
   ]
 
   const [filterInstitute, setFilterInstitute] = useState("");
@@ -108,7 +102,6 @@ function PublicResultsContent({ forceVisible = false }) {
 
         if (votesSnap.exists()) {
           const votesVal = votesSnap.val()
-          const users = usersSnap.exists() ? usersSnap.val() : {}
 
           // Merge institute info into votes
           const mergedVotes = Object.keys(votesVal).map(uid => ({
@@ -250,8 +243,8 @@ function PublicResultsContent({ forceVisible = false }) {
               <option value="SSC">SSC</option>
               <option value="IAS">IAS</option>
               <option value="IBCE">IBCE</option>
-              <option value="ITE">ITE</option>
               <option value="IHTM">IHTM</option>
+              <option value="ITE">ITE</option>
             </select>
           </div>
         </div>

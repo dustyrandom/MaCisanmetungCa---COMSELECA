@@ -18,6 +18,9 @@ function ManageUsers() {
   const [adminPassword, setAdminPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+  const [hasLinkedData, setHasLinkedData] = useState(false)
+  const [linkedMessage, setLinkedMessage] = useState('')
+
 
   // Modal
   const [editingUid, setEditingUid] = useState(null)
@@ -71,7 +74,11 @@ function ManageUsers() {
   }, [searchId, users])
 
   // Modal handlers
-  const openEditModal = (u) => {
+  const openEditModal = async (u) => {
+    // reset previous linked data before checking new one
+    setHasLinkedData(false)
+    setLinkedMessage('')
+
     setEditingUid(u.uid)
     setEditData({
       firstName: u.firstName || '',
@@ -82,6 +89,27 @@ function ManageUsers() {
       role: u.role || 'voter',
       emailVerified: !!u.emailVerified,
     })
+
+    // Check for existing candidacy or votes
+    try {
+      const appsSnap = await get(dbRef(db, `candidacyApplications/${u.uid}`))
+      const votesSnap = await get(dbRef(db, `electionVotes/${u.uid}`))
+
+      if (appsSnap.exists()) {
+        setHasLinkedData(true)
+        setLinkedMessage('This user has an existing candidacy application. Editing is disabled.')
+      } else if (votesSnap.exists()) {
+        setHasLinkedData(true)
+        setLinkedMessage('This user has existing votes. Editing is disabled.')
+      } else {
+        setHasLinkedData(false)
+        setLinkedMessage('')
+      }
+    } catch (error) {
+      console.error('Error checking user links:', error)
+      setHasLinkedData(false)
+      setLinkedMessage('')
+    }
   }
 
   const closeEditModal = () => {
@@ -94,6 +122,8 @@ function ManageUsers() {
       institute: '',
       role: '',
     })
+    setHasLinkedData(false)
+    setLinkedMessage('')
   }
 
   const handleEditChange = (e) => {
@@ -342,7 +372,12 @@ function ManageUsers() {
                                 />
                               ) : (
                                 <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                                  {(u.fullName || 'U').slice(0, 2).toUpperCase()}
+                                  {(u.fullName || 'U')
+                                    .split(' ')
+                                    .map(n => n[0])
+                                    .join('')
+                                    .slice(0, 2)
+                                    .toUpperCase()}
                                 </div>
                               )}
                             </div>
@@ -409,16 +444,21 @@ function ManageUsers() {
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-red-900 mb-4">Edit User</h2>
             <div className="space-y-3">
+              {hasLinkedData && (
+                <div className="mb-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm font-medium">
+                  {linkedMessage}
+                </div>
+              )}
               <label className="block text-sm font-medium">First Name</label>
-              <input name="firstName" value={editData.firstName} onChange={handleEditChange} className="border w-full p-2 rounded" />
+              <input name="firstName" disabled={hasLinkedData} value={editData.firstName} onChange={handleEditChange} className="border w-full p-2 rounded" />
               <label className="block text-sm font-medium">Last Name</label>
-              <input name="lastName" value={editData.lastName} onChange={handleEditChange} className="border w-full p-2 rounded" />
+              <input name="lastName" disabled={hasLinkedData} value={editData.lastName} onChange={handleEditChange} className="border w-full p-2 rounded" />
               <label className="block text-sm font-medium">Email (@mcc.edu.ph)</label>
-              <input name="email" value={editData.email} onChange={handleEditChange} className="border w-full p-2 rounded" disabled/>
+              <input name="email" value={editData.email} onChange={handleEditChange} className="border w-full p-2 rounded cursor-not-allowed  border-gray-300 shadow-sm bg-gray-50 text-gray-500" disabled={true}/>
               <label className="block text-sm font-medium">Student ID</label>
-              <input name="studentId" value={editData.studentId} onChange={handleEditChange} className="border w-full p-2 rounded" />
+              <input name="studentId" disabled={hasLinkedData} value={editData.studentId} onChange={handleEditChange} className="border w-full p-2 rounded" />
               <label className="block text-sm font-medium">Institute</label>
-              <select name="institute" value={editData.institute} onChange={handleEditChange} className="border w-full p-2 rounded">
+              <select name="institute" disabled={hasLinkedData} value={editData.institute} onChange={handleEditChange} className="border w-full p-2 rounded">
                 <option value="">Select Institute</option>
                 <option value="Institute of Arts and Sciences">Institute of Arts and Sciences</option>
                 <option value="Institute of Business and Computing Education">Institute of Business and Computing Education</option>
@@ -426,7 +466,7 @@ function ManageUsers() {
                 <option value="Institute of Hospitality and Tourism Management">Institute of Hospitality and Tourism Management</option>
               </select>
               <label className="block text-sm font-medium">Role</label>
-              <select name="role" value={editData.role} onChange={handleEditChange} className="border w-full p-2 rounded">
+              <select name="role" disabled={hasLinkedData} value={editData.role} onChange={handleEditChange} className="border w-full p-2 rounded">
                 <option value="voter">Voter</option>
                 <option value="candidate">Candidate</option>
                 <option value="admin">Admin</option>
@@ -436,7 +476,13 @@ function ManageUsers() {
             
             <div className="mt-5 flex justify-end space-x-3">
               <button onClick={closeEditModal} className="px-4 py-2 bg-gray-500 rounded-lg font-medium text-white hover:bg-gray-600">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-red-800 text-white rounded-lg font-medium hover:bg-red-900">Save Changes</button>
+              <button onClick={handleSave} disabled={hasLinkedData} className={`px-4 py-2 rounded-lg font-medium text-white 
+              ${hasLinkedData
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-800 hover:bg-red-900'
+              }`}>
+                Save Changes
+              </button>
             </div>
             <hr className="my-6 border-gray-300" />
             <div className="mt-4">
@@ -446,17 +492,16 @@ function ManageUsers() {
               </p>
               <button
                 onClick={() => setShowPasswordConfirm(true)}
-                disabled={editData.emailVerified}
-                className={`w-full py-2 rounded-lg font-medium text-white transition ${
-                  editData.emailVerified
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
+                disabled={hasLinkedData} 
+                className={`w-full py-2 rounded-lg font-medium text-white transition
+                  ${hasLinkedData
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}>
                 Delete User
               </button>
             </div>
-          </div>
+          </div> 
         </div>
       )}
 

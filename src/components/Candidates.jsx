@@ -147,7 +147,7 @@ function Candidates({ forceVisible = false }) {
                       {positionCandidates.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {positionCandidates.map(candidate => (
-                            <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
+                            <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4 overflow-hidden">
                               {/* Profile picture */}
                               <div className="flex-shrink-0">
                                 {candidate.profilePicture ? (
@@ -169,12 +169,12 @@ function Candidates({ forceVisible = false }) {
                               </div>
 
                               {/* Candidate info */}
-                              <div className="flex-1">
-                                <h4 className="font-semibold">{candidate.lastName}, {candidate.firstName}</h4>
-                                <p className="text-sm text-gray-600">{candidate.email}</p>
-                                <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                <p className="text-sm text-gray-600">{candidate.institute}</p>
-                                <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                              <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
+                                <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
+                                <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
+                                <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p>
+                                <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
+                                <p className="text-sm text-green-600 truncate">Party: {candidate.team ? candidate.team : 'Independent'}</p>
                               </div>
                             </div>
                           ))}
@@ -208,7 +208,7 @@ function Candidates({ forceVisible = false }) {
                               {positionCandidates.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                   {positionCandidates.map(candidate => (
-                                    <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4">
+                                    <div key={candidate.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex items-center gap-4 overflow-hidden">
                                       {/* Profile picture */}
                                       <div className="flex-shrink-0">
                                         {candidate.profilePicture ? (
@@ -230,12 +230,12 @@ function Candidates({ forceVisible = false }) {
                                       </div>
 
                                       {/* Candidate info */}
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold">{candidate.lastName}, {candidate.firstName}</h4>
-                                        <p className="text-sm text-gray-600">{candidate.email}</p>
-                                        <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                        <p className="text-sm text-gray-600">{candidate.institute}</p>
-                                        <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
+                                      <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
+                                        <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
+                                        <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
+                                        <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p>
+                                        <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
+                                        <p className="text-sm text-green-600 truncate">Party: {candidate.team ? candidate.team : 'Independent'}</p>
                                       </div>
                                     </div>
                                   ))}

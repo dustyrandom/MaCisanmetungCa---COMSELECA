@@ -46,62 +46,76 @@ function VotingPage() {
   ]
 
   useEffect(() => {
-    const loadCandidates = async () => {
-      try {
-        const candidatesRef = dbRef(db, 'candidates')
-        const candidatesSnapshot = await get(candidatesRef)
-        if (candidatesSnapshot.exists()) {
-          const data = candidatesSnapshot.val()
-          const candidatesList = Object.keys(data).map(id => ({ id, ...data[id] }))
-          setCandidates(candidatesList)
-        }
+  const loadCandidates = async () => {
+    try {
+      const candidatesRef = dbRef(db, 'candidates')
+      const usersRef = dbRef(db, 'users')
 
-        // Load voting status
-        const votingStatusRef = dbRef(db, 'votingStatus')
-        const votingStatusSnapshot = await get(votingStatusRef)
-        if (votingStatusSnapshot.exists()) {
-          const status = votingStatusSnapshot.val()
-          setVotingStatus(status)
-          
-          // Check if voting should be active based on current time
-          const now = new Date()
-          const startDate = status.startDate ? new Date(status.startDate) : null
-          const endDate = status.endDate ? new Date(status.endDate) : null
-          
-          let shouldBeActive = false
-          if (startDate && endDate) {
-            shouldBeActive = now >= startDate && now <= endDate
-          } else if (startDate) {
-            shouldBeActive = now >= startDate
-          } else if (endDate) {
-            shouldBeActive = now <= endDate
-          }
-          
-          // Update status if it doesn't match
-          if (shouldBeActive !== status.isActive) {
-            const updatedStatus = { ...status, isActive: shouldBeActive }
-            setVotingStatus(updatedStatus)
-            await set(votingStatusRef, updatedStatus)
-          }
-        }
+      const [candidatesSnap, usersSnap] = await Promise.allSettled([
+        get(candidatesRef),
+        get(usersRef)
+      ])
 
-        // Check if user has already voted
-        if (user) {
-          const userVoteRef = dbRef(db, `electionVotes/${user.uid}`)
-          const userVoteSnapshot = await get(userVoteRef)
-          if (userVoteSnapshot.exists()) {
-            setHasVoted(true)
-            setSubmitted(true)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load candidates:', error)
-      } finally {
-        setLoading(false)
+      let candidatesData = {}
+      let usersData = {}
+
+      if (candidatesSnap.status === 'fulfilled' && candidatesSnap.value.exists()) {
+        candidatesData = candidatesSnap.value.val()
       }
+
+      if (usersSnap.status === 'fulfilled' && usersSnap.value.exists()) {
+        usersData = usersSnap.value.val()
+      }
+
+      const mergedCandidates = Object.keys(candidatesData).map(id => {
+        const c = candidatesData[id]
+        const matchingUser = Object.values(usersData).find(
+          u =>
+            (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
+            (u.studentId && u.studentId === c.studentId)
+        )
+
+        const profilePicture =
+          (matchingUser && matchingUser.profilePicture) ||
+          c.profilePicture ||
+          null
+
+        return {
+          id,
+          ...c,
+          profilePicture,
+          fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+        }
+      })
+
+      setCandidates(mergedCandidates)
+      // ---- Load voting status ----
+      const votingStatusRef = dbRef(db, 'votingStatus')
+      const votingStatusSnapshot = await get(votingStatusRef)
+      if (votingStatusSnapshot.exists()) {
+        const status = votingStatusSnapshot.val()
+        setVotingStatus(status)
+      }
+
+      // ---- Check if user has already voted ----
+      if (user) {
+        const userVoteRef = dbRef(db, `electionVotes/${user.uid}`)
+        const userVoteSnapshot = await get(userVoteRef)
+        if (userVoteSnapshot.exists()) {
+          setHasVoted(true)
+          setSubmitted(true)
+        }
+      }
+
+    } catch (error) {
+      console.error('Failed to load candidates:', error)
+    } finally {
+      setLoading(false) // ensures spinner stops no matter what
     }
-    loadCandidates()
-  }, [user])
+  }
+  loadCandidates()
+}, [user])
+
 
   const getCandidatesForPosition = (positionName, page) => {
     if (page === 1) {
@@ -123,7 +137,7 @@ function VotingPage() {
       
       if (maxVotes > 1) {
         // Multi-select roles
-        if (!newVotes[position]) newVotes[rpositionole] = []
+        if (!newVotes[position]) newVotes[position] = []
         const currentVotes = newVotes[position] || []
         
         if (currentVotes.includes(candidateId)) {
