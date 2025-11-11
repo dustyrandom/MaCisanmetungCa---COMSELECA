@@ -42,7 +42,6 @@ function ViewResults() {
   ITE: 'Institute of Teacher Education'
 }
 
-
   useEffect(() => {
     const loadData = async () => {
       try {

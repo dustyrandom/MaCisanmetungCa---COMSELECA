@@ -113,7 +113,7 @@ function PublicResultsContent({ forceVisible = false }) {
           // Merge institute info into votes
           const mergedVotes = Object.keys(votesVal).map(uid => ({
             ...votesVal[uid],
-            institute: (users[uid]?.institute || "").toUpperCase()
+            institute: (votesVal[uid]?.voterInstitute || "").toUpperCase()
           }))
 
           setVotes(mergedVotes)
@@ -126,6 +126,7 @@ function PublicResultsContent({ forceVisible = false }) {
             else if (inst === "INSTITUTE OF HOSPITALITY AND TOURISM MANAGEMENT") counts.IHTM += 1
             else if (inst === "INSTITUTE OF TEACHER EDUCATION") counts.ITE += 1
           })
+          
         }
 
         setBarData([

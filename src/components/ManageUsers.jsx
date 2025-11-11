@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { ref as dbRef, get, update } from 'firebase/database'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 import { logActivity } from '../utils/logActivity'
+import { ref as dbRef, get, update, remove } from 'firebase/database'
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 
 function ManageUsers() {
   const { user, userData } = useAuth()
@@ -12,6 +13,11 @@ function ManageUsers() {
   const [message, setMessage] = useState('')
   const [filteredUsers, setFilteredUsers] = useState([])
   const [searchId, setSearchId] = useState('')
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [adminPassword, setAdminPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Modal
   const [editingUid, setEditingUid] = useState(null)
@@ -22,6 +28,7 @@ function ManageUsers() {
     studentId: '',
     institute: '',
     role: '',
+    emailVerified: false,
   })
 
   // Fetch users
@@ -36,6 +43,7 @@ function ManageUsers() {
           const userList = Object.keys(data).map(uid => ({
             uid,
             ...data[uid],
+            emailVerified: data[uid].emailVerified || false
           }))
           setUsers(userList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)))
         }
@@ -72,6 +80,7 @@ function ManageUsers() {
       studentId: u.studentId || '',
       institute: u.institute || '',
       role: u.role || 'voter',
+      emailVerified: !!u.emailVerified,
     })
   }
 
@@ -210,6 +219,34 @@ function ManageUsers() {
     }
   }
 
+  const handleConfirmDelete = async () => {
+    try {
+      setIsDeleting(true)
+      setPasswordError('')
+
+      //Verify the admin password
+      const credential = await reauthenticateWithCredential(
+        user,
+        EmailAuthProvider.credential(user.email, adminPassword)
+      )
+
+      //Proceed with deletion
+      await remove(dbRef(db, `users/${editingUid}`))
+      await logActivity(userData.fullName, `Deleted user "${editData.firstName} ${editData.lastName}"`)
+
+      // Update UI
+      setUsers((prev) => prev.filter((u) => u.uid !== editingUid))
+      setMessage('User deleted successfully!')
+      setShowPasswordConfirm(false)
+      setEditingUid(null)
+    } catch (error) {
+      console.error('Password verification failed:', error)
+      setPasswordError('Incorrect admin password. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (userData?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -286,6 +323,7 @@ function ManageUsers() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -324,6 +362,17 @@ function ManageUsers() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">{u.email}</td>
+                        <td className="px-6 py-4">
+                          {u.emailVerified ? (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                              VERIFIED
+                            </span>
+                          ) : (
+                            <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                              UNVERIFIED
+                            </span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 text-sm">
                           {u.uid !== user.uid && (
                             <button
@@ -384,9 +433,137 @@ function ManageUsers() {
                 <option value="superadmin">Super Admin</option>
               </select>
             </div>
+            
             <div className="mt-5 flex justify-end space-x-3">
               <button onClick={closeEditModal} className="px-4 py-2 bg-gray-500 rounded-lg font-medium text-white hover:bg-gray-600">Cancel</button>
               <button onClick={handleSave} className="px-4 py-2 bg-red-800 text-white rounded-lg font-medium hover:bg-red-900">Save Changes</button>
+            </div>
+            <hr className="my-6 border-gray-300" />
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-red-700 mb-2">Danger Zone</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                Deleting this user will permanently remove their account and data. This action cannot be undone.
+              </p>
+              <button
+                onClick={() => setShowPasswordConfirm(true)}
+                disabled={editData.emailVerified}
+                className={`w-full py-2 rounded-lg font-medium text-white transition ${
+                  editData.emailVerified
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPasswordConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Deletion</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              You are about to permanently delete user:
+              <div className="my-2">
+                <span className="font-semibold text-2xl text-gray-900">
+                  {editData.firstName} {editData.lastName}
+                </span>
+              </div>
+              <span className="font-semibold text-red-700">
+                This action cannot be undone.
+              </span>
+            </p>
+
+            {/* Password Input with Eye Toggle */}
+            <div className="mb-5">
+              <label className="block text-sm text-gray-700 mb-1">
+                Please enter your admin password:
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {showPassword ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    )}
+                  </svg>
+                </button>
+              </div>
+
+              {/*Error Message */}
+              {passwordError && (
+                <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded-lg font-medium border hover:bg-gray-600 bg-gray-500 text-white"
+                onClick={() => {
+                  setShowPasswordConfirm(false)
+                  setAdminPassword('')
+                  setPasswordError('')
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg text-white font-medium ${
+                  adminPassword ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-400 cursor-not-allowed'
+                }`}
+                onClick={async () => {
+                  if (!adminPassword) return
+                  await handleConfirmDelete()
+                }}
+                disabled={!adminPassword || isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Confirm'}
+              </button>
             </div>
           </div>
         </div>
