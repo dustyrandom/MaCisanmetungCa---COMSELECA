@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext"
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { logActivity } from '../utils/logActivity';
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
 
 function ViewResults() {
   const { userData, loading: authLoading } = useAuth()
@@ -21,7 +22,11 @@ function ViewResults() {
   const [publicVisible, setPublicVisible] = useState(false)
   const [savingPublish, setSavingPublish] = useState(false)
   const [voterFilter, setVoterFilter] = useState('All')
-
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+  const [adminPassword, setAdminPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const sscPosition = [
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
@@ -380,7 +385,7 @@ const handleExport = async () => {
 
                 {userData.role === 'superadmin' && (
                   <button
-                    onClick={handleExport}
+                    onClick={() => setShowPasswordConfirm(true)}
                     disabled={votes.length === 0}
                     className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
                       votes.length === 0
@@ -851,6 +856,102 @@ const handleExport = async () => {
           </div>
         </div>
       </div>
+      {showPasswordConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Export</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              Please enter your admin password to confirm exporting the results.
+            </p>
+
+            {/* Password Input with Eye Toggle */}
+            <div className="mb-5">
+              <label className="block text-sm text-gray-700 mb-1">Password:</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {showPassword ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    )}
+                  </svg>
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded-lg font-medium border bg-gray-500 hover:bg-gray-600 text-white"
+                onClick={() => {
+                  setShowPasswordConfirm(false)
+                  setAdminPassword('')
+                  setPasswordError('')
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg text-white font-medium ${
+                  adminPassword ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-400 cursor-not-allowed'
+                }`}
+                onClick={async () => {
+                  if (!adminPassword) return
+                  try {
+                    setIsExporting(true)
+                    setPasswordError('')
+                    // Verify admin password (just like ManageUsers)
+                    const auth = getAuth()
+                    await reauthenticateWithCredential(
+                      auth.currentUser,
+                      EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
+                    )
+                    setShowPasswordConfirm(false)
+                    await handleExport()
+                  } catch (error) {
+                    console.error(error)
+                    setPasswordError('Incorrect password. Please try again.')
+                  } finally {
+                    setIsExporting(false)
+                  }
+                }}
+                disabled={!adminPassword || isExporting}
+              >
+                {isExporting ? 'Verifying…' : 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

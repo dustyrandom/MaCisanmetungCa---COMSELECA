@@ -123,7 +123,7 @@ function VotingPage() {
       return candidates.filter(c => c.position === positionName && sscPositions.some(position => position.name === c.position))
     } else {
       // ISC roles
-      return candidates.filter(c => c.position === position && iscPositions.some(position => position.name === c.position))
+      return candidates.filter(c => c.position === positionName && iscPositions.some(position => position.name === c.position))
     }
   }
 
@@ -237,30 +237,31 @@ function VotingPage() {
                     <div
                       key={candidate.id}
                       onClick={() => handleVote(position.name, candidate.id, position.maxVotes)}
-                      className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        isSelected 
-                          ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      className={`flex items-center gap-4 p-4 border rounded-lg shadow-sm transition-colors cursor-pointer overflow-hidden
+                        ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                     >
-
                       <div className="flex-shrink-0">
                         {candidate.profilePicture ? (
-                          <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                          <img
+                            src={candidate.profilePicture}
+                            alt="Profile"
+                            className="h-20 w-20 rounded-full object-cover border-4 border-gray-200"
+                          />
                         ) : (
-                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                          <div className="h-20 w-20 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
                             {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
                           </div>
                         )}
                       </div>
 
-                      <div>
-                        <h4 className="font-medium">{candidate.lastName}, {candidate.firstName}</h4>
-                        <p className="text-sm text-gray-600">{candidate.institute}</p>
-                        <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
-                        {/* {isSelected && (
-                          <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
-                        )} */}
+                      <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
+                        <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">
+                          {candidate.lastName}, {candidate.firstName}
+                        </h4>
+                        <p className="text-gray-600">{candidate.institute}</p>
+                        <p className="text-green-600 font-medium">
+                          Party: {candidate.team ? candidate.team : 'Independent'}
+                        </p>
                       </div>
                     </div>
                   )
@@ -324,29 +325,32 @@ function VotingPage() {
                           <div
                             key={candidate.id}
                             onClick={() => handleVote(`${institute}-${position.name}`, candidate.id, position.maxVotes)}
-                            className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                              isSelected 
-                                ? 'border-blue-500 bg-blue-50' 
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                            className={`flex items-center gap-4 p-4 border rounded-lg shadow-sm transition-colors cursor-pointer overflow-hidden
+                              ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                           >
                             <div className="flex-shrink-0">
                               {candidate.profilePicture ? (
-                                <img src={candidate.profilePicture} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
+                                <img
+                                  src={candidate.profilePicture}
+                                  alt="Profile"
+                                  className="h-20 w-20 rounded-full object-cover border-4 border-gray-200"
+                                />
                               ) : (
-                                <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                                <div className="h-20 w-20 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
                                   {(candidate.fullName || 'U').slice(0, 2).toUpperCase()}
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <h5 className="font-medium">{candidate.lastName}, {candidate.firstName}</h5>
-                              <p className="text-sm text-green-600">Party: {candidate.team ? candidate.team: 'Independent'}</p>
-                              {/* {isSelected && (
-                                <p className="text-sm text-blue-600 font-medium mt-2">✓ Selected</p>
-                              )} */}
+
+                            <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
+                              <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">
+                                {candidate.lastName}, {candidate.firstName}
+                              </h4>
+                              <p className="text-gray-600">{candidate.institute}</p>
+                              <p className="text-green-600 font-medium">
+                                Party: {candidate.team ? candidate.team : 'Independent'}
+                              </p>
                             </div>
-                            
                           </div>
                         )
                       })}

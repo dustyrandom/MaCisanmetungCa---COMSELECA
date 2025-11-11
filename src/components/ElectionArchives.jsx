@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import NavBar from "./NavBar";
 import { useAuth } from '../contexts/AuthContext'
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
 
 export default function ElectionArchives() {
   const { userData } = useAuth();
@@ -16,6 +17,12 @@ export default function ElectionArchives() {
   const [archives, setArchives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmText, setConfirmText] = useState("");
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [selectedArchive, setSelectedArchive] = useState(null);
 
   // ----- IMPORTANT: define loadArchives before useEffect so it can be called -----
   const loadArchives = async () => {
@@ -350,9 +357,6 @@ export default function ElectionArchives() {
         readableVotes[voterName] = row;
       }
 
-      // flatten candidacy applications for readable sheet
-      const candidacyRows = flattenCandidacyApplications(candidacyRaw);
-
       const readableData = {
         candidacyApplications: candidacyRaw,
         screeningAppointments: appointmentSnap.val() || {}, 
@@ -408,6 +412,7 @@ export default function ElectionArchives() {
         remove(ref(db, "votingStatus")),
         remove(ref(db, "candidacyStatus")),
         remove(ref(db, "campaignStatus")),
+        remove(ref(db, "campaignSubmissions")),
         remove(ref(db, "announcements")),
         remove(ref(db, "news")),
         remove(ref(db, "candidates")),
@@ -547,8 +552,6 @@ export default function ElectionArchives() {
               </div>
           </div>
 
-          
-
         {/* Archive list */}
         <div className="bg-white shadow-md border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Archived Elections</h2>
@@ -574,7 +577,15 @@ export default function ElectionArchives() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{arc.title}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{arc.archivedAt ? new Date(arc.archivedAt).toLocaleString() : ""}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="px-3 py-1 rounded-lg font-medium text-white text-sm bg-green-600 hover:bg-green-700 transition" onClick={() => handleDownloadArchive(arc)}>Download</button>
+                        <button
+                          className="px-3 py-1 rounded-lg font-medium text-white text-sm bg-green-600 hover:bg-green-700 transition"
+                          onClick={() => {
+                            setSelectedArchive(arc);
+                            setShowPasswordConfirm(true);
+                          }}
+                        >
+                          Download
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -587,7 +598,7 @@ export default function ElectionArchives() {
       </div>
       
         {/* Confirm modal */}
-        {showConfirm && (
+        {/* {showConfirm && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
             <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Archive</h3>
@@ -600,10 +611,10 @@ export default function ElectionArchives() {
                 </div>
                 This will move all election data into archives and reset the system for the next election. 
                 <span className="font-semibold text-red-700"> This action cannot be undone.</span>
-              </p>
+              </p> */}
 
               {/* ✅ Confirmation input */}
-              <div className="mb-5">
+              {/* <div className="mb-5">
                 <label className="block text-sm text-gray-700 mb-1">
                   Please type <span className="font-bold text-red-700">CONFIRM</span> to proceed:
                 </label>
@@ -636,6 +647,211 @@ export default function ElectionArchives() {
                   disabled={confirmText !== "CONFIRM"}
                 >
                   Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )} */}
+
+        {showConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Archive</h3>
+              <p className="text-gray-600 mb-4 text-sm">
+                Please enter your admin password to archive:
+                <div className="my-2">
+                  <span className="font-semibold text-2xl text-gray-900">
+                    {archiveTitle || "Untitled Election"}
+                  </span>
+                </div>
+                This will move all election data into archives and reset the system for the next election. 
+                <span className="font-semibold text-red-700"> This action cannot be undone.</span>
+              </p>
+
+              {/* Password input */}
+              <div className="mb-5">
+                <label className="block text-sm text-gray-700 mb-1">Password:</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {showPassword ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                        />
+                      ) : (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      )}
+                    </svg>
+                  </button>
+                </div>
+                {passwordError && (
+                  <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded-lg font-medium border hover:bg-gray-600 bg-gray-500 text-white"
+                  onClick={() => {
+                    setShowConfirm(false);
+                    setAdminPassword("");
+                    setPasswordError("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-md text-white font-medium ${
+                    adminPassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  onClick={async () => {
+                    if (!adminPassword) return;
+                    try {
+                      setIsVerifying(true);
+                      setPasswordError("");
+                      const auth = getAuth();
+                      await reauthenticateWithCredential(
+                        auth.currentUser,
+                        EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
+                      );
+                      setShowConfirm(false);
+                      await handleArchiveElection();
+                      setAdminPassword(""); 
+                      setPasswordError(""); 
+                    } catch (error) {
+                      console.error(error);
+                      setPasswordError("Incorrect password. Please try again.");
+                    } finally {
+                      setIsVerifying(false);
+                    }
+                  }}
+                  disabled={!adminPassword || isVerifying}
+                >
+                  {isVerifying ? "Verifying…" : "Confirm"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+        {showPasswordConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Download</h3>
+              <p className="text-gray-600 mb-4 text-sm">
+                Please enter your admin password to download the archive file.
+              </p>
+
+              <div className="mb-5">
+                <label className="block text-sm text-gray-700 mb-1">Password:</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {showPassword ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                        />
+                      ) : (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      )}
+                    </svg>
+                  </button>
+                </div>
+                {passwordError && (
+                  <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded-lg font-medium border bg-gray-500 hover:bg-gray-600 text-white"
+                  onClick={() => {
+                    setShowPasswordConfirm(false);
+                    setAdminPassword("");
+                    setPasswordError("");
+                    setSelectedArchive(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-lg text-white font-medium ${
+                    adminPassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  onClick={async () => {
+                    if (!adminPassword) return;
+                    try {
+                      setIsVerifying(true);
+                      setPasswordError("");
+                      const auth = getAuth();
+                      await reauthenticateWithCredential(
+                        auth.currentUser,
+                        EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
+                      );
+                      setShowPasswordConfirm(false);
+                      await handleDownloadArchive(selectedArchive);
+                      setSelectedArchive(null);
+                      setAdminPassword(""); 
+                      setPasswordError(""); 
+                    } catch (error) {
+                      console.error(error);
+                      setPasswordError("Incorrect password. Please try again.");
+                    } finally {
+                      setIsVerifying(false);
+                    }
+                  }}
+                  disabled={!adminPassword || isVerifying}
+                >
+                  {isVerifying ? "Verifying…" : "Confirm"}
                 </button>
               </div>
             </div>
