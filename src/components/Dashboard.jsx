@@ -139,7 +139,7 @@ function Dashboard() {
           <div className="border border-gray-200 p-4 rounded-lg hover:shadow-sm transition">
             <h4 className="font-semibold text-gray-800">Student Council Election 2025</h4>
             <p className="text-gray-600 text-sm">Vote for your student council representatives</p>
-            <a href="/vote" className="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">Vote Now</a>
+            <a href="/vote" className="mt-3 inline-block bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-900 text-sm font-medium">Vote Now</a>
           </div>
         </div>
       </div>

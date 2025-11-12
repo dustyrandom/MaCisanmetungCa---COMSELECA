@@ -4,6 +4,7 @@ import { db } from '../firebase'
 import NavBar from './NavBar'
 import AdminModal from './AdminModal'
 import { useAuth } from "../contexts/AuthContext"
+import { logActivity } from '../utils/logActivity'
 
 function ManageNews() {
   const { userData } = useAuth()
@@ -48,8 +49,10 @@ function ManageNews() {
       if (modalMode === 'edit' && selectedNews) {
         const updateRef = ref(db, `news/${selectedNews.id}`)
         await update(updateRef, { ...formData, updatedAt: new Date().toISOString() })
+        await logActivity(userData.fullName, `Edited news "${formData.title}"`)
       } else {
         await push(newsRef, { ...formData, createdAt: new Date().toISOString() })
+        await logActivity(userData.fullName, `Added news "${formData.title}"`)
       }
       fetchNews()
     } catch (error) {
@@ -68,6 +71,7 @@ function ManageNews() {
     try {
       const newsRef = ref(db, `news/${selectedNews.id}`)
       await remove(newsRef)
+      await logActivity(userData.fullName, `Deleted news "${selectedNews.title}"`)
       fetchNews()
     } catch (error) {
       console.error('Error deleting news:', error)

@@ -4,6 +4,7 @@ import { db } from '../firebase'
 import NavBar from './NavBar'
 import AdminModal from './AdminModal'
 import { useAuth } from "../contexts/AuthContext"
+import { logActivity } from '../utils/logActivity'
 
 function ManageAnnouncements() {
   const { userData } = useAuth()
@@ -45,8 +46,10 @@ function ManageAnnouncements() {
       if (modalMode === 'edit' && selectedAnnouncement) {
         const updateRef = ref(db, `announcements/${selectedAnnouncement.id}`)
         await update(updateRef, { ...formData, updatedAt: new Date().toISOString() })
+        await logActivity(userData.fullName, `Edited announcement "${formData.title}"`)
       } else {
         await push(announcementsRef, { ...formData, createdAt: new Date().toISOString() })
+        await logActivity(userData.fullName, `Added announcement "${formData.title}"`)
       }
       fetchAnnouncements()
     } catch (error) {
@@ -65,6 +68,7 @@ function ManageAnnouncements() {
     try {
       const announcementRef = ref(db, `announcements/${selectedAnnouncement.id}`)
       await remove(announcementRef)
+      await logActivity(userData.fullName, `Deleted announcement "${selectedNews.title}"`)
       fetchAnnouncements()
     } catch (error) {
       console.error('Error deleting announcement:', error)
