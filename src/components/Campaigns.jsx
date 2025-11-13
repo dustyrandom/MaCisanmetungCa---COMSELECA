@@ -3,6 +3,7 @@ import { ref as dbRef, get } from 'firebase/database'
 import { db } from '../firebase'
 import NavBar from './NavBar'
 import ImageModal from './ImageModal'
+import { User } from "lucide-react"
 
 function Campaigns() {
   const [items, setItems] = useState([])
@@ -180,7 +181,7 @@ function Campaigns() {
                           />
                         ) : (
                           <div className="h-12 w-12 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                            {(s.candidateName || 'U').slice(0, 2).toUpperCase()}
+                            <User className="text-gray-500" />
                           </div>
                         )}
                       </div>

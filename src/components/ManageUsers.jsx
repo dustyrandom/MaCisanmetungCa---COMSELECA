@@ -5,6 +5,7 @@ import NavBar from './NavBar'
 import { logActivity } from '../utils/logActivity'
 import { ref as dbRef, get, update, remove } from 'firebase/database'
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
+import { User } from "lucide-react"
 
 function ManageUsers() {
   const { user, userData } = useAuth()
@@ -371,13 +372,8 @@ function ManageUsers() {
                                   alt={u.fullName || 'User'}
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                                  {(u.fullName || 'U')
-                                    .split(' ')
-                                    .map(n => n[0])
-                                    .join('')
-                                    .slice(0, 2)
-                                    .toUpperCase()}
+                                <div className="h-10 w-10 rounded-full bg-gray-200 text-white flex items-center justify-center text-sm font-bold">
+                                  <User className="text-gray-500" />
                                 </div>
                               )}
                             </div>

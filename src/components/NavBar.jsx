@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import iconHeader from '../assets/icon.png'
+import { User } from "lucide-react"
 
 function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -66,8 +67,8 @@ function NavBar() {
                         alt="Profile"
                       />
                     ) : (
-                      <div className="h-8 w-8 rounded-full bg-red-900 text-white flex items-center justify-center text-xs font-bold">
-                        {(userData?.fullName || '').slice(0, 2).toUpperCase()}
+                      <div className="h-8 w-8 rounded-full bg-gray-200 text-white flex items-center justify-center text-xs font-bold">
+                        <User className="text-gray-500 h-10 w-10" />
                       </div>
                     )}
                     <span className="text-sm text-gray-700 font-medium hidden lg:inline truncate max-w-[120px]">

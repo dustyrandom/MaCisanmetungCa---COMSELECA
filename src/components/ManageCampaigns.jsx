@@ -5,6 +5,7 @@ import NavBar from './NavBar'
 import ImageModal from './ImageModal'
 import { useAuth } from '../contexts/AuthContext'
 import { logActivity } from '../utils/logActivity'
+import { User } from "lucide-react"
 
 function ManageCampaigns() {
   const [submissions, setSubmissions] = useState([])
@@ -195,7 +196,7 @@ function ManageCampaigns() {
                 <img className="h-12 w-12 rounded-full object-cover" src={userProfile.profilePicture} alt={s.candidateName || 'Candidate'} />
               ) : (
                 <div className="h-12 w-12 rounded-full bg-red-900 text-white flex items-center justify-center text-sm font-bold">
-                  {(s.candidateName || 'U').slice(0, 2).toUpperCase()}
+                  <User className="text-gray-500" />
                 </div>
               )}
             </div>

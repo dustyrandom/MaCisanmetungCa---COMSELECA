@@ -5,6 +5,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'fi
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { db, storage, auth } from '../firebase'
 import NavBar from './NavBar'
+import { User } from "lucide-react"
 
 function Profile() {
   const { user, userData } = useAuth()
@@ -219,8 +220,8 @@ function Profile() {
                   {profilePictureUrl ? (
                     <img src={profilePictureUrl} alt="Profile" className="h-24 w-24 rounded-full object-cover border-4 border-gray-200" />
                   ) : (
-                    <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
-                      {(formData.fullName || 'U').slice(0, 2).toUpperCase()}
+                    <div className="h-24 w-24 rounded-full bg-gray-200 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-200">
+                      <User className="text-gray-500 h-10 w-10" />
                     </div>
                   )}
                   {loading && (

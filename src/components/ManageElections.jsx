@@ -4,6 +4,7 @@ import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import NavBar from './NavBar'
 import { logActivity } from '../utils/logActivity'
+import { User } from "lucide-react"
 
 function ManageElections() {
   const { userData } = useAuth()
@@ -561,13 +562,8 @@ function ManageElections() {
                                       className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
                                     />
                                   ) : (
-                                    <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
-                                      {(candidate.fullName || 'U')
-                                        .split(' ')
-                                        .map(n => n[0])
-                                        .join('')
-                                        .slice(0, 2)
-                                        .toUpperCase()}
+                                    <div className="h-24 w-24 rounded-full bg-gray-200 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
+                                      <User className="text-gray-500 h-10 w-10" />
                                     </div>
                                   )}
                                 </div>
@@ -640,13 +636,8 @@ function ManageElections() {
                                             className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
                                           />
                                         ) : (
-                                          <div className="h-24 w-24 rounded-full bg-red-900 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
-                                            {(candidate.fullName || 'U')
-                                              .split(' ')
-                                              .map(n => n[0])
-                                              .join('')
-                                              .slice(0, 2)
-                                              .toUpperCase()}
+                                          <div className="h-24 w-24 rounded-full bg-gray-200 text-white flex items-center justify-center text-xl font-bold border-4 border-gray-200">
+                                            <User className="text-gray-500 h-10 w-10" />
                                           </div>
                                         )}
                                       </div>

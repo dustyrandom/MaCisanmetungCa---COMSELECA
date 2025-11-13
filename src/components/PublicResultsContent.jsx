@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts'
+import { User } from "lucide-react"
 
 
 function PublicResultsContent({ forceVisible = false }) {
@@ -232,7 +233,7 @@ function PublicResultsContent({ forceVisible = false }) {
         <div className="flex justify-start mb-6">
           <div className="flex-1 sm:flex-none">
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Filter by Institute
+              Filter:
             </label>
             <select
               value={filterInstitute}
@@ -371,13 +372,8 @@ function PublicResultsContent({ forceVisible = false }) {
                             alt="Profile"
                           />
                         ) : (
-                          <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
-                            {(() => {
-                              const parts = (c.name || "U").split(',').map(p => p.trim());
-                              const lastNameInitial = parts[0]?.[0] || '';
-                              const firstNameInitial = parts[1]?.[0] || '';
-                              return (firstNameInitial + lastNameInitial).toUpperCase();
-                            })()}
+                          <div className="h-16 w-16 rounded-full bg-gray-200 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
+                            <User className="text-gray-500 h-10 w-10" />
                           </div>
                         )}
                       </div>
@@ -645,13 +641,8 @@ function PublicResultsContent({ forceVisible = false }) {
                                   alt="Profile"
                                 />
                               ) : (
-                                <div className="h-16 w-16 rounded-full bg-red-900 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
-                                  {(() => {
-                                    const parts = (c.name || "U").split(',').map(p => p.trim());
-                                    const lastNameInitial = parts[0]?.[0] || '';
-                                    const firstNameInitial = parts[1]?.[0] || '';
-                                    return (firstNameInitial + lastNameInitial).toUpperCase();
-                                  })()}
+                                <div className="h-16 w-16 rounded-full bg-gray-200 text-white flex items-center justify-center text-lg font-bold border border-gray-200">
+                                  <User className="text-gray-500 h-10 w-10" />
                                 </div>
                               )}
                             </div>
