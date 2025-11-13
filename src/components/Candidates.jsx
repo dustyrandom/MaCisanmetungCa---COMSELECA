@@ -167,8 +167,8 @@ function Candidates({ forceVisible = false }) {
                               {/* Candidate info */}
                               <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
                                 <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
-                                <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
-                                <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p>
+                                {/* <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
+                                <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p> */}
                                 <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
                                 <p className="text-sm text-green-600 truncate">Party: {candidate.team ? candidate.team : 'Independent'}</p>
                               </div>
@@ -223,8 +223,8 @@ function Candidates({ forceVisible = false }) {
                                       {/* Candidate info */}
                                       <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
                                         <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
-                                        <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
-                                        <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p>
+                                        {/* <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
+                                        <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p> */}
                                         <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
                                         <p className="text-sm text-green-600 truncate">Party: {candidate.team ? candidate.team : 'Independent'}</p>
                                       </div>
