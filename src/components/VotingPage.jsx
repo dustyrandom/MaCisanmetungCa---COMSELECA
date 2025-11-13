@@ -19,6 +19,7 @@ function VotingPage() {
     endDate: ''
   })
   const [hasVoted, setHasVoted] = useState(false)
+  
 
   const sscPositions = [
     { name: 'President', maxVotes: 1 },
@@ -641,7 +642,6 @@ function VotingPage() {
           ) : (
             <button
               onClick={() => {
-                setConfirmAction({ type: 'vote', action: 'submit' })
                 setShowConfirmModal(true)
               }}
               className="bg-red-800 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-900"
