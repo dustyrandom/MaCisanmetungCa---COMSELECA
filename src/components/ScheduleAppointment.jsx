@@ -12,7 +12,7 @@ function ScheduleAppointment() {
   const [application, setApplication] = useState(null)
   const [history, setHistory] = useState([])
   const [dateTime, setDateTime] = useState('')
-  const VENUE = 'MB201 (MCC Dolores Campus)' //Change venue if necessary
+  /* const VENUE = 'MB201 (MCC Dolores Campus)' //Change venue if necessary */
   const [message, setMessage] = useState('')
   const [canReschedule, setCanReschedule] = useState(false)
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
@@ -68,8 +68,11 @@ function ScheduleAppointment() {
       const slotsSnap = await get(slotsRef)
       if (slotsSnap.exists()) {
         const data = slotsSnap.val()
-        const available = Object.keys(data).filter(k => data[k].available)
-        setSlots(available)
+        const available = Object.entries(data)
+          .filter(([slot, info]) => info.available)
+          .map(([slot, info]) => ({ slot, venue: info.venue || "No venue set" }));
+
+        setSlots(available);
       }
     }
     load()
@@ -113,9 +116,10 @@ function ScheduleAppointment() {
     }
     
     try {
+      const selectedVenue = slots.find(s => s.slot === dateTime)?.venue;
       const appt = {
         dateTime,
-        venue: VENUE,
+        venue: selectedVenue,
         status: 'pending',
         createdAt: new Date().toISOString(),
         createdBy: user.uid
@@ -158,20 +162,27 @@ function ScheduleAppointment() {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-red-900">Screening Appointment</h1>
-          <p className="text-gray-600 mt-1">Apply for an appointment, view status and history</p>
-        </div>
-
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 mt-20">
+        {application && (
+          <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5">
+            <h1 className="text-xl font-bold text-red-900">Screening Appointment</h1>
+            <p className="text-sm text-gray-600 mt-1">Schedule a screening appointment, view status and history</p>
+          </div>
+        )}
         {!application ? (
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6 text-center">
-            <p className="text-gray-600">No candidacy application found.</p>
+          <div className="min-h-screen bg-gray-50">
+            <NavBar />
+            <div className="pt-24 px-4 sm:px-6 lg:px-8 flex justify-center">
+              <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg border border-gray-200 p-10 text-center">
+                <h1 className="text-2xl font-bold text-red-700 mb-3">Access Denied</h1>
+                <p className="text-gray-600">No candidacy application found in this account.</p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-3">Apply for Appointment</h2>
+              <h2 className="text-lg font-semibold mb-3">Schedule an Appointment</h2>
               {existingAppt && !canReschedule ? (
                 <p className="text-sm text-gray-700">Appointment already submitted. See details in history below.</p>
               ) : (
@@ -184,15 +195,15 @@ function ScheduleAppointment() {
                       className="w-full border rounded px-3 py-2"
                     >
                       <option value="">-- Select an Available Slot --</option>
-                      {slots.map((slot) => (
+                      {slots.map(({ slot, venue }) => (
                         <option key={slot} value={slot}>
-                          {new Date(slot).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} –{' '}
-                          {new Date(slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(slot).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}, {''}
+                          {new Date(slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {venue}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <p className="text-sm text-gray-600">Venue: <span className="font-medium">{VENUE}</span></p>
+                  {/* <p className="text-sm text-gray-600">Venue: <span className="font-medium">{VENUE}</span></p> */}
                   <button type="submit" className="bg-red-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-900">{canReschedule ? 'Submit New Appointment' : 'Submit Appointment'}</button>
                   {message && <p className="text-sm text-gray-600">{message}</p>}
                 </form>

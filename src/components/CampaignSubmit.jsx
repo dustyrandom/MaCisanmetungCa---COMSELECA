@@ -313,7 +313,18 @@ function CampaignSubmit() {
                       <div className="text-sm text-gray-600">Submitted: {h.submittedAt ? new Date(h.submittedAt).toLocaleString() : 'N/A'}</div>
                       {h.reviewedAt && <div className="text-xs text-gray-500">Reviewed: {new Date(h.reviewedAt).toLocaleString()}</div>}
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${h.status === 'approved' ? 'bg-green-100 text-green-800' : h.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{h.status || 'pending'}</span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium uppercase
+                        ${
+                          h.status === 'approved'
+                            ? 'bg-green-100 text-green-800'
+                            : h.status === 'rejected'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                    >
+                      {h.status || 'pending'}
+                    </span>
                   </div>
                   {h.caption && <div className="mt-2 text-sm text-gray-800">{h.caption}</div>}
                   {Array.isArray(h.media) && h.media.length > 0 && (

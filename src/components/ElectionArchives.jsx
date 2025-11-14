@@ -447,6 +447,11 @@ export default function ElectionArchives() {
     const candidacyFlattenedRows = flattenCandidacyApplications(nestedCandidacy);
     const wsCand = XLSX.utils.json_to_sheet(candidacyFlattenedRows);
     autoFitColumns(wsCand);
+    wsCand['!protect'] = {
+      password: "readonly",
+      selectLockedCells: true,
+      selectUnlockedCells: true
+    };
     XLSX.utils.book_append_sheet(wb, wsCand, "CandidacyApplications");
 
     // 2) ELECTION VOTES — rows have fixed position columns
@@ -454,6 +459,11 @@ export default function ElectionArchives() {
     const { rows: voteRows } = electionVotesToTableRows(votesObj);
     const wsVotes = XLSX.utils.json_to_sheet(voteRows);
     autoFitColumns(wsVotes);
+    wsVotes['!protect'] = {
+      password: "readonly",
+      selectLockedCells: true,
+      selectUnlockedCells: true
+    };
     XLSX.utils.book_append_sheet(wb, wsVotes, "ElectionVotes");
 
      // 3) SCREENING APPOINTMENTS – formatted with slot + availability
@@ -463,10 +473,16 @@ export default function ElectionArchives() {
     const slotRows = Object.keys(slots).map((slotKey) => ({
       "Slot Date/Time": slotKey,
       "Available": slots[slotKey]?.available === true ? "true" : "false",
+      "Venue": slots[slotKey]?.venue || "No venue set",
     }));
 
     const wsAppointments = XLSX.utils.json_to_sheet(slotRows);
     autoFitColumns(wsAppointments);
+    wsAppointments['!protect'] = {
+      password: "readonly",
+      selectLockedCells: true,
+      selectUnlockedCells: true
+    };
     XLSX.utils.book_append_sheet(wb, wsAppointments, "ScreeningAppointments");
 
     // 4) Other collections — use exact keys from readableData
@@ -500,6 +516,11 @@ export default function ElectionArchives() {
         : [];
       const ws = XLSX.utils.json_to_sheet(rows);
       autoFitColumns(ws);
+      ws['!protect'] = {
+        password: "readonly",
+        selectLockedCells: true,
+        selectUnlockedCells: true
+      };
       XLSX.utils.book_append_sheet(wb, ws, prettySheetName(key).slice(0, 31)); // Excel sheet name limit
     }
 

@@ -15,7 +15,7 @@ const normalizeInstitute = (name) => {
     }
   };
 
-function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointment, savingId, setConfirmAction, setShowConfirmModal }) {
+function ApplicationCard({ app, showActions, savingId, setConfirmAction, setShowConfirmModal }) {
   const formatDateTime = (value) => {
     try {
       return value ? new Date(value).toLocaleString() : ''
@@ -100,20 +100,6 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
         <div className="flex flex-wrap justify-end items-center gap-3">
           <button
             onClick={() => {
-              setConfirmAction({ type: 'candidacy', action: 'review', uid: app.uid, appId: app.id });
-              setShowConfirmModal(true);
-            }}
-            disabled={savingId === `${app.uid}-${app.id}`}
-            className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
-              savingId === `${app.uid}-${app.id}`
-                ? 'bg-indigo-300 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
-            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
-          </button>
-          <button
-            onClick={() => {
               setConfirmAction({ type: 'candidacy', action: 'reject', uid: app.uid, appId: app.id });
               setShowConfirmModal(true);
             }}
@@ -126,54 +112,22 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
           >
             {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reject'}
           </button>
+          <button
+            onClick={() => {
+              setConfirmAction({ type: 'candidacy', action: 'review', uid: app.uid, appId: app.id });
+              setShowConfirmModal(true);
+            }}
+            disabled={savingId === `${app.uid}-${app.id}`}
+            className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
+              savingId === `${app.uid}-${app.id}`
+                ? 'bg-indigo-300 cursor-not-allowed'
+                : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+          >
+            {savingId === `${app.uid}-${app.id}` ? 'Updating…' : 'Reviewed'}
+          </button>
         </div>
       )}
-
-      {/* Appointment Section */}
-      {/* {showAppointment && app.status === 'reviewed' && (
-        <div className="space-y-3 mt-3">
-          {app.appointment ? (
-            <div className="border rounded-lg p-4 text-sm bg-gray-50">
-              <p className="font-medium mb-2 text-gray-800">Screening Appointment</p>
-              <p><span className="text-gray-600">Status:</span> {app.appointment.status}</p>
-              <p><span className="text-gray-600">Date & Time:</span> {formatDateTime(app.appointment.dateTime)}</p>
-              <p><span className="text-gray-600">Venue:</span> {app.appointment.venue}</p>
-
-              {app.appointment.status === 'pending' && (
-                <div className="flex flex-wrap gap-3 mt-4">
-                  <button
-                    onClick={() => {
-                      setConfirmAction({ type: 'candidacy', action: 'approve', uid: app.uid, appId: app.id });
-                      setShowConfirmModal(true);
-                    }}
-                    disabled={savingId === `${app.uid}-${app.id}-appt`}
-                    className={`px-4 py-2 rounded text-sm text-white transition ${
-                      savingId === `${app.uid}-${app.id}-appt`
-                        ? 'bg-green-300 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700'
-                    }`}
-                  >
-                    {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve Appointment'}
-                  </button>
-                  <button
-                    onClick={() => onAppointmentDecision(app.uid, app.id, 'rejected', app.appointment)}
-                    disabled={savingId === `${app.uid}-${app.id}-appt`}
-                    className={`px-4 py-2 rounded text-sm text-white transition ${
-                      savingId === `${app.uid}-${app.id}-appt`
-                        ? 'bg-red-300 cursor-not-allowed'
-                        : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Reject Appointment'}
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-600">No appointment submitted yet.</p>
-          )}
-        </div>
-      )} */}
 
       {/* Passed / Failed Buttons */}
       {showActions && app.status === 'reviewed' && (
@@ -192,25 +146,6 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
               <>
                 <button
                   onClick={() => {
-                    setConfirmAction({ type: 'candidacy', action: 'passed', uid: app.uid, appId: app.id });
-                    setShowConfirmModal(true);
-                  }}
-                  disabled={disableButtons}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
-                    disableButtons
-                      ? 'bg-green-300 cursor-not-allowed'
-                      : 'bg-green-500 hover:bg-green-600'
-                  }`}
-                >
-                  {savingId === `${app.uid}-${app.id}`
-                    ? 'Updating…'
-                    : !app.appointment || app.appointment?.status === 'pending' || isFuture
-                    ? 'Awaiting Screening'
-                    : 'Passed'}
-                </button>
-
-                <button
-                  onClick={() => {
                     setConfirmAction({ type: 'candidacy', action: 'failed', uid: app.uid, appId: app.id });
                     setShowConfirmModal(true);
                   }}
@@ -226,6 +161,24 @@ function ApplicationCard({ app, onAppointmentDecision, showActions, showAppointm
                     : !app.appointment || app.appointment?.status === 'pending' || isFuture
                     ? 'Awaiting Screening'
                     : 'Failed'}
+                </button>
+                <button
+                  onClick={() => {
+                    setConfirmAction({ type: 'candidacy', action: 'passed', uid: app.uid, appId: app.id });
+                    setShowConfirmModal(true);
+                  }}
+                  disabled={disableButtons}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition ${
+                    disableButtons
+                      ? 'bg-green-300 cursor-not-allowed'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  {savingId === `${app.uid}-${app.id}`
+                    ? 'Updating…'
+                    : !app.appointment || app.appointment?.status === 'pending' || isFuture
+                    ? 'Awaiting Screening'
+                    : 'Passed'}
                 </button>
               </>
             );
@@ -245,6 +198,9 @@ function ManageCandidates() {
   const [savingId, setSavingId] = useState('')
   const [appointmentStatus, setAppointmentStatus] = useState({ isActive: false, startDate: '', endDate: '' })
   const [newSlot, setNewSlot] = useState("")
+  const [globalVenue, setGlobalVenue] = useState("")
+  const [editingVenue, setEditingVenue] = useState(false);
+  const [venueError, setVenueError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [slotToDelete, setSlotToDelete] = useState(null)
   const [isError, setIsError] = useState(false)
@@ -253,6 +209,7 @@ function ManageCandidates() {
   const [showCandidacyModal, setShowCandidacyModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // { type: 'candidacy' | 'appointment', action: 'approve' | 'reject' | 'review', uid, appId, appointment }
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [candidacyModalMessage, setCandidacyModalMessage] = useState('');
   const [candidacyModalError, setCandidacyModalError] = useState('');
   // Filtering states
@@ -288,6 +245,8 @@ function ManageCandidates() {
 
       // Realtime appointmentStatus listener
       const statusRef = dbRef(db, 'screeningAppointments')
+      const gvSnap = await get(dbRef(db, 'screeningAppointments/globalVenue'))
+      if (gvSnap.exists()) setGlobalVenue(gvSnap.val())
       const unsubscribe = onValue(statusRef, async (snapshot) => {
         const now = new Date()
         let updatedStatus = { isActive: false, startDate: '', endDate: '', slots: {} }
@@ -685,11 +644,65 @@ function ManageCandidates() {
                   {savingCandidacyStatus ? 'Saving…' : 'Save'}
                 </button>
               </div>
-              </div>
-
+            </div>
               <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Manage Screening Appointment</h3>
                 <div className="space-y-4">
+                  <div>
+                  <div>
+                  <label className="block text-base font-medium text-gray-700 mb-2">
+                    Default Venue
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Venue Input */}
+                    <input
+                      type="text"
+                      value={globalVenue}
+                      disabled={!editingVenue}
+                      onChange={(e) => setGlobalVenue(e.target.value)}
+                      className={`
+                        border rounded px-3 py-2 flex-1 text-sm transition
+                        ${editingVenue 
+                          ? "bg-white text-gray-900 border-gray-300" 
+                          : "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-70"
+                        }
+                      `}
+                      placeholder="Enter venue"
+                    />
+
+                    {/* Buttons same width, same height as Add Slot */}
+                    {!editingVenue ? (
+                      <button
+                        onClick={() => setEditingVenue(true)}
+                        className="min-w-[90px] px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                      >
+                        Change
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          if (!globalVenue.trim()) {
+                            setVenueError("Venue cannot be empty");
+                            setTimeout(() => setVenueError(""), 2000);
+                            return;
+                          }
+                          await set(dbRef(db, 'screeningAppointments/globalVenue'), globalVenue)
+                          logActivity(userData.fullName, `Updated global venue to: ${globalVenue}`)
+                          setEditingVenue(false)
+                          setMessage("Venue saved")
+                          setTimeout(() => setMessage(""), 2000)
+                        }}
+                        className="min-w-[90px] px-4 py-2 bg-red-800 hover:bg-red-900 text-white font-medium rounded-lg"
+                      >
+                        Save
+                      </button>
+                    )}
+                  </div>
+                  {venueError && (
+                    <p className="text-red-600 text-sm mt-1">{venueError}</p>
+                  )}
+                </div>
+              </div>
                   <div>
                     <label className="block text-base font-medium text-gray-700 mb-2">Add Appointment Slot</label>
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -707,33 +720,44 @@ function ManageCandidates() {
                             setTimeout(() => setMessage(""), 2000)
                             return
                           }
-
                           const selectedDate = new Date(newSlot)
                           const now = new Date()
-
                           if (selectedDate < now) {
                             setMessage("Cannot add a past date/time slot")
                             setIsError(true)
                             setTimeout(() => setMessage(""), 2000)
                             return
                           }
-
                           try {
                             const slotRef = dbRef(db, `screeningAppointments/slots/${newSlot}`)
                             const existing = await get(slotRef)
-
                             if (existing.exists()) {
                               setMessage("This slot already exists")
                               setIsError(true)
                               setTimeout(() => setMessage(""), 2000)
                               return
                             }
-
-                            await set(slotRef, { available: true })
+                            const finalVenue = globalVenue
+                            if (!finalVenue.trim()) {
+                              setMessage("Venue cannot be empty")
+                              setIsError(true)
+                              setTimeout(() => setMessage(""), 2000)
+                              return
+                            }
+                            await set(slotRef, { 
+                              available: true,
+                              venue: finalVenue
+                            })
                             setNewSlot("")
                             setMessage("Slot added successfully")
                             setIsError(false)
-                            logActivity(userData.fullName, `Added new screening appointment slot on ${selectedDate.toLocaleString()}`)
+                            logActivity(
+                              userData.fullName,
+                              `Added screening appointment slot: ` +
+                              `${new Date(newSlot).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}, ` +
+                              `${new Date(newSlot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` +
+                              ` - ${globalVenue}`
+                            )
                             setTimeout(() => setMessage(""), 2000)
                           } catch (err) {
                             console.error("Error adding slot", err)
@@ -763,8 +787,8 @@ function ManageCandidates() {
                         ? Object.keys(appointmentStatus.slots).map((s) => (
                             <li key={s} className="flex justify-between items-center border rounded px-3 py-1">
                               <span>
-                                {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} {' '}
-                                {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}, {''}
+                                {new Date(s).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {appointmentStatus.slots[s].venue}
                               </span>
                               <div className="flex items-center gap-3 font-semibold">
                                 <span className={appointmentStatus.slots[s].available ? "text-green-700" : "text-red-700"}>
@@ -1016,13 +1040,13 @@ function ManageCandidates() {
                   <div key={date} className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
                     <div className="bg-gray-100 px-6 py-2 font-semibold text-gray-700">{date}</div>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
+                      <table className="min-w-full table-fixed divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Time</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                            <th className="px-6 py-3 w-1/4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 w-1/4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
+                            <th className="px-6 py-3 w-1/4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Appointment Time</th>
+                            <th className="px-6 py-3 w-1/4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
                             {showActions && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                           </tr>
                         </thead>
@@ -1031,24 +1055,14 @@ function ManageCandidates() {
                             .sort((a, b) => new Date(a.appointment.dateTime) - new Date(b.appointment.dateTime))
                             .map(app => (
                               <tr key={`${app.uid}-${app.id}`} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
+                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
+                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-500">
                                   {new Date(app.appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.appointment.venue || "-"}</td>
+                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-500">{appointmentStatus.slots?.[app.appointment.dateTime]?.venue}</td>
                                 {showActions && (
-                                  <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                                    <button
-                                      onClick={() => {
-                                        setConfirmAction({ type: 'appointment', action: 'approve', uid: app.uid, appId: app.id, appointment: app.appointment });
-                                        setShowConfirmModal(true);
-                                      }}
-                                      disabled={savingId === `${app.uid}-${app.id}-appt`}
-                                      className={`px-3 py-1 rounded-lg font-medium text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
-                                    >
-                                      {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
-                                    </button>
+                                  <td className="px-6 py-4 w-1/4 whitespace-nowrap flex gap-2">
                                     <button
                                       onClick={() => {
                                         setConfirmAction({ type: 'appointment', action: 'decline', uid: app.uid, appId: app.id, appointment: app.appointment });
@@ -1058,6 +1072,16 @@ function ManageCandidates() {
                                       className={`px-3 py-1 rounded-lg font-medium text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-rose-300 cursor-not-allowed' : 'bg-rose-600 hover:bg-rose-700'}`}
                                     >
                                       {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Decline'}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setConfirmAction({ type: 'appointment', action: 'approve', uid: app.uid, appId: app.id, appointment: app.appointment });
+                                        setShowConfirmModal(true);
+                                      }}
+                                      disabled={savingId === `${app.uid}-${app.id}-appt`}
+                                      className={`px-3 py-1 rounded-lg font-medium text-white text-sm ${savingId === `${app.uid}-${app.id}-appt` ? 'bg-emerald-300 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                                    >
+                                      {savingId === `${app.uid}-${app.id}-appt` ? 'Updating…' : 'Approve'}
                                     </button>
                                   </td>
                                 )}
@@ -1133,7 +1157,13 @@ function ManageCandidates() {
                         return updated
                       })
                       setMessage("Slot deleted successfully")
-                      logActivity(userData.fullName, `Deleted screening appointment slot on ${new Date(slotToDelete).toLocaleString()}`)
+                      logActivity(
+                        userData.fullName,
+                        `Deleted screening appointment slot: ` +
+                        `${new Date(slotToDelete).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}, ` +
+                        `${new Date(slotToDelete).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` +
+                        ` - ${appointmentStatus.slots[slotToDelete].venue}`
+                      )
                     } catch (e) {
                       console.error("Failed to delete slot", e)
                       setMessage("Failed to delete slot")
@@ -1208,6 +1238,8 @@ function ManageCandidates() {
                 </button>
                 <button
                   onClick={async () => {
+                    if (isConfirming) return; 
+                    setIsConfirming(true);
                   try {
                     if (confirmAction.type === 'candidacy') {
                     

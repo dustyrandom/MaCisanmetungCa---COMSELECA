@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
-import { getDatabase, ref, onValue, remove, push, set } from "firebase/database"
+import { getDatabase, ref, onValue, push, set } from "firebase/database"
 import NavBar from "./NavBar"
 import { useAuth } from "../contexts/AuthContext"
-import Papa from "papaparse"
+import * as XLSX from "xlsx";
+import Papa from "papaparse";
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
 
 function ActivityLog() {
@@ -80,54 +81,57 @@ function ActivityLog() {
     admin: userData.name || user.email || "Unknown",
     action: "Exported activity logs",
     timestamp: Date.now(),
-  }
+  };
 
-  const allLogs = [...logs, exportLog].sort((a, b) => b.timestamp - a.timestamp)
+  const allLogs = [...logs, exportLog].sort((a, b) => b.timestamp - a.timestamp);
 
-  const csvData = allLogs.map(log => ({
-    admin: log.admin,
-    action: log.action,
-    timestamp: new Date(log.timestamp).toISOString()
-  }))
+  // Build rows for Excel
+  const rows = allLogs.map(log => ({
+    Admin: log.admin,
+    Action: log.action,
+    Timestamp: new Date(log.timestamp).toLocaleString(),
+  }));
 
-  const csv = Papa.unparse(csvData)
+  // Create workbook + sheet
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
 
-  const blob = new Blob([csv], { type: "text/csv" })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = "admin_activity_logs.csv"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+  // Auto-fit column widths
+  if (rows.length === 0) return;
+  const columnWidths = Object.keys(rows[0]).map(key => {
+    const maxLength = Math.max(
+      ...rows.map(row => String(row[key]).length),
+      key.length
+    );
+    return { wch: maxLength + 2 }; // +2 padding
+  });
+
+  ws['!cols'] = columnWidths;
+
+  // Make sheet read-only
+  ws["!protect"] = {
+    password: "readonly",
+    selectLockedCells: true,
+    selectUnlockedCells: true
+  };
+
+  XLSX.utils.book_append_sheet(wb, ws, "Activity Logs");
+
+  // Write Excel file
+  const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+  // Download
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "admin_activity_logs.xlsx";
+  link.click();
+  URL.revokeObjectURL(url);
 
   // Log in Firebase
-  logActivity("Exported activity logs")
-
-  try {
-    // Open folder picker
-    const handle = await window.showSaveFilePicker({
-      suggestedName: "admin_activity_logs.csv",
-      types: [
-        {
-          description: "CSV Files",
-          accept: { "text/csv": [".csv"] },
-        },
-      ],
-    })
-
-    // Write the CSV
-    const writable = await handle.createWritable()
-    await writable.write(csv)
-    await writable.close()
-
-    // Log in Firebase
-    logActivity("Exported activity logs")
-  } catch (err) {
-    console.error("Admin activity log save cancelled or failed:", err)
-  }
-}
+  logActivity("Exported activity logs");
+};
 
   // Import activity logs
   const handleImport = (e) => {
@@ -228,7 +232,15 @@ function ActivityLog() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{log.action}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : "N/A"}
+                              {log.timestamp
+                              ? new Date(log.timestamp).toLocaleString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : "N/A"}
                             </td>
                           </tr>
                         ))}
@@ -321,6 +333,9 @@ function ActivityLog() {
                     )
                     setShowPasswordConfirm(false)
                     await handleExport()
+                    setAdminPassword("");
+                    setShowPassword(false);
+                    setPasswordError("");
                   } catch (error) {
                     console.error(error)
                     setPasswordError("Incorrect password. Please try again.")

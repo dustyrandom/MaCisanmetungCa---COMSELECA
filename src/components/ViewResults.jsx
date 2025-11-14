@@ -317,6 +317,13 @@ const handleExport = async () => {
     console.warn("autoFitColumns failed:", e);
   }
 
+  // Make worksheet view-only
+  ws['!protect'] = {
+    password: "readonly",
+    selectLockedCells: true,
+    selectUnlockedCells: true
+  };
+
   XLSX.utils.book_append_sheet(wb, ws, `election_results_${new Date().toISOString().slice(0,10)}`);
 
   const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -325,7 +332,7 @@ const handleExport = async () => {
 
   // Optional logging
   if (typeof logActivity === "function" && userData?.fullName) {
-    logActivity(userData.fullName, `Exported election results (${votes.length} rows)`);
+    logActivity(userData.fullName, `Exported election results`);
   }
 };
 
@@ -387,7 +394,7 @@ const handleExport = async () => {
                   <button
                     onClick={() => setShowPasswordConfirm(true)}
                     disabled={votes.length === 0}
-                    className={`ml-2 inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${
+                    className={`ml-2 inline-flex items-center px-4 py-2 rounded-lg font-medium ${
                       votes.length === 0
                         ? 'bg-gray-100 text-gray-400 font-medium rounded-lg border-gray-200 cursor-not-allowed'
                         : 'bg-green-600 text-white font-medium rounded-lg border-green-700 hover:bg-green-600 transition'
@@ -944,6 +951,9 @@ const handleExport = async () => {
                     )
                     setShowPasswordConfirm(false)
                     await handleExport()
+                    setAdminPassword("");
+                    setShowPassword(false);
+                    setPasswordError("");
                   } catch (error) {
                     console.error(error)
                     setPasswordError('Incorrect password. Please try again.')

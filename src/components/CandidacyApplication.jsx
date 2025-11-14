@@ -119,6 +119,7 @@ function CandidacyApplication() {
       }
 
       await set(newAppRef, record)
+      await sendSubmittedApplicationEmail(user, userData)
 
       setMessage('Application submitted successfully. We will review your documents.')
       navigate('/candidacy-application/thank-you', { replace: true })
@@ -127,6 +128,30 @@ function CandidacyApplication() {
       setMessage('Failed to submit. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const sendSubmittedApplicationEmail = async (user, userData) => {
+    try {
+      const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
+      
+      const response = await fetch(`${emailServerUrl}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: user.email,
+          status: 'submitted',
+          fullName: userData?.fullName || '',
+          details: {
+            studentId: userData?.studentId || '',
+            email: user.email
+          }
+        })
+      })
+
+      if (!response.ok) throw new Error('Email server error')
+    } catch (e) {
+      console.error('Error sending submitted application email', e)
     }
   }
 
