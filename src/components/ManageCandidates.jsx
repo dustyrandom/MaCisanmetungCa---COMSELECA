@@ -540,6 +540,13 @@ function ManageCandidates() {
     }
   };
 
+  const getCandidateName = () => {
+    if (!confirmAction) return "";
+    const found = applications.find(
+      a => a.uid === confirmAction.uid && a.id === confirmAction.appId
+    );
+    return found?.applicant?.fullName || "this candidate";
+  };
 
   if (userData?.role !== 'admin' && userData?.role !== "superadmin") {
     return (
@@ -1219,7 +1226,8 @@ function ManageCandidates() {
                   <>
                     Are you sure you want to{' '}
                     <strong className="uppercase">{confirmAction.action}</strong>{' '}
-                    this candidacy application?
+                    <strong className="uppercase">{getCandidateName()}'s</strong>{' '}
+                    application? 
                   </>
                 ) : (
                   <>
@@ -1237,72 +1245,53 @@ function ManageCandidates() {
                   Cancel
                 </button>
                 <button
+                  disabled={isConfirming}
                   onClick={async () => {
-                    if (isConfirming) return; 
+                    if (isConfirming) return;
                     setIsConfirming(true);
-                  try {
-                    if (confirmAction.type === 'candidacy') {
-                    
-                      await updateApplicationStatus(
-                        confirmAction.uid,
-                        confirmAction.appId,
-                        confirmAction.action === 'review'
-                          ? 'reviewed'
-                          : confirmAction.action === 'approve'
-                          ? 'approved'
-                          : confirmAction.action === 'passed'
-                          ? 'passed'
-                          : confirmAction.action === 'failed'
-                          ? 'failed'
-                          : 'rejected'
-                      );
-                    } else if (confirmAction.type === 'appointment') {
-                      await decideAppointment(
-                        confirmAction.uid,
-                        confirmAction.appId,
-                        confirmAction.action === 'approve' ? 'approved' : 'declined',
-                        confirmAction.appointment
-                      );
+
+                    try {
+                      if (confirmAction.type === 'candidacy') {
+                        await updateApplicationStatus(
+                          confirmAction.uid,
+                          confirmAction.appId,
+                          confirmAction.action === 'review'
+                            ? 'reviewed'
+                            : confirmAction.action === 'approve'
+                            ? 'approved'
+                            : confirmAction.action === 'passed'
+                            ? 'passed'
+                            : confirmAction.action === 'failed'
+                            ? 'failed'
+                            : 'rejected'
+                        );
+                      } else if (confirmAction.type === 'appointment') {
+                        await decideAppointment(
+                          confirmAction.uid,
+                          confirmAction.appId,
+                          confirmAction.action === 'approve' ? 'approved' : 'declined',
+                          confirmAction.appointment
+                        );
+                      }
+
+                      setShowConfirmModal(false);
+                      setMessage(`${confirmAction.action.charAt(0).toUpperCase() + confirmAction.action.slice(1)} successful.`);
+                      setTimeout(() => setMessage(''), 3000);
+                    } catch (err) {
+                      console.error(err);
+                      setMessage('Action failed.');
+                      setTimeout(() => setMessage(''), 3000);
+                    } finally {
+                      setIsConfirming(false);
                     }
-
-                    setApplications((prev) =>
-                      prev.map((app) =>
-                        app.uid === confirmAction.uid && app.id === confirmAction.appId
-                          ? {
-                              ...app,
-                            status:
-                            confirmAction.action === 'review'
-                              ? 'reviewed'
-                              : confirmAction.action === 'approve'
-                              ? 'approved'
-                              : confirmAction.action === 'passed'
-                              ? 'passed'
-                              : confirmAction.action === 'failed'
-                              ? 'failed'
-                              : 'rejected',
-                              reviewedAt: new Date().toISOString(),
-                            }
-                          : app
-                      )
-                    );
-
-                    setShowConfirmModal(false);
-
-                    setMessage(
-                      `${confirmAction.action.charAt(0).toUpperCase() + confirmAction.action.slice(1)} successful.`
-                    );
-                    setTimeout(() => setMessage(''), 3000);
-                  } catch (err) {
-                    console.error(err);
-                    setMessage('Action failed.');
-                    setTimeout(() => setMessage(''), 3000);
-                  }
-                }}
-                className={`px-4 py-2 text-white rounded-lg font-medium ${ 
-                  confirmAction?.action === 'reject' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
-                }`}
+                  }}
+                  className={`px-4 py-2 text-white rounded-lg font-medium ${
+                    confirmAction?.action === 'reject'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                  } ${isConfirming ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Confirm
+                  {isConfirming ? 'Processing…' : 'Confirm'}
                 </button>
               </div>
             </div>

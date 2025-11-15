@@ -15,9 +15,6 @@ function ViewResults() {
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('voters')
-  const [deletingVotes, setDeletingVotes] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
   const [expandedVotes, setExpandedVotes] = useState({})
   const [publicVisible, setPublicVisible] = useState(false)
   const [savingPublish, setSavingPublish] = useState(false)
@@ -555,9 +552,14 @@ const handleExport = async () => {
                             <h5 className="text-lg font-semibold text-red-900 mb-3">Supreme Student Council Votes</h5>
                             <div className="space-y-3">
                               {sscPosition.map(position => {
-                                const selectedCandidates = vote.votes[position]
-                                const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
+                                // Always handle undefined keys
+                                const rawValue = vote.votes[position]
+                                // Convert null/undefined/"NO-VOTE" into empty array
+                                const candidatesArray = Array.isArray(rawValue)
+                                  ? rawValue
+                                  : rawValue && rawValue !== "NO-VOTE" ? [rawValue] : []
                                 const validCandidates = candidatesArray.filter(Boolean)
+
                                 
                                 return (
                                   <div key={position} className="bg-gray-50 rounded-lg p-3">
@@ -627,8 +629,10 @@ const handleExport = async () => {
                                     <div className="space-y-2">
                                       {iscPosition.map(position => {
                                         const voteKey = `${voterInstitute}-${position}`
-                                        const selectedCandidates = vote.votes[voteKey]
-                                        const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
+                                        const rawValue = vote.votes[voteKey]
+                                        const candidatesArray = Array.isArray(rawValue)
+                                          ? rawValue
+                                          : rawValue && rawValue !== "NO-VOTE" ? [rawValue] : []
                                         const validCandidates = candidatesArray.filter(Boolean)
 
                                         return (
@@ -838,6 +842,7 @@ const handleExport = async () => {
                         type="checkbox"
                         className="sr-only peer"
                         checked={publicVisible}
+                        disabled={savingPublish}
                         onChange={async (e) => {
                           try {
                             setSavingPublish(true)
@@ -859,7 +864,7 @@ const handleExport = async () => {
                         className="relative w-14 h-8 rounded-full bg-gray-200 transition-colors peer-checked:bg-green-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 peer-focus:ring-red-500 after:content-[''] after:absolute after:top-1 after:left-1 after:w-6 after:h-6 after:bg-white after:rounded-full after:shadow after:transition-transform peer-checked:after:translate-x-6"
                       ></div>
                       <span className="ml-3 text-sm font-medium text-gray-700">
-                        {savingPublish ? 'Saving…' : (publicVisible ? 'Visible' : 'Hidden')}
+                        {savingPublish ? 'Updating…' : (publicVisible ? 'Visible' : 'Hidden')}
                       </span>
                     </label>
                   </div>
@@ -935,11 +940,17 @@ const handleExport = async () => {
                 Cancel
               </button>
               <button
-                className={`px-4 py-2 rounded-lg text-white font-medium ${
-                  adminPassword ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-400 cursor-not-allowed'
-                }`}
+                className={`px-4 py-2 rounded-lg text-white font-medium
+                ${
+                  isExporting
+                    ? "bg-emerald-400 cursor-not-allowed"   
+                    : adminPassword
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-gray-400 cursor-not-allowed"
+                }
+              `}
                 onClick={async () => {
-                  if (!adminPassword) return
+                  if (!adminPassword || isExporting) return;
                   try {
                     setIsExporting(true)
                     setPasswordError('')

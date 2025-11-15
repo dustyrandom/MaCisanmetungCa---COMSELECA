@@ -15,6 +15,8 @@ function ManageElections() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [editingCandidate, setEditingCandidate] = useState(null)
   const [deletingCandidate, setDeletingCandidate] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [isSavingCandidate, setIsSavingCandidate] = useState(false);
   const [formData, setFormData] = useState({
     candidateId: '',
     team: '',
@@ -158,7 +160,8 @@ function ManageElections() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+    if (isSavingCandidate) return;
+    setIsSavingCandidate(true); 
     
     if (!formData.candidateId) {
       alert('Please select a candidate')
@@ -225,6 +228,8 @@ function ManageElections() {
     } catch (error) {
       console.error('Failed to save candidate:', error)
       alert('Failed to save candidate. Please try again.')
+    } finally{
+      setIsSavingCandidate(false);
     }
   }
 
@@ -245,7 +250,7 @@ function ManageElections() {
 
   const confirmDelete = async () => {
     if (!deletingCandidate) return
-    
+    setDeleting(true)
     try {
       const candidateRef = dbRef(db, `candidates/${deletingCandidate.id}`)
       await remove(candidateRef)
@@ -819,9 +824,19 @@ function ManageElections() {
                   </button>
                   <button
                     type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700"
+                    className={`px-4 py-2 rounded-lg font-medium text-white
+                      ${isSavingCandidate
+                        ? 'bg-green-300 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700'
+                      }`}
                   >
-                    {editingCandidate ? 'Update' : 'Add'}
+                    {isSavingCandidate
+                      ? editingCandidate
+                        ? 'Updating…'
+                        : 'Adding…'
+                      : editingCandidate
+                        ? 'Update'
+                        : 'Add'}
                   </button>
                 </div>
               </form>
@@ -858,7 +873,7 @@ function ManageElections() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-gray-900 font-medium">Are you sure you want to delete this candidate?</p>
+                    <p className="text-gray-900 font-medium">Are you sure you want to delete <strong>{deletingCandidate.fullName}</strong>?</p>
                     <p className="text-sm text-gray-500">This action cannot be undone.</p>
                   </div>
                 </div>
@@ -876,9 +891,11 @@ function ManageElections() {
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700"
+                  disabled={deleting}
+                  className={`px-4 py-2 rounded-lg font-medium text-white 
+                    ${deleting ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
                 >
-                  Delete Candidate
+                  {deleting ? 'Deleting...' : 'Delete Candidate'}
                 </button>
               </div>
             </div>

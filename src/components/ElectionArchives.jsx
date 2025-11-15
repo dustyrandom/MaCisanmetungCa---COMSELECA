@@ -6,6 +6,7 @@ import { saveAs } from "file-saver";
 import NavBar from "./NavBar";
 import { useAuth } from '../contexts/AuthContext'
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
+import { logActivity } from "../utils/logActivity";
 
 export default function ElectionArchives() {
   const { userData } = useAuth();
@@ -16,11 +17,13 @@ export default function ElectionArchives() {
   const [messageType, setMessageType] = useState("");
   const [archives, setArchives] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [confirmText, setConfirmText] = useState("");
+  const [archivePassword, setArchivePassword] = useState("");
+  const [archivePasswordError, setArchivePasswordError] = useState("");
+  const [showArchivePassword, setShowArchivePassword] = useState(false);
+  const [downloadPassword, setDownloadPassword] = useState("");
+  const [downloadPasswordError, setDownloadPasswordError] = useState("");
+  const [showDownloadPassword, setShowDownloadPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [selectedArchive, setSelectedArchive] = useState(null);
 
@@ -419,6 +422,15 @@ export default function ElectionArchives() {
         remove(ref(db, "electionVotes")),
       ]);
 
+      try {
+        await logActivity(
+          userData.fullName,
+          `Archived election "${archiveTitle}"`
+        );
+      } catch (err) {
+        console.error("Could not write archive log:", err);
+      }
+
       setMessage(`Election archived successfully: "${archiveTitle}"`);
       setMessageType("success");
       setArchiveTitle("");
@@ -685,8 +697,6 @@ export default function ElectionArchives() {
                     {archiveTitle || "Untitled Election"}
                   </span>
                 </div>
-                This will move all election data into archives and reset the system for the next election. 
-                <span className="font-semibold text-red-700"> This action cannot be undone.</span>
               </p>
 
               {/* Password input */}
@@ -694,15 +704,16 @@ export default function ElectionArchives() {
                 <label className="block text-sm text-gray-700 mb-1">Password:</label>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                    type={showArchivePassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    value={archivePassword}
+                    onChange={(e) => setArchivePassword(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowArchivePassword(!showArchivePassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     <svg
@@ -711,7 +722,8 @@ export default function ElectionArchives() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      {showPassword ? (
+                      {showArchivePassword ? (
+                        // Eye OFF icon (hide password)
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -719,6 +731,7 @@ export default function ElectionArchives() {
                           d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
                         />
                       ) : (
+                        // Eye ON icon (show password)
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -729,48 +742,53 @@ export default function ElectionArchives() {
                     </svg>
                   </button>
                 </div>
-                {passwordError && (
-                  <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+
+                {archivePasswordError && (
+                  <p className="text-red-600 text-sm mt-2">{archivePasswordError}</p>
                 )}
               </div>
 
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 rounded-lg font-medium border hover:bg-gray-600 bg-gray-500 text-white"
+                  className="px-4 py-2 rounded-lg font-medium border bg-gray-500 hover:bg-gray-600 text-white"
                   onClick={() => {
                     setShowConfirm(false);
-                    setAdminPassword("");
-                    setPasswordError("");
+                    setArchivePassword("");
+                    setArchivePasswordError("");
                   }}
                 >
                   Cancel
                 </button>
+
                 <button
                   className={`px-4 py-2 rounded-md text-white font-medium ${
-                    adminPassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
+                    archivePassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
                   }`}
                   onClick={async () => {
-                    if (!adminPassword) return;
+                    if (!archivePassword) return;
                     try {
                       setIsVerifying(true);
-                      setPasswordError("");
+                      setArchivePasswordError("");
+
                       const auth = getAuth();
                       await reauthenticateWithCredential(
                         auth.currentUser,
-                        EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
+                        EmailAuthProvider.credential(auth.currentUser.email, archivePassword)
                       );
+
                       setShowConfirm(false);
                       await handleArchiveElection();
-                      setAdminPassword(""); 
-                      setPasswordError(""); 
+
+                      setArchivePassword(""); 
+                      setArchivePasswordError(""); 
                     } catch (error) {
                       console.error(error);
-                      setPasswordError("Incorrect password. Please try again.");
+                      setArchivePasswordError("Incorrect password. Please try again.");
                     } finally {
                       setIsVerifying(false);
                     }
                   }}
-                  disabled={!adminPassword || isVerifying}
+                  disabled={!archivePassword || isVerifying}
                 >
                   {isVerifying ? "Verifying…" : "Confirm"}
                 </button>
@@ -778,7 +796,6 @@ export default function ElectionArchives() {
             </div>
           </div>
         )}
-
         
         {showPasswordConfirm && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
@@ -792,15 +809,16 @@ export default function ElectionArchives() {
                 <label className="block text-sm text-gray-700 mb-1">Password:</label>
                 <div className="relative">
                   <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                    type={showDownloadPassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    value={downloadPassword}
+                    onChange={(e) => setDownloadPassword(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowDownloadPassword(!showDownloadPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     <svg
@@ -809,7 +827,7 @@ export default function ElectionArchives() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      {showPassword ? (
+                      {showDownloadPassword ? (
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -826,9 +844,11 @@ export default function ElectionArchives() {
                       )}
                     </svg>
                   </button>
+
                 </div>
-                {passwordError && (
-                  <p className="text-red-600 text-sm mt-2">{passwordError}</p>
+
+                {downloadPasswordError && (
+                  <p className="text-red-600 text-sm mt-2">{downloadPasswordError}</p>
                 )}
               </div>
 
@@ -837,40 +857,49 @@ export default function ElectionArchives() {
                   className="px-4 py-2 rounded-lg font-medium border bg-gray-500 hover:bg-gray-600 text-white"
                   onClick={() => {
                     setShowPasswordConfirm(false);
-                    setAdminPassword("");
-                    setPasswordError("");
+                    setDownloadPassword("");
+                    setDownloadPasswordError("");
                     setSelectedArchive(null);
                   }}
                 >
                   Cancel
                 </button>
+
                 <button
                   className={`px-4 py-2 rounded-lg text-white font-medium ${
-                    adminPassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
+                    downloadPassword ? "bg-emerald-600 hover:bg-emerald-700" : "bg-gray-400 cursor-not-allowed"
                   }`}
                   onClick={async () => {
-                    if (!adminPassword) return;
+                    if (!downloadPassword) return;
                     try {
                       setIsVerifying(true);
-                      setPasswordError("");
+                      setDownloadPasswordError("");
+
                       const auth = getAuth();
                       await reauthenticateWithCredential(
                         auth.currentUser,
-                        EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
+                        EmailAuthProvider.credential(auth.currentUser.email, downloadPassword)
                       );
+
+                      await logActivity(
+                        auth.currentUser.uid,
+                        `${userData.fullName || "Unknown User"} downloaded archive "${selectedArchive.title}"`
+                      );
+
                       setShowPasswordConfirm(false);
                       await handleDownloadArchive(selectedArchive);
+
                       setSelectedArchive(null);
-                      setAdminPassword(""); 
-                      setPasswordError(""); 
+                      setDownloadPassword(""); 
+                      setDownloadPasswordError(""); 
                     } catch (error) {
                       console.error(error);
-                      setPasswordError("Incorrect password. Please try again.");
+                      setDownloadPasswordError("Incorrect password. Please try again.");
                     } finally {
                       setIsVerifying(false);
                     }
                   }}
-                  disabled={!adminPassword || isVerifying}
+                  disabled={!downloadPassword || isVerifying}
                 >
                   {isVerifying ? "Verifying…" : "Confirm"}
                 </button>

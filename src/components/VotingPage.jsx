@@ -13,6 +13,7 @@ function VotingPage() {
   const [loading, setLoading] = useState(true)
   const [submitted, setSubmitted] = useState(false)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [votingStatus, setVotingStatus] = useState({
     isActive: false,
     startDate: '',
@@ -163,42 +164,53 @@ function VotingPage() {
 
   const submitVotes = async () => {
     try {
+      // Build complete vote structure no matter what user voted
+      const filledVotes = {};
+
+      // SSC positions
+      sscPositions.forEach(pos => {
+        if (votes[pos.name] !== undefined) {
+          filledVotes[pos.name] = votes[pos.name];
+        } else {
+          filledVotes[pos.name] = pos.maxVotes > 1 ? [] : "NO-VOTE";
+        }
+      });
+
+      // ISC (only user’s own institute)
+      const institute = userData?.institute;
+      if (institute) {
+        iscPositions.forEach(pos => {
+          const key = `${institute}-${pos.name}`;
+          if (votes[key] !== undefined) {
+            filledVotes[key] = votes[key];
+          } else {
+            filledVotes[key] = pos.maxVotes > 1 ? [] : "NO-VOTE";
+          }
+        });
+      }
+
+      // Save full ballot even if empty
       const voteData = {
         voterId: user.uid,
         voterName: userData.fullName,
         voterEmail: user.email,
         voterstudentId: userData.studentId,
         voterInstitute: userData.institute,
-        votes: votes,
-        submittedAt: new Date().toISOString()
-      }
-      
-      const voteRef = dbRef(db, `electionVotes/${user.uid}`)
-      await set(voteRef, voteData)
-      setSubmitted(true)
-      setHasVoted(true)
+        votes: filledVotes, // <--- ALWAYS filled, never empty
+        submittedAt: new Date().toISOString(),
+      };
 
-      // Send thank-you email with announcement date
-      try {
-        const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000'
-        await fetch(`${emailServerUrl}/send-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: user.email,
-            status: 'voteThankYou',
-            fullName: userData.fullName,
-            details: { announcementDate: votingStatus?.endDate ? new Date(votingStatus.endDate).toLocaleString() : '' }
-          })
-        })
-      } catch (e) {
-        // don't block success on email failure
-        console.error('Failed to send thank-you email', e)
-      }
+      const voteRef = dbRef(db, `electionVotes/${user.uid}`);
+      await set(voteRef, voteData);
+
+      setSubmitted(true);
+      setHasVoted(true);
+
     } catch (error) {
-      console.error('Failed to submit votes:', error)
+      console.error("Failed to submit votes:", error);
     }
-  }
+  };
+
 
   const renderSSCPage = () => (
     <div className="space-y-8">
@@ -477,7 +489,7 @@ function VotingPage() {
               </div>
               <a
                 href="/dashboard"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
               >
                 Back to Dashboard
               </a>
@@ -563,7 +575,7 @@ function VotingPage() {
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <h1 className="text-2xl font-bold text-green-600 mb-4">Vote Submitted Successfully!</h1>
               <p className="text-gray-600 mb-6">Thank you for participating in the election.</p>
-              <a href="/dashboard" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+              <a href="/dashboard" className="bg-green-600 text-white px-6 py-2 font-medium rounded-lg hover:bg-green-700">
                 Return to Dashboard
               </a>
             </div>
@@ -680,9 +692,13 @@ function VotingPage() {
                       setShowConfirmModal(false)
                     }
                   }}
-                  className="px-4 py-2 text-white rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700"
+                  className={`px-4 py-2 text-white rounded-lg font-medium 
+                  ${isSubmitting 
+                    ? 'bg-emerald-400 cursor-not-allowed opacity-50' 
+                    : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
                 >
-                  Confirm
+                  {isSubmitting ? 'Submitting…' : 'Confirm'}
                 </button>
               </div>
             </div>

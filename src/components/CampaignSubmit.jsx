@@ -105,7 +105,7 @@ function CampaignSubmit() {
     setError('')
     setMessage('')
     if (!candidateRecord) {
-      setError('Candidate must have a profile to submit a campaign. Please contact admin to link your candidacy.')
+      setError('Please contact admin to link your candidacy.')
       return
     }
     if (!hasProfilePic) {

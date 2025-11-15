@@ -22,6 +22,7 @@ function ManageUsers() {
   const [hasLinkedData, setHasLinkedData] = useState(false)
   const [linkedMessage, setLinkedMessage] = useState('')
   const [showSavePasswordConfirm, setShowSavePasswordConfirm] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Modal
   const [editingUid, setEditingUid] = useState(null)
@@ -524,7 +525,7 @@ function ManageUsers() {
             {/* Password Input with Eye Toggle */}
             <div className="mb-5">
               <label className="block text-sm text-gray-700 mb-1">
-                Please enter your admin password:
+                Password:
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -627,16 +628,37 @@ function ManageUsers() {
             {/* Password input */}
             <div className="mb-5">
               <label className="block text-sm text-gray-700 mb-1">
-                Admin Password:
+                Password:
               </label>
               <div className="relative">
+
+                {/* 🔒 LEFT ICON SAME AS DELETE MODAL */}
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+
+                {/* PASSWORD FIELD */}
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
                 />
+
+                {/* 👁 TOGGLE BUTTON */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -672,6 +694,7 @@ function ManageUsers() {
               )}
             </div>
 
+
             <div className="flex justify-end gap-3">
               <button
                 className="px-4 py-2 rounded-lg font-medium border hover:bg-gray-600 bg-gray-500 text-white"
@@ -685,31 +708,38 @@ function ManageUsers() {
               </button>
               <button
                 className={`px-4 py-2 rounded-lg text-white font-medium ${
-                  adminPassword
-                    ? 'bg-emerald-600 hover:bg-emerald-700'
-                    : 'bg-gray-400 cursor-not-allowed'
+                  !adminPassword || isSaving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
                 onClick={async () => {
-                  if (!adminPassword) return
+                  if (!adminPassword || isSaving) return
+                  setIsSaving(true)
+
                   try {
                     const auth = getAuth()
                     await reauthenticateWithCredential(
                       auth.currentUser,
                       EmailAuthProvider.credential(auth.currentUser.email, adminPassword)
                     )
+
                     setShowSavePasswordConfirm(false)
                     await handleSave()
+
                     setAdminPassword('')
                     setPasswordError('')
                   } catch (error) {
                     console.error(error)
                     setPasswordError('Incorrect password. Please try again.')
+                  } finally {
+                    setIsSaving(false)
                   }
                 }}
-                disabled={!adminPassword}
+                disabled={!adminPassword || isSaving}
               >
-                Confirm
+                {isSaving ? 'Saving...' : 'Confirm'}
               </button>
+
             </div>
           </div>
         </div>

@@ -67,10 +67,10 @@ function Profile() {
 
     setError('');
     setMessage('');
+    const allowedTypes = ["image/jpeg", "image/png"];
 
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file.');
+    if (!allowedTypes.includes(file.type)) {
+      setError("Only JPG and PNG files are allowed.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -239,11 +239,11 @@ function Profile() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg, image/png"
                         onChange={handleProfilePictureChange}
                         className="block w-full text-sm text-gray-500 file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                       />
-                      <p className="mt-1 text-xs text-gray-500">JPG, PNG or GIF. Max 5MB.</p>
+                      <p className="mt-1 text-xs text-gray-500">JPG or  PNG. Max 5MB.</p>
                     </div>
                     {profilePictureUrl && (
                       <button

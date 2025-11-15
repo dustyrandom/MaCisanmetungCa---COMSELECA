@@ -17,6 +17,9 @@ function ManageCampaigns() {
   const [campaignStatus, setCampaignStatus] = useState({ startDate: '', endDate: '' })
   const [savingStatus, setSavingStatus] = useState(false)
   const { userData } = useAuth()
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); 
+  const [isConfirming, setIsConfirming] = useState(false);
 
   // Modal state
   const [showVoteModal, setShowVoteModal] = useState(false)
@@ -237,7 +240,10 @@ function ManageCampaigns() {
           {s.status === 'approved' && (
             <button
             disabled={savingId === s.id}
-            onClick={() => deleteSubmission(s)}
+            onClick={() => {
+              setConfirmAction({ type: "delete", submission: s });
+              setShowConfirmModal(true);
+            }}
             className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium text-white transition-colors ${
               savingId === s.id
                 ? 'bg-red-300 cursor-not-allowed'
@@ -253,7 +259,10 @@ function ManageCampaigns() {
           {s.status === 'pending' && (
             <button
               disabled={savingId === s.id}
-              onClick={() => updateStatus(s, 'approved')}
+              onClick={() => {
+                setConfirmAction({ type: "approve", submission: s })
+                setShowConfirmModal(true)
+              }}
               className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium text-white transition-colors ${
                 savingId === s.id
                   ? 'bg-emerald-300 cursor-not-allowed'
@@ -268,7 +277,10 @@ function ManageCampaigns() {
           {s.status === 'pending' && (
             <button
               disabled={savingId === s.id}
-              onClick={() => updateStatus(s, 'rejected')}
+              onClick={() => {
+                setConfirmAction({ type: "reject", submission: s })
+                setShowConfirmModal(true)
+              }}
               className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium text-white transition-colors ${
                 savingId === s.id
                   ? 'bg-rose-300 cursor-not-allowed'
@@ -404,6 +416,80 @@ function ManageCampaigns() {
           </div>
         </div>
       </div>
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Action</h3>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to{" "}
+                <strong className="uppercase">
+                  {confirmAction?.type === "delete"
+                    ? "DELETE"
+                    : confirmAction?.type === "approve"
+                    ? "APPROVE"
+                    : "REJECT"}
+                </strong>{" "}
+                the campaign submission of{" "}
+                <strong className='uppercase'>{confirmAction?.submission?.candidateName || "Unknown Candidate"}</strong>?
+              </p>
+
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="px-4 py-2 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  disabled={isConfirming}
+                  onClick={async () => {
+                    if (isConfirming) return;
+                    setIsConfirming(true);
+
+                    try {
+                      const action = confirmAction.type;
+                      const s = confirmAction.submission;
+
+                      if (action === "delete") {
+                        await deleteSubmission(s);
+                      } else if (action === "approve") {
+                        await updateStatus(s, "approved");
+                      } else if (action === "reject") {
+                        await updateStatus(s, "rejected");
+                      }
+
+                      setShowConfirmModal(false);
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setIsConfirming(false);
+                    }
+                  }}
+                  className={`px-4 py-2 text-white font-medium rounded-lg 
+                    ${
+                      confirmAction?.type === "delete" || confirmAction?.type === "reject"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-emerald-600 hover:bg-emerald-700"
+                    }
+                    ${isConfirming ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
+                >
+                  {isConfirming
+                    ? confirmAction?.type === "delete" || confirmAction?.type === "reject"
+                      ? "Deleting…"
+                      : "Processing…"
+                    : confirmAction?.type === "delete"
+                    ? "Delete"
+                    : "Confirm"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
