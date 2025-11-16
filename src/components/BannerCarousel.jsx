@@ -7,7 +7,7 @@ function BannerCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoRotating, setIsAutoRotating] = useState(true)
 
-  // Load banners from Firebase (connected to ManageBanner)
+  // Load banners from Firebase
   useEffect(() => {
     const fetchBanners = async () => {
       try {
@@ -30,7 +30,7 @@ function BannerCarousel() {
     fetchBanners()
   }, [])
 
-  // Auto-rotate logic
+  // Auto rotate logic
   useEffect(() => {
     if (!isAutoRotating || banners.length === 0) return
 
@@ -41,9 +41,9 @@ function BannerCarousel() {
     return () => clearInterval(interval)
   }, [banners, isAutoRotating])
 
-  const goToSlide = (index) => {
-    setCurrentIndex(index)
-    pauseAuto()
+  const pauseAuto = () => {
+    setIsAutoRotating(false)
+    setTimeout(() => setIsAutoRotating(true), 8000)
   }
 
   const goToPrevious = () => {
@@ -56,9 +56,9 @@ function BannerCarousel() {
     pauseAuto()
   }
 
-  const pauseAuto = () => {
-    setIsAutoRotating(false)
-    setTimeout(() => setIsAutoRotating(true), 8000)
+  const goToSlide = (index) => {
+    setCurrentIndex(index)
+    pauseAuto()
   }
 
   return (
@@ -66,31 +66,25 @@ function BannerCarousel() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl shadow-md bg-white">
 
-          <div className="relative">
+          {/* FIXED SAFARI WRAPPER */}
+          <div className="relative w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[436px]">
+
             {banners.map((banner, index) => (
               <div
                 key={index}
-                className={`transition-opacity duration-500 ${
-                  index === currentIndex
-                    ? 'opacity-100'
-                    : 'opacity-0 absolute inset-0'
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  index === currentIndex ? "opacity-100" : "opacity-0"
                 }`}
               >
                 <img
                   src={banner.src}
                   alt={banner.alt}
-                  className="
-                    w-full 
-                    h-[300px] 
-                    sm:h-[350px] 
-                    md:h-[400px] 
-                    lg:h-[436px] 
-                    object-contain 
-                    rounded-lg
-                  "
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-contain rounded-lg"
                 />
               </div>
             ))}
+
           </div>
 
           {/* Navigation Arrows */}
@@ -120,12 +114,13 @@ function BannerCarousel() {
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full ${
                   index === currentIndex
-                    ? 'bg-white shadow-lg'
-                    : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                    ? "bg-white shadow-lg"
+                    : "bg-white bg-opacity-50 hover:bg-opacity-75"
                 }`}
               />
             ))}
           </div>
+
         </div>
       </div>
     </div>
