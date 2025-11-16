@@ -16,6 +16,8 @@ function CandidacyApplication() {
   const [applicationStatus, setApplicationStatus] = useState(null)
   const [checkingExisting, setCheckingExisting] = useState(true)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const hasProfilePic = !!(userData && userData.profilePicture)
+  const [confirming, setConfirming] = useState(false)
   const [files, setFiles] = useState({
     coc: null,
     cor: null,
@@ -69,6 +71,11 @@ function CandidacyApplication() {
     e.preventDefault()
     setSubmitted(true)
     setMessage('')
+    
+    if (!hasProfilePic) {
+      setMessage('You must upload a profile picture in your Profile page before submitting your candidacy application.')
+      return
+    }
 
     for (const key of requiredKeys) {
       if (!files[key]) {
@@ -80,6 +87,9 @@ function CandidacyApplication() {
   }
 
   const confirmSubmit = async () => {
+    if (confirming) return
+
+    setConfirming(true)    
     setShowConfirmModal(false)
     setLoading(true)
     setMessage('')
@@ -106,7 +116,7 @@ function CandidacyApplication() {
         applicant: {
           uid: user.uid,
           studentId: userData?.studentId || '',
-          profilePicture: userData?.profilePicture || '',
+          /* profilePicture: userData?.profilePicture || '', */
           fullName: userData?.fullName || '',
           firstName: userData?.firstName || '',
           lastName: userData?.lastName || '',
@@ -128,6 +138,7 @@ function CandidacyApplication() {
       setMessage('Failed to submit. Please try again.')
     } finally {
       setLoading(false)
+      setConfirming(false)  
     }
   }
 
@@ -249,6 +260,12 @@ function CandidacyApplication() {
           <h1 className="text-xl font-bold text-red-900">Candidacy Application</h1>
           <p className="text-sm text-gray-600 mt-1">Upload all required documents (PDF or image files):</p>
         </div>
+        {!hasProfilePic && (
+          <div className="mb-4 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded p-3">
+            A profile picture is required before submitting a candidacy application.  
+            Go to <a href="/profile" className="underline font-medium">Profile</a> to upload one.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl shadow border border-gray-200">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -406,7 +423,7 @@ function CandidacyApplication() {
           )}
 
           <div className="flex justify-end gap-3">
-            <button type="submit" disabled={loading} className="px-5 py-2 rounded-lg bg-red-800 text-white font-medium hover:bg-red-900 disabled:opacity-50">
+            <button type="submit" disabled={loading || !hasProfilePic} className="px-5 py-2 rounded-lg bg-red-800 text-white font-medium hover:bg-red-900 disabled:opacity-50">
               {loading ? 'Submitting...' : 'Submit'}
             </button>
           </div>
@@ -432,9 +449,10 @@ function CandidacyApplication() {
                 </button>
                 <button
                   onClick={confirmSubmit}
-                  className="px-4 py-2 text-white rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700"
+                  disabled={confirming}
+                  className="px-4 py-2 text-white rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
                 >
-                  Confirm
+                  {confirming ? 'Submitting...' : 'Confirm'}
                 </button>
               </div>
             </div>

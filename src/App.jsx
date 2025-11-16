@@ -31,6 +31,7 @@ import Profile from './components/Profile'
 import Candidates from './components/Candidates'
 import ActivityLog from './components/ActivityLog'
 import ElectionArchives from './components/ElectionArchives'
+import ManageBanner from './components/ManageBanner'
 /* import ResetPassword from './components/ResetPassword' */
 
 function App() {
@@ -106,6 +107,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ManageCandidates />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-banner" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageBanner />
                 </ProtectedRoute>
               } 
             />

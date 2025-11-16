@@ -204,7 +204,7 @@ function ManageCampaigns() {
               )}
             </div>
             <div>
-              <div className="font-semibold text-gray-900">{s.candidateName || 'Unknown Candidate'}</div>
+              <div className="font-semibold text-gray-900 uppercase">{s.candidateName || 'Unknown Candidate'}</div>
               <div className="text-sm text-gray-600">{s.institute || ''}</div>
               <div className="text-xs text-gray-500">Submitted: {s.submittedAt ? new Date(s.submittedAt).toLocaleString() : 'N/A'}</div>
             </div>

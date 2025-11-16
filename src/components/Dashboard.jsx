@@ -67,6 +67,7 @@ function Dashboard() {
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Admin Controls</h3>
         )}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          <a href="/admin/manage-banner" className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-md text-center text-sm sm:text-base">Manage Banner</a>
           <a href="/admin/manage-news" className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-500 text-center text-sm sm:text-base">Manage News</a>
           <a href="/admin/manage-announcements" className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-500 text-center text-sm sm:text-base">Manage Announcements</a>
           <a href="/admin/manage-candidates" className="bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-600 text-center text-sm sm:text-base">Manage Applications</a>

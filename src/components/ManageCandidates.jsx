@@ -58,7 +58,7 @@ function ApplicationCard({ app, showActions, savingId, setConfirmAction, setShow
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
+          <h3 className="text-lg font-semibold text-gray-900 truncate uppercase">
             {app.applicant?.fullName || 'Unknown'}
           </h3>
           <p className="text-sm text-gray-600 break-all">{app.applicant?.studentId || 'No Student ID'} • {app.applicant?.email}</p>
@@ -1062,7 +1062,7 @@ function ManageCandidates() {
                             .sort((a, b) => new Date(a.appointment.dateTime) - new Date(b.appointment.dateTime))
                             .map(app => (
                               <tr key={`${app.uid}-${app.id}`} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-900">{app.applicant?.fullName || "Unknown"}</td>
+                                <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-900 uppercase">{app.applicant?.fullName || "Unknown"}</td>
                                 <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-800">{app.applicant?.institute || "-"}</td>
                                 <td className="px-6 py-4 w-1/4 whitespace-nowrap text-sm text-gray-500">
                                   {new Date(app.appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

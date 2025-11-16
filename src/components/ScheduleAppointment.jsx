@@ -202,10 +202,12 @@ function ScheduleAppointment() {
                         </option>
                       ))}
                     </select>
+                    {message && <p className="text-sm text-red-600 mt-2">{message}</p>}
                   </div>
                   {/* <p className="text-sm text-gray-600">Venue: <span className="font-medium">{VENUE}</span></p> */}
-                  <button type="submit" className="bg-red-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-900">{canReschedule ? 'Submit New Appointment' : 'Submit Appointment'}</button>
-                  {message && <p className="text-sm text-gray-600">{message}</p>}
+                  <div className='flex justify-end'>
+                    <button type="submit" className="bg-red-800 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-900">{canReschedule ? 'Submit New Appointment' : 'Submit Appointment'}</button>
+                  </div>
                 </form>
               )}
             </div>

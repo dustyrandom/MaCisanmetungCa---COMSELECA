@@ -54,35 +54,23 @@ function PublicResultsContent({ forceVisible = false }) {
       ]);
 
       if (candidatesSnap.exists()) {
-        const candidatesData = candidatesSnap.val();
-        const usersData = usersSnap.exists() ? usersSnap.val() : {};
-
-        const list = Object.keys(candidatesData).map(id => {
-          const c = candidatesData[id];
-
-          // Match user by email or studentId
-          const matchingUser = Object.values(usersData).find(
-            u =>
-              (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
-              (u.studentId && u.studentId === c.studentId)
-          );
-
-          // Profile picture priority: users → candidates → fallback
-          const profilePicture =
-            (matchingUser && matchingUser.profilePicture) ||
-            c.profilePicture ||
-            null;
-
-          return {
-            id,
-            ...c,
-            profilePicture,
-            fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
-          };
-        });
-
-        setCandidates(list);
-      } else {
+          const candidatesData = candidatesSnap.val();
+          const usersData = usersSnap.exists() ? usersSnap.val() : {};
+          const list = Object.keys(candidatesData).map(id => {
+            const c = candidatesData[id];
+            // NEW: Match user by candidateUid
+            const matchingUser = usersData[c.candidateUid] || null;
+            return {
+              id,
+              ...c,
+              profilePicture:
+                (matchingUser && matchingUser.profilePicture) ||
+                c.profilePicture ||
+                null,
+            };
+          });
+          setCandidates(list);
+        } else {
         setCandidates([]);
       }
     } catch (e) {
@@ -399,7 +387,7 @@ function PublicResultsContent({ forceVisible = false }) {
                       </div>
 
                       <div className="flex justify-between text-xs text-gray-600 mt-1">
-                        <span>{c.votes} Votes</span>
+                        <span>{c.votes} {c.votes === 1 ? "Vote" : "Votes"}</span>
                         <span>{c.percentage}%</span>
                       </div>
                       </div>
@@ -667,7 +655,7 @@ function PublicResultsContent({ forceVisible = false }) {
 
                               {/* Vote Count & Percentage */}
                               <div className="flex justify-between text-xs text-gray-600 mt-1">
-                                <span>{c.votes} Votes</span>
+                                <span>{c.votes} {c.votes <= 1 ? "Vote" : "Votes"}</span>
                                 <span>{c.percentage}%</span>
                               </div>
                             </div>

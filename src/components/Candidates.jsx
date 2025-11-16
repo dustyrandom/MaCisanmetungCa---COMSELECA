@@ -40,28 +40,21 @@ function Candidates({ forceVisible = false }) {
         const usersData = usersSnap.exists() ? usersSnap.val() : {}
 
         const list = Object.keys(candidatesData).map(id => {
-          const c = candidatesData[id]
+          const c = candidatesData[id];
 
-          // Find matching user (by email or studentId)
-          const matchingUser = Object.values(usersData).find(
-            u =>
-              (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
-              (u.studentId && u.studentId === c.studentId)
-          )
-
-          // Determine profile picture priority: users DB → candidates DB → fallback
-          const profilePicture =
-            (matchingUser && matchingUser.profilePicture) || 
-            c.profilePicture || 
-            null  // we'll handle null in the JSX with fallback avatar
+          // NEW: Match user by UID
+          const matchingUser = usersData[c.candidateUid] || null;
 
           return {
             id,
             ...c,
-            profilePicture,
-            fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
-          }
-        })
+            profilePicture:
+              (matchingUser && matchingUser.profilePicture) ||
+              c.profilePicture ||
+              null,
+          };
+        });
+
 
         setCandidates(list)
       } else {
@@ -163,10 +156,9 @@ function Candidates({ forceVisible = false }) {
                                   </div>
                                 )}
                               </div>
-
                               {/* Candidate info */}
                               <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
-                                <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
+                                <h4 className="font-semibold truncate text-ellipsis uppercase">{candidate.lastName}, {candidate.firstName}</h4>
                                 {/* <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
                                 <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p> */}
                                 <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
@@ -222,7 +214,7 @@ function Candidates({ forceVisible = false }) {
 
                                       {/* Candidate info */}
                                       <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
-                                        <h4 className="font-semibold truncate text-ellipsis">{candidate.lastName}, {candidate.firstName}</h4>
+                                        <h4 className="font-semibold truncate text-ellipsis uppercase">{candidate.lastName}, {candidate.firstName}</h4>
                                         {/* <p className="text-sm text-gray-600 truncate">{candidate.email}</p>
                                         <p className="text-sm text-gray-600 truncate">{candidate.studentId}</p> */}
                                         <p className="text-sm text-gray-600 truncate">{candidate.institute}</p>
@@ -301,7 +293,7 @@ function Candidates({ forceVisible = false }) {
                                         {positionForTeam.map((position) => (
                                           <div key={position} className="space-y-1">
                                             <div className={`inline-block text-[11px] px-2 py-0.5 rounded ${badge}`}>{position}</div>
-                                            <div className="text-gray-800">
+                                            <div className="text-gray-800 uppercase">
                                               {positionToNames[position].map((fullName, i) => (
                                                 <div key={`${position}-${i}`}>{fullName}</div>
                                               ))}
@@ -355,7 +347,7 @@ function Candidates({ forceVisible = false }) {
                           {positions.map(position => (
                             <div key={position}>
                               <h4 className="text-center font-semibold mb-4 text-gray-800">{position}</h4>
-                              <div className="space-y-2 text-center text-sm">
+                              <div className="space-y-2 text-center text-sm uppercase">
                                 {positionToNames[position].map((fullName, i) => (
                                   <div key={`${position}-${i}`} className="text-gray-800">{fullName}</div>
                                 ))}

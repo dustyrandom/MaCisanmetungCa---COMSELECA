@@ -70,25 +70,28 @@ function VotingPage() {
       }
 
       const mergedCandidates = Object.keys(candidatesData).map(id => {
-        const c = candidatesData[id]
-        const matchingUser = Object.values(usersData).find(
-          u =>
-            (u.email && u.email.toLowerCase() === (c.email || '').toLowerCase()) ||
-            (u.studentId && u.studentId === c.studentId)
-        )
+      const c = candidatesData[id];
 
-        const profilePicture =
+      // NEW: Match user by UID
+      const matchingUser = usersData[c.candidateUid] || null;
+
+      return {
+        id,
+        ...c,
+        /* fullName:
+          (matchingUser && matchingUser.fullName) ||
+          c.fullName ||
+          `${c.firstName || ""} ${c.lastName || ""}`.trim(),
+        email:
+          (matchingUser && matchingUser.email) ||
+          c.email ||
+          "", */
+        profilePicture:
           (matchingUser && matchingUser.profilePicture) ||
           c.profilePicture ||
-          null
-
-        return {
-          id,
-          ...c,
-          profilePicture,
-          fullName: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim(),
-        }
-      })
+          null,
+      };
+    });
 
       setCandidates(mergedCandidates)
       // ---- Load voting status ----
@@ -203,6 +206,8 @@ function VotingPage() {
       const voteRef = dbRef(db, `electionVotes/${user.uid}`);
       await set(voteRef, voteData);
 
+      await sendVoteThankYouEmail(user.uid);
+
       setSubmitted(true);
       setHasVoted(true);
 
@@ -211,6 +216,32 @@ function VotingPage() {
     }
   };
 
+  const sendVoteThankYouEmail = async (uid) => {
+      try {
+        const userRef = dbRef(db, `users/${uid}`);
+        const userSnapshot = await get(userRef);
+        if (!userSnapshot.exists()) return;
+
+        const voter = userSnapshot.val();
+
+        const emailServerUrl = import.meta.env.VITE_EMAIL_SERVER_URL || 'http://localhost:3000';
+        const response = await fetch(`${emailServerUrl}/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: voter.email,
+            status: 'voteThankYou',
+            fullName: voter.fullName,
+            position: null,
+          })
+        });
+
+        if (!response.ok) throw new Error('Email server error');
+
+      } catch (e) {
+        console.error('Error sending vote thank you email', e);
+      }
+    };
 
   const renderSSCPage = () => (
     <div className="space-y-8">
@@ -268,7 +299,7 @@ function VotingPage() {
                       </div>
 
                       <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
-                        <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">
+                        <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal uppercase">
                           {candidate.lastName}, {candidate.firstName}
                         </h4>
                         <p className="text-gray-600">{candidate.institute}</p>
@@ -356,7 +387,7 @@ function VotingPage() {
                             </div>
 
                             <div className="flex-1 min-w-0 break-words text-sm text-gray-800 leading-tight">
-                              <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal">
+                              <h4 className="font-semibold text-gray-900 truncate sm:whitespace-normal uppercase">
                                 {candidate.lastName}, {candidate.firstName}
                               </h4>
                               <p className="text-gray-600">{candidate.institute}</p>
@@ -683,8 +714,10 @@ function VotingPage() {
                   Cancel
                 </button>
                 <button
+                  disabled={isSubmitting}
                   onClick={async () => {
                     try {
+                      setIsSubmitting(true);   
                       await submitVotes()
                       setShowConfirmModal(false)
                     } catch (error) {

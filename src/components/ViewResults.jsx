@@ -518,7 +518,7 @@ const handleExport = async () => {
                     <div key={vote.uid} className="bg-white rounded-lg shadow p-6">
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{vote.voterName}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 uppercase">{vote.voterName}</h3>
                           <p className="text-gray-600">{vote.voterstudentId}</p>
                           <p className="text-gray-600">{vote.voterEmail}</p>
                           <p className="text-gray-600">{vote.voterInstitute}</p>
