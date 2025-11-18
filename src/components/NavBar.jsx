@@ -68,7 +68,7 @@ function NavBar() {
                       />
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-gray-200 text-white flex items-center justify-center text-xs font-bold">
-                        <User className="text-gray-500 h-10 w-10" />
+                        <User className="text-gray-500 h-4 w-4" />
                       </div>
                     )}
                     <span className="text-sm text-gray-700 font-medium hidden lg:inline truncate max-w-[120px]">

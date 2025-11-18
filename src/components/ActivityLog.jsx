@@ -184,10 +184,10 @@ function ActivityLog() {
               <p className="text-gray-600 mt-1">View recent admin actions</p>
             </div>
             <div className="flex gap-2">
-              <label className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition cursor-pointer">
+              {/* <label className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition cursor-pointer">
                 Import
                 <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
-              </label>
+              </label> */}
               <button
                 onClick={() => setShowPasswordConfirm(true)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
