@@ -199,7 +199,7 @@ function VotingPage() {
         voterEmail: user.email,
         voterstudentId: userData.studentId,
         voterInstitute: userData.institute,
-        votes: filledVotes, // <--- ALWAYS filled, never empty
+        votes: filledVotes, 
         submittedAt: new Date().toISOString(),
       };
 
