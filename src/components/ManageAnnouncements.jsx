@@ -137,15 +137,17 @@ function ManageAnnouncements() {
       <NavBar />
       <div className="pt-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto p-8 mb-10">
-          <div className="flex justify-between items-center mb-8">
-            <div className='mb-2'>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div className="mb-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Manage Announcements</h1>
-              <p className='text-sm sm:text-base text-gray-600 mt-1'>Add, edit, and delete announcements.</p>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                Add, edit, and delete announcements.
+              </p>
             </div>
-            
+
             <button
               onClick={openAddModal}
-              className="px-5 py-2.5 text-sm sm:text-base rounded-lg w-15 sm:w-20 bg-green-600 text-white font-medium hover:bg-green-700 transition"
+              className="w-full sm:w-auto px-5 py-2.5 text-sm sm:text-base rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition"
             >
               Add
             </button>

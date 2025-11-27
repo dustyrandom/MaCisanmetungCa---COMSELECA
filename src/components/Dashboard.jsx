@@ -59,31 +59,46 @@ function Dashboard() {
 
   const renderAdminDashboard = () => (
     <div className="space-y-6">
-      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-        {userData.role === 'superadmin' && (
-          <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Super Admin Controls</h3>
+      {userData.role === 'superadmin' && (
+          <h1 className="text-xl sm:text-2xl font-bold mb-4 text-red-900">Super Admin Controls</h1>
         )}
         {userData.role === 'admin' && (
-          <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Admin Controls</h3>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-red-900">Admin Controls</h2>
         )}
+      {/* Website Controls */}
+      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Website Controls</h3>
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-          <a href="/admin/manage-banner" className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-md text-center text-sm sm:text-base">Manage Banner</a>
-          <a href="/admin/manage-news" className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-500 text-center text-sm sm:text-base">Manage News</a>
-          <a href="/admin/manage-announcements" className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-500 text-center text-sm sm:text-base">Manage Announcements</a>
-          <a href="/admin/manage-candidates" className="bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-600 text-center text-sm sm:text-base">Manage Applications</a>
-          <a href="/admin/manage-campaigns" className="bg-pink-700 text-white px-4 py-2 rounded-md hover:bg-pink-600 text-center text-sm sm:text-base">Manage Campaign Materials</a>
-          <a href="/admin/manage-elections" className="bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-center text-sm sm:text-base">Manage Elections</a>
-          <a href="/admin/view-results" className="bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-600 text-center text-sm sm:text-base">Election Results</a>
-
-          {userData.role === 'superadmin' && (
-            <>
-              <a href="/admin/election-archives" className="bg-teal-800 text-white px-4 py-2 rounded-md hover:bg-teal-700 text-center text-sm sm:text-base">Election Archives</a>
-              <a href="/admin/manage-users" className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-center text-sm sm:text-base">Manage Users</a>
-              <a href="/admin/activity-log" className="bg-red-800 text-white px-4 py-2 rounded-md hover:bg-red-900 text-center text-sm sm:text-base">Admin Activity Log</a>
-            </>
-          )}
+          <a href="/admin/manage-banner" className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md text-center text-sm sm:text-base">Manage Banner</a>
+          <a href="/admin/manage-news" className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 text-center text-sm sm:text-base">Manage News</a>
+          <a href="/admin/manage-announcements" className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 text-center text-sm sm:text-base">Manage Announcements</a>
         </div>
       </div>
+
+      {/* Election Controls */}
+      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Election Controls</h3>
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          <a href="/admin/manage-documents" className="bg-amber-800 text-white px-4 py-2 rounded-md hover:bg-amber-900 text-center text-sm sm:text-base">Manage Documents</a>
+          <a href="/admin/manage-candidates" className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 text-center text-sm sm:text-base">Manage Applications</a>
+          <a href="/admin/manage-campaigns" className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 text-center text-sm sm:text-base">Manage Campaign Materials</a>
+          <a href="/admin/manage-elections" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-center text-sm sm:text-base">Manage Elections</a>
+          <a href="/admin/view-results" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-center text-sm sm:text-base">Election Results</a>
+
+        </div>
+      </div>
+      
+      {/* Exclusive Controls  */}
+      {userData.role === 'superadmin' && (
+      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Exclusive Controls</h3>
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          <a href="/admin/election-archives" className="bg-teal-700 text-white px-4 py-2 rounded-md hover:bg-teal-800 text-center text-sm sm:text-base">Election Archives</a>
+          <a href="/admin/manage-users" className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-800 text-center text-sm sm:text-base">Manage Users</a>
+          <a href="/admin/activity-log" className="bg-red-700 text-white px-4 py-2 rounded-md hover:bg-red-800 text-center text-sm sm:text-base">Admin Activity Log</a>
+        </div>
+      </div>
+      )}
     </div>
   )
 

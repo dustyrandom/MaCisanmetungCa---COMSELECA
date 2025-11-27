@@ -106,6 +106,7 @@ function ManageElections() {
                   email: app.applicant?.email || '',
                   institute: app.applicant?.institute || '',
                   studentId: app.applicant?.studentId || '',
+                  position: app.passedPosition || '', 
                   /* profilePicture: app.applicant?.profilePicture || '' */
                 })
               }
@@ -521,7 +522,7 @@ function ManageElections() {
                     <select
                       value={filterInstitute}
                       onChange={(e) => setFilterInstitute(e.target.value)}
-                      className="w-full sm:w-[160px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+                      className="w-full sm:w-[160px] rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
                     >
                       <option value="ALL">All</option>
                       <option value="SSC">SSC</option>
@@ -811,8 +812,17 @@ function ManageElections() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Select Candidate</label>
                     <select
                       value={formData.candidateId}
-                      onChange={(e) => setFormData(prev => ({ ...prev, candidateId: e.target.value }))}
-                      className="w-full border rounded px-3 py-2"
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selected = passedCandidates.find(c => c.id === selectedId);
+                        setFormData(prev => ({
+                          ...prev,
+                          candidateId: selectedId,
+                          position: selected ? selected.position : "" 
+                        }));
+                      }}
+                      className={`w-full border rounded px-3 py-2
+                        ${editingCandidate ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-white"}`}
                       required
                       disabled={!!editingCandidate}
                     >
@@ -845,24 +855,32 @@ function ManageElections() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-                    <select
+                    <input
+                      type="text"
+                      value={formData.position}
+                      readOnly
+                      className={`w-full border rounded px-3 py-2 border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed pointer-events-none
+                        ${editingCandidate ? "text-gray-500" : ""}`}
+                      placeholder="Position will auto-fill after selecting a candidate"
+                    />
+                    {/* <select
                       value={formData.position}
                       onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
                       className="w-full border rounded px-3 py-2"
-                      required
+                      disabled={true}   
                     >
                       <option value="">Select position</option>
-                      <optgroup label="SSC">
+                      <optgroup label="Supreme Student Council">
                         {sscPositions.map(position => (
                           <option key={position} value={position}>{position}</option>
                         ))}
                       </optgroup>
-                      <optgroup label="ISC">
+                      <optgroup label="Institute Student Council">
                         {iscPositions.map(position => (
                           <option key={position} value={position}>{position}</option>
                         ))}
                       </optgroup>
-                    </select>
+                    </select> */}
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 pt-4">

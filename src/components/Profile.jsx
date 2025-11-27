@@ -266,7 +266,7 @@ function Profile() {
                     type={field === 'email' ? 'email' : 'text'}
                     value={formData[field]}
                     disabled
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
               ))}

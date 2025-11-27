@@ -32,6 +32,8 @@ import Candidates from './components/Candidates'
 import ActivityLog from './components/ActivityLog'
 import ElectionArchives from './components/ElectionArchives'
 import ManageBanner from './components/ManageBanner'
+import ManageDocuments from './components/ManageDocuments'
+import Documents from './components/Documents'
 /* import ResetPassword from './components/ResetPassword' */
 
 function App() {
@@ -46,7 +48,6 @@ function App() {
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/vote" element={<Vote />} />
             <Route path="/candidates" element={<Candidates />} />
-            
             {/* Public routes - redirect authenticated users */}
             <Route 
               path="/login" 
@@ -99,6 +100,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <ScheduleAppointment />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/manage-documents" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <ManageDocuments />
                 </ProtectedRoute>
               } 
             />
@@ -212,6 +221,14 @@ function App() {
               element={
                 <ProtectedRoute requireVerification={true}>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/documents" 
+              element={
+                <ProtectedRoute requireVerification={true}>
+                  <Documents />
                 </ProtectedRoute>
               } 
             />

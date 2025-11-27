@@ -8,6 +8,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { logActivity } from '../utils/logActivity';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
+import ReactDOM from "react-dom/client";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 function ViewResults() {
   const { userData, loading: authLoading } = useAuth()
@@ -29,13 +32,6 @@ function ViewResults() {
     'President','Vice President','General Secretary','Internal Secretary','External Secretary','Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers','Editorial Officer','Logistics Officer'
   ]
   const iscPosition = ['Governor','Vice Governor','Board Member on Records','Board Member on Finance','Board Member on Audit','Board Member on Publication','Board Member on Public Relation','Board Member on Resources']
-
-  const institutes = [
-    'Institute of Arts and Sciences',
-    'Institute of Business and Computing Education',
-    'Institute of Teacher Education',
-    'Institute of Hospitality and Tourism Management'
-  ]
 
   const instituteMap = {
   IAS: 'Institute of Arts and Sciences',
@@ -102,12 +98,6 @@ function ViewResults() {
     return `${last.toUpperCase()}, ${first.toUpperCase()}`.trim()
   }
 
-
-  const getCandidatePosition = (candidateId) => {
-    const candidate = candidates.find(c => c.id === candidateId)
-    return candidate ? candidate.position : 'Unknown Position'
-  }
-
   const getCandidateInstitute = (candidateId) => {
     const candidate = candidates.find(c => c.id === candidateId)
     return candidate ? candidate.institute : 'Unknown Institute'
@@ -123,215 +113,339 @@ function ViewResults() {
     return votes.filter(v => v.voterInstitute === instituteFullName)
   }
 
-  /* const handleDeleteAllVotes = async () => {
-    try {
-      setDeleteError('')
-      setDeletingVotes(true)
-      const votesRef = dbRef(db, 'electionVotes')
-      await remove(votesRef)
-      setVotes([])
-      setShowDeleteModal(false)
-      logActivity(userData.fullName, "Deleted all votes")
-    } catch (error) {
-      console.error('Failed to delete all votes:', error)
-      setDeleteError('Failed to delete votes. Please try again.')
-    } finally {
-      setDeletingVotes(false)
-    }
-  } */
+  const handleExport = async () => {
 
-
-const handleExport = async () => {
-  // if you already have getCandidateName or candidates map in scope, this will use them.
-  if (!Array.isArray(votes) || votes.length === 0) {
-    alert("No votes to export.");
-    return;
-  }
-
-  // helper: format date nicely (fallback)
-  const formatDateSafe = (d) => {
-    if (!d) return "";
-    try {
-      const dt = new Date(d);
-      return isNaN(dt.getTime()) ? String(d) : dt.toLocaleString();
-    } catch {
-      return String(d);
-    }
-  };
-
-  // sanitize to avoid Excel interpreting text as formula
-  const sanitizeCell = (val) => {
-    if (val === null || val === undefined) return "";
-    let s = String(val);
-    // If begins with = + - @, prefix with apostrophe so Excel treats it as text
-    if (/^[=+\-@]/.test(s)) s = "'" + s;
-    return s;
-  };
-
-  // Positions lists (same as your archives format)
-  const sscPositions = [
-    "President",
-    "Vice President",
-    "General Secretary",
-    "Internal Secretary",
-    "External Secretary",
-    "Finance Officer",
-    "Audit Officer",
-    "Student Welfare and Rights Officer",
-    "Multimedia Officers",
-    "Editorial Officer",
-    "Logistics Officer",
-  ];
-
-  const iscPositions = [
-    "Governor",
-    "Vice Governor",
-    "Board Member on Records",
-    "Board Member on Finance",
-    "Board Member on Audit",
-    "Board Member on Publication",
-    "Board Member on Public Relation",
-    "Board Member on Resources",
-  ];
-
-  const autoFitColumns = (ws) => {
-    if (!ws || !ws["!ref"]) return;
-    const range = XLSX.utils.decode_range(ws["!ref"]);
-    const colWidths = [];
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      let maxWidth = 10;
-      for (let R = range.s.r; R <= range.e.r; ++R) {
-        const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
-        if (cell && cell.v != null) {
-          const len = String(cell.v).length;
-          if (len + 2 > maxWidth) maxWidth = len + 2;
-        }
-      }
-      colWidths.push({ wch: maxWidth });
-    }
-    ws["!cols"] = colWidths;
-  };
-
-
-  const allPositions = [...sscPositions, ...iscPositions];
-
-  // Build candidateInfo map if possible (candidates variable or candidatesMap)
-  const candidateInfo = {};
-    for (const c of candidates || []) {
-      candidateInfo[c.id] = {
-        name:
-          c.fullName ||
-          `${c.lastName?.toUpperCase() || ""}, ${c.firstName?.toUpperCase() || ""}`.trim(),
-        position: c.position || "",
-        institute: (c.institute || c.institution || "").trim(),
-      };
+    if (!Array.isArray(votes) || votes.length === 0) {
+      alert("No votes to export.");
+      return;
     }
 
+    setIsExporting(true);
 
-  // candidate name resolver: prefer getCandidateName if available, else candidateInfo, else id
-  const candidateNameForId = (id) => {
-    if (!id) return "";
-    if (typeof getCandidateName === "function") {
+    // helper: format date nicely (fallback)
+    const formatDateSafe = (d) => {
+      if (!d) return "";
       try {
-        const n = getCandidateName(id);
-        if (n) return n;
+        const dt = new Date(d);
+        return isNaN(dt.getTime()) ? String(d) : dt.toLocaleString();
       } catch {
-        // ignore
+        return String(d);
       }
-    }
-    if (candidateInfo[id]) return candidateInfo[id].name || id;
-    return id;
-  };
-
-  // Build rows with fixed columns per position
-  const rows = votes.map((vote) => {
-    // support several vote object shapes:
-    const voterName = vote.voterName || vote.voter || vote.name || vote.fullName || "";
-    const voterStudentId = vote.voterstudentId || vote.voterStudentId || vote.studentId || "";
-    const voterEmail = vote.voterEmail || vote.voter_email || vote.email || "";
-    const voterInstitute = (vote.voterInstitute || vote.voter_institute || vote.institute || "").trim();
-    const submittedAt = formatDateSafe(vote.submittedAt || vote.submitted_at || vote.timestamp || "");
-
-    // normalise the incoming votes object (keys may be "Institute of X - Governor")
-    const positionsObj = vote.votes || vote.vote || {};
-    const normalized = {}; // normalized[position] = [id,...]
-    for (const [rawPosKey, candidateIdOrIds] of Object.entries(positionsObj || {})) {
-      let pos = rawPosKey;
-      if (typeof rawPosKey === "string" && rawPosKey.includes("-")) {
-        const parts = rawPosKey.split("-");
-        pos = parts[parts.length - 1].trim();
-      }
-      if (!pos) continue;
-      const arr = Array.isArray(candidateIdOrIds) ? candidateIdOrIds : [candidateIdOrIds];
-      normalized[pos] = (normalized[pos] || []).concat(arr.filter(Boolean));
-    }
-
-    const row = {
-      "Voter Name": sanitizeCell(voterName),
-      "Student ID": sanitizeCell(voterStudentId),
-      Email: sanitizeCell(voterEmail),
-      Institute: sanitizeCell(voterInstitute),
-      "Submitted At": sanitizeCell(submittedAt),
     };
 
-    for (const pos of allPositions) {
-      const ids = normalized[pos] || [];
-      let validIds = [];
+    // sanitize to avoid Excel interpreting text as formula
+    const sanitizeCell = (val) => {
+      if (val === null || val === undefined) return "";
+      let s = String(val);
+      // If begins with = + - @, prefix with apostrophe so Excel treats it as text
+      if (/^[=+\-@]/.test(s)) s = "'" + s;
+      return s;
+    };
 
-      // SSC positions accept any candidate IDs present
-      if (sscPositions.includes(pos)) {
-        validIds = ids;
-      } else {
-        // ISC positions: only include candidate if candidate's institute matches voter's institute
-        validIds = ids.filter((cid) => {
-          const info = candidateInfo[cid];
-          // If we don't have candidate info, include (fallback) — you can change to exclude if needed
-          if (!info || !info.institute) return false;
-          return (String(info.institute).trim() === String(voterInstitute).trim());
-        });
+    // Positions lists (same as your archives format)
+    const sscPositions = [
+      "President",
+      "Vice President",
+      "General Secretary",
+      "Internal Secretary",
+      "External Secretary",
+      "Finance Officer",
+      "Audit Officer",
+      "Student Welfare and Rights Officer",
+      "Multimedia Officers",
+      "Editorial Officer",
+      "Logistics Officer",
+    ];
+
+    const iscPositions = [
+      "Governor",
+      "Vice Governor",
+      "Board Member on Records",
+      "Board Member on Finance",
+      "Board Member on Audit",
+      "Board Member on Publication",
+      "Board Member on Public Relation",
+      "Board Member on Resources",
+    ];
+
+    const autoFitColumns = (ws) => {
+      if (!ws || !ws["!ref"]) return;
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      const colWidths = [];
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        let maxWidth = 10;
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+          const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+          if (cell && cell.v != null) {
+            const len = String(cell.v).length;
+            if (len + 2 > maxWidth) maxWidth = len + 2;
+          }
+        }
+        colWidths.push({ wch: maxWidth });
+      }
+      ws["!cols"] = colWidths;
+    };
+
+
+    const allPositions = [...sscPositions, ...iscPositions];
+
+    // Build candidateInfo map if possible (candidates variable or candidatesMap)
+    const candidateInfo = {};
+      for (const c of candidates || []) {
+        candidateInfo[c.id] = {
+          name:
+            c.fullName ||
+            `${c.lastName?.toUpperCase() || ""}, ${c.firstName?.toUpperCase() || ""}`.trim(),
+          position: c.position || "",
+          institute: (c.institute || c.institution || "").trim(),
+        };
       }
 
-      const names = validIds.map((cid) => sanitizeCell(candidateNameForId(cid))).filter(Boolean);
-      row[pos] = names.join(", ");
+
+    // candidate name resolver: prefer getCandidateName if available, else candidateInfo, else id
+    const candidateNameForId = (id) => {
+      if (!id) return "";
+      if (typeof getCandidateName === "function") {
+        try {
+          const n = getCandidateName(id);
+          if (n) return n;
+        } catch {
+          // ignore
+        }
+      }
+      if (candidateInfo[id]) return candidateInfo[id].name || id;
+      return id;
+    };
+
+    // Build rows with fixed columns per position
+    const rows = votes.map((vote) => {
+      // support several vote object shapes:
+      const voterName = vote.voterName || vote.voter || vote.name || vote.fullName || "";
+      const voterStudentId = vote.voterstudentId || vote.voterStudentId || vote.studentId || "";
+      const voterEmail = vote.voterEmail || vote.voter_email || vote.email || "";
+      const voterInstitute = (vote.voterInstitute || vote.voter_institute || vote.institute || "").trim();
+      const submittedAt = formatDateSafe(vote.submittedAt || vote.submitted_at || vote.timestamp || "");
+
+      // normalise the incoming votes object (keys may be "Institute of X - Governor")
+      const positionsObj = vote.votes || vote.vote || {};
+      const normalized = {}; // normalized[position] = [id,...]
+      for (const [rawPosKey, candidateIdOrIds] of Object.entries(positionsObj || {})) {
+        let pos = rawPosKey;
+        if (typeof rawPosKey === "string" && rawPosKey.includes("-")) {
+          const parts = rawPosKey.split("-");
+          pos = parts[parts.length - 1].trim();
+        }
+        if (!pos) continue;
+        const arr = Array.isArray(candidateIdOrIds) ? candidateIdOrIds : [candidateIdOrIds];
+        normalized[pos] = (normalized[pos] || []).concat(arr.filter(Boolean));
+      }
+
+      const row = {
+        "Voter Name": sanitizeCell(voterName),
+        "Student ID": sanitizeCell(voterStudentId),
+        Email: sanitizeCell(voterEmail),
+        Institute: sanitizeCell(voterInstitute),
+        "Submitted At": sanitizeCell(submittedAt),
+      };
+
+      for (const pos of allPositions) {
+        const ids = normalized[pos] || [];
+        let validIds = [];
+
+        // SSC positions accept any candidate IDs present
+        if (sscPositions.includes(pos)) {
+          validIds = ids;
+        } else {
+          // ISC positions: only include candidate if candidate's institute matches voter's institute
+          validIds = ids.filter((cid) => {
+            const info = candidateInfo[cid];
+            // If we don't have candidate info, include (fallback) — you can change to exclude if needed
+            if (!info || !info.institute) return false;
+            return (String(info.institute).trim() === String(voterInstitute).trim());
+          });
+        }
+
+        const names = validIds.map((cid) => sanitizeCell(candidateNameForId(cid))).filter(Boolean);
+        row[pos] = names.join(", ");
+      }
+      return row;
+      
+    });
+
+    // Build workbook & sheet
+    const wb = XLSX.utils.book_new();
+
+    // Ensure header order
+    const header = ["Voter Name", "Student ID", "Email", "Institute", "Submitted At", ...allPositions];
+
+    const ws = XLSX.utils.json_to_sheet(rows, { header });
+
+    // Auto-fit columns (uses your helper)
+    try {
+      autoFitColumns(ws);
+    } catch (e) {
+      console.warn("autoFitColumns failed:", e);
     }
 
-    return row;
-  });
+    // Make worksheet view-only
+    ws['!protect'] = {
+      password: "readonly",
+      selectLockedCells: true,
+      selectUnlockedCells: true
+    };
 
-  // Build workbook & sheet
-  const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `election_results_${new Date().toISOString().slice(0,10)}`);
 
-  // Ensure header order
-  const header = ["Voter Name", "Student ID", "Email", "Institute", "Submitted At", ...allPositions];
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const filename = `election_results_${new Date().toISOString().slice(0,10)}.xlsx`;
+    saveAs(new Blob([wbout], { type: "application/octet-stream" }), filename);
+    
+    //Export PDF
+    try {
+      // helper: find or create export container
+      const getOrCreateExportContainer = () => {
+        let el = document.getElementById("public-results-export");
+        let created = false;
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "public-results-export-temp";
+          el.style.position = "absolute";
+          el.style.left = "-9999px";
+          el.style.top = "0";
+          el.style.width = "1200px";
+          el.style.padding = "20px";
+          el.style.background = "white";
+          document.body.appendChild(el);
+          created = true;
+        }
+        return { el, created };
+      };
 
-  const ws = XLSX.utils.json_to_sheet(rows, { header });
+      const { el: exportContainer, created } = getOrCreateExportContainer();
+      let root = null;
 
-  // Auto-fit columns (uses your helper)
-  try {
-    autoFitColumns(ws);
-  } catch (e) {
-    // if autoFit fails for any reason, ignore — sheet will still be fine
-    console.warn("autoFitColumns failed:", e);
-  }
+      if (created) {
+        try {
+          // ensure PublicResultsContent is in scope (it is imported at top of file)
+          root = ReactDOM.createRoot(exportContainer);
+          root.render(<PublicResultsContent forceVisible={true} />);
+        } catch (e) {
+          console.warn("createRoot failed, trying ReactDOM.render fallback", e);
+        }
+      }
 
-  // Make worksheet view-only
-  ws['!protect'] = {
-    password: "readonly",
-    selectLockedCells: true,
-    selectUnlockedCells: true
+      // wait for content to be loaded/rendered
+      const waitForRenderedContent = async (container, timeout = 9000, interval = 300) => {
+        const start = Date.now();
+        while (Date.now() - start < timeout) {
+          // heuristic: presence of SVG (recharts) or images or sufficiently long text means ready
+          if (
+            container.querySelector("svg") ||
+            container.querySelector("img") ||
+            (container.innerText && container.innerText.trim().length > 80)
+          ) {
+            // small delay to allow charts to finalize
+            await new Promise((r) => setTimeout(r, 300));
+            return true;
+          }
+          await new Promise((r) => setTimeout(r, interval));
+        }
+        return false;
+      };
+
+      const ready = await waitForRenderedContent(exportContainer, 9000, 300);
+      if (!ready) {
+        // cleanup if we rendered temp content
+        if (root && typeof root.unmount === "function") root.unmount();
+        if (created && exportContainer.parentNode) exportContainer.parentNode.removeChild(exportContainer);
+        alert("Public results content is not available for PDF export. (timed out)");
+        return;
+      }
+
+      window.scrollTo(0, 0);
+
+      const canvas = await html2canvas(exportContainer, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidthMm = 210;
+      const pageHeightMm = 297;
+      const marginMm = 5;
+      const usableWidthMm = pageWidthMm - marginMm * 2;
+      const usableHeightMm = pageHeightMm - marginMm * 2;
+
+      const imgPxWidth = canvas.width;
+      const imgPxHeight = canvas.height;
+
+      const mmPerPx = usableWidthMm / imgPxWidth; 
+      const sliceHeightPx = Math.floor(usableHeightMm / mmPerPx); 
+
+      let yOffsetPx = 0;
+      let pageIndex = 0;
+
+      while (yOffsetPx < imgPxHeight) {
+        // create temp canvas for this slice
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = imgPxWidth;
+        sliceCanvas.height = Math.min(sliceHeightPx, imgPxHeight - yOffsetPx);
+        const ctx = sliceCanvas.getContext("2d");
+        // draw slice from main canvas
+        ctx.drawImage(
+          canvas,
+          0, // sx
+          yOffsetPx, // sy
+          imgPxWidth, // sWidth
+          sliceCanvas.height, // sHeight
+          0, // dx
+          0, // dy
+          imgPxWidth, // dWidth
+          sliceCanvas.height // dHeight
+        );
+
+        const sliceData = sliceCanvas.toDataURL("image/png");
+
+        // add to pdf
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(
+          sliceData,
+          "PNG",
+          marginMm,
+          marginMm,
+          usableWidthMm,
+          (sliceCanvas.height * mmPerPx) // converted height in mm
+        );
+
+        pageIndex += 1;
+        yOffsetPx += sliceHeightPx;
+      }
+
+      pdf.save(`public_results_${new Date().toISOString().slice(0, 10)}.pdf`);
+
+      // cleanup temporary render if created
+      if (root && typeof root.unmount === "function") {
+        try { root.unmount(); } catch(e){ /* ignore */ }
+      }
+      if (created && exportContainer.parentNode) {
+        exportContainer.parentNode.removeChild(exportContainer);
+      }
+    } catch (err) {
+      console.error("PDF export failed:", err);
+      alert("Failed to export PDF.");
+    }
+
+    if (typeof logActivity === "function" && userData?.fullName) {
+      logActivity(userData.fullName, `Exported election results`);
+    }
+
+    setIsExporting(false);
+
   };
-
-  XLSX.utils.book_append_sheet(wb, ws, `election_results_${new Date().toISOString().slice(0,10)}`);
-
-  const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-  const filename = `election_results_${new Date().toISOString().slice(0,10)}.xlsx`;
-  saveAs(new Blob([wbout], { type: "application/octet-stream" }), filename);
-
-  // Optional logging
-  if (typeof logActivity === "function" && userData?.fullName) {
-    logActivity(userData.fullName, `Exported election results`);
-  }
-};
 
   if (loading) {
     return (
@@ -376,16 +490,6 @@ const handleExport = async () => {
                 <p className="text-gray-600 mt-1">View detailed voting results and voter information</p>
               </div>
               <div className="flex gap-2">
-                {/* {userData.role === 'superadmin' && (
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    disabled={deletingVotes || votes.length === 0}
-                    className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes || votes.length === 0 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-red-700 text-white border-red-700 hover:bg-red-600'}`}
-                    title={votes.length === 0 ? 'No votes to delete' : 'Delete all votes'}
-                  >
-                    {deletingVotes ? 'Deleting…' : 'Delete All Votes'}
-                  </button>
-                )} */}
 
                 {userData.role === 'superadmin' && (
                   <button
@@ -405,41 +509,6 @@ const handleExport = async () => {
                 
               </div>
             </div>
-
-            {/* Delete All Votes Modal */}
-            {/* {showDeleteModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black bg-opacity-40" onClick={() => !deletingVotes && setShowDeleteModal(false)}></div>
-                <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-                  <div className="px-6 py-5">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete all votes?</h3>
-                    <p className="text-sm text-gray-600 mb-4">This action cannot be undone. All voter submissions will be permanently removed.</p>
-                    {deleteError && (
-                      <div className="mb-3 text-sm text-red-600">{deleteError}</div>
-                    )}
-                    <div className="flex justify-end space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowDeleteModal(false)}
-                        disabled={deletingVotes}
-                        className={`px-4 py-2 rounded-md text-sm font-medium border ${deletingVotes ? 'bg-gray-100 text-gray-400 border-gray-200' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDeleteAllVotes}
-                        disabled={deletingVotes}
-                        className={`px-4 py-2 rounded-md text-sm font-medium ${deletingVotes ? 'bg-red-300 text-white cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
-                      >
-                        {deletingVotes ? 'Deleting…' : 'Delete Votes'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )} */}
-
 
             {/* Tabs */}
             <div className="mb-6">
@@ -693,139 +762,8 @@ const handleExport = async () => {
             )}
 
             {activeTab === 'summary' && (
-              <div className="space-y-6">
-                {/* <div className="bg-white rounded-lg shadow p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Voting Summary</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Total Voters</p>
-                          <p className="text-2xl font-bold text-gray-900">{getFilteredVotes().length}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
-
-                {/* Candidate Vote Counts */}
-                <>
-                  {/* <div className="space-y-8">
-                    <div>
-                      <h2 className="text-xl font-semibold text-red-900 mb-6">Supreme Student Council Candidates</h2>
-                        {sscPosition.map(position => {
-                        const positionCandidates = candidates.filter(c => c.position === position)
-                        return (
-                          <div key={position} className="mb-8">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">{position}</h3>
-                            {positionCandidates.length > 0 ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {positionCandidates.map(candidate => {
-                                  let voteCount = 0
-                                  votes.forEach(vote => {
-                                    Object.values(vote.votes).forEach(selectedCandidates => {
-                                      const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
-                                      if (candidatesArray.includes(candidate.id)) {
-                                        voteCount++
-                                      }
-                                    })
-                                  })
-
-                                  return (
-                                    <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                      <h4 className="font-semibold">{candidate.fullName}</h4>
-                                      <p className="text-sm text-gray-600">{candidate.email}</p>
-                                      <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                      <p className="text-sm text-gray-600">{candidate.institute}</p>
-                                      {candidate.team && (
-                                        <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                                      )}
-                                      <div className="mt-3">
-                                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                          {voteCount} votes
-                                        </span>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            ) : (
-                              <p className="text-red-800 italic text-sm ">No candidate/s for this position yet.</p>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-semibold text-red-900 mb-6">Institute Student Council Candidates</h2>
-                      {institutes.map(institute => {
-                        const instituteCandidates = candidates.filter(c => iscPosition.includes(c.position) && c.institute === institute)
-                        return (
-                          <div key={institute} className="mb-8">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-6">{institute}</h3>
-
-                            <div className="space-y-8">
-                              {iscPosition.map(position => {
-                                const positionCandidates = instituteCandidates.filter(c => c.position === position)
-
-                                return (
-                                  <div key={position}>
-                                    <h4 className="text-lg font-semibold text-gray-700 mb-3">{position}</h4>
-                                    
-                                    {positionCandidates.length > 0 ? (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {positionCandidates.map(candidate => {
-                                          let voteCount = 0
-                                          votes.forEach(vote => {
-                                            Object.values(vote.votes).forEach(selectedCandidates => {
-                                              const candidatesArray = Array.isArray(selectedCandidates) ? selectedCandidates : [selectedCandidates]
-                                              if (candidatesArray.includes(candidate.id)) {
-                                                voteCount++
-                                              }
-                                            })
-                                          })
-
-                                          return (
-                                            <div key={candidate.id} className="bg-white rounded-lg shadow-md p-4">
-                                              <h5 className="font-semibold">{candidate.fullName}</h5>
-                                              <p className="text-sm text-gray-600">{candidate.email}</p>
-                                              <p className="text-sm text-gray-600">{candidate.studentId}</p>
-                                              {candidate.team && (
-                                                <p className="text-sm text-purple-600">Party: {candidate.team}</p>
-                                              )}
-                                              <div className="mt-3">
-                                                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                                  {voteCount} votes
-                                                </span>
-                                              </div>
-                                            </div>
-                                          )
-                                        })}
-                                      </div>
-                                    ) : (
-                                      <p className="text-red-800 italic text-sm">No candidate/s for this position yet.</p>
-                                    )}
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                  </div> */}
-                </>
-
-                {/* Public results content reused */}
+              <div className="space-y-6" id="public-results-export">
                 <PublicResultsContent forceVisible={true} />
-
               </div>
             )}
 
@@ -952,7 +890,6 @@ const handleExport = async () => {
                 onClick={async () => {
                   if (!adminPassword || isExporting) return;
                   try {
-                    setIsExporting(true)
                     setPasswordError('')
                     // Verify admin password (just like ManageUsers)
                     const auth = getAuth()
@@ -980,6 +917,16 @@ const handleExport = async () => {
           </div>
         </div>
       )}
+
+      {isExporting && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-white shadow-lg rounded-lg px-8 py-6 flex flex-col items-center gap-3 border border-gray-200">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-red-900 border-t-transparent"></div>
+            <p className="font-medium text-gray-700">Exporting results… Please wait.</p>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

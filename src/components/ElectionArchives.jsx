@@ -882,8 +882,8 @@ export default function ElectionArchives() {
                       );
 
                       await logActivity(
-                        auth.currentUser.uid,
-                        `${userData.fullName || "Unknown User"} downloaded archive "${selectedArchive.title}"`
+                        userData.fullName || "Unknown User",
+                        `Downloaded archive "${selectedArchive.title}"`
                       );
 
                       setShowPasswordConfirm(false);

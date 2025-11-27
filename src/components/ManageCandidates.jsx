@@ -212,11 +212,12 @@ function ManageCandidates() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [candidacyModalMessage, setCandidacyModalMessage] = useState('');
   const [candidacyModalError, setCandidacyModalError] = useState('');
+  const [selectedPosition, setSelectedPosition] = useState('');
+  const [confirmModalError, setConfirmModalError] = useState("");
   // Filtering states
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterInstitute, setFilterInstitute] = useState('');
-
 
   useEffect(() => {
   const fetchApplications = async () => {
@@ -316,7 +317,7 @@ function ManageCandidates() {
   }
 }, [userData])
 
-  const updateApplicationStatus = async (uid, appId, status) => {
+  const updateApplicationStatus = async (uid, appId, status, selectedPosition = null) => {
     try {
       setSavingId(`${uid}-${appId}`)
       const appRef = dbRef(db, `candidacyApplications/${uid}/${appId}`)
@@ -325,6 +326,11 @@ function ManageCandidates() {
         reviewedAt: new Date().toISOString(),
         reviewedBy: user.uid
       }
+
+      if (status === 'passed') {
+        updateData.passedPosition = selectedPosition;
+      }
+
       
       await update(appRef, updateData)
       
@@ -336,7 +342,7 @@ function ManageCandidates() {
       
       const updatedUser = applications.find(app => app.uid === uid)
       if (status === 'passed') {
-        logActivity(userData.fullName, `Passed candidate ${updatedUser?.applicant?.fullName || uid}`)
+        logActivity(userData.fullName, `Passed candidate ${updatedUser?.applicant?.fullName || uid} for position: ${selectedPosition}`)
       } else if (status === 'failed') {
         logActivity(userData.fullName, `Failed candidate ${updatedUser?.applicant?.fullName || uid}`)
       } else if (status === 'reviewed') {
@@ -344,7 +350,7 @@ function ManageCandidates() {
       } else if (status === 'rejected') {
         logActivity(userData.fullName, `Rejected candidacy application of ${updatedUser?.applicant?.fullName || uid}`)
       }
-
+ 
       // Send email notification
       await sendStatusEmail(uid, status)
       
@@ -547,6 +553,19 @@ function ManageCandidates() {
     );
     return found?.applicant?.fullName || "this candidate";
   };
+
+  const sscPositions = [
+    'President','Vice President','General Secretary','Internal Secretary','External Secretary',
+    'Finance Officer','Audit Officer','Student Welfare and Rights Officer','Multimedia Officers',
+    'Editorial Officer','Logistics Officer'
+  ];
+
+  const iscPositions = [
+    'Governor','Vice Governor','Board Member on Records','Board Member on Finance',
+    'Board Member on Audit','Board Member on Publication','Board Member on Public Relation',
+    'Board Member on Resources'
+  ];
+
 
   if (userData?.role !== 'admin' && userData?.role !== "superadmin") {
     return (
@@ -918,7 +937,7 @@ function ManageCandidates() {
                 <div>
                   <div className='mb-4'>
                     <h2 className="text-lg font-semibold text-blue-800">Reviewed Candidacy Applications</h2>
-                    <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment</p>
+                    <p className="text-gray-600 text-sm italic">Note: Approve after screening appointment or deliberation of the candidate</p>
                   </div>
                   {filteredApplications.filter(app => app.status === 'reviewed').length > 0 ? (
                     <div className="space-y-4">
@@ -1217,87 +1236,130 @@ function ManageCandidates() {
         )}
 
         {showConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Action</h3>
-              <p className="text-gray-700 mb-6">
-                {confirmAction?.type === 'candidacy' ? (
-                  <>
-                    Are you sure you want to{' '}
-                    <strong className="uppercase">{confirmAction.action}</strong>{' '}
-                    <strong className="uppercase">{getCandidateName()}'s</strong>{' '}
-                    application? 
-                  </>
-                ) : (
-                  <>
-                    Are you sure you want to{' '}
-                    <strong className="uppercase">{confirmAction.action}</strong>{' '}
-                    this screening appointment?
-                  </>
-                )}
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="px-4 py-2 text-white rounded-lg font-medium bg-gray-500 hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isConfirming}
-                  onClick={async () => {
-                    if (isConfirming) return;
-                    setIsConfirming(true);
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Confirm Action</h3>
 
-                    try {
-                      if (confirmAction.type === 'candidacy') {
-                        await updateApplicationStatus(
-                          confirmAction.uid,
-                          confirmAction.appId,
-                          confirmAction.action === 'review'
-                            ? 'reviewed'
-                            : confirmAction.action === 'approve'
-                            ? 'approved'
-                            : confirmAction.action === 'passed'
-                            ? 'passed'
-                            : confirmAction.action === 'failed'
-                            ? 'failed'
-                            : 'rejected'
-                        );
-                      } else if (confirmAction.type === 'appointment') {
-                        await decideAppointment(
-                          confirmAction.uid,
-                          confirmAction.appId,
-                          confirmAction.action === 'approve' ? 'approved' : 'declined',
-                          confirmAction.appointment
-                        );
+                <p className="text-gray-700 mb-6">
+                  {confirmAction?.type === 'candidacy' ? (
+                    <>
+                      Are you sure you want to{' '}
+                      <strong className="uppercase">{confirmAction.action}</strong>{' '}
+                      <strong className="uppercase">{getCandidateName()}'s</strong>{' '}
+                      application?
+                    </>
+                  ) : (
+                    <>
+                      Are you sure you want to{' '}
+                      <strong className="uppercase">{confirmAction.action}</strong>{' '}
+                      this screening appointment?
+                    </>
+                  )}
+                </p>
+
+                {confirmAction?.type === 'candidacy' && confirmAction?.action === 'passed' && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-1">Select Position</label>
+                    <select
+                      value={selectedPosition}
+                      onChange={(e) => setSelectedPosition(e.target.value)}
+                      className="w-full border rounded-lg p-2"
+                      required
+                    >
+                      <option value="">-- Select Position --</option>
+
+                      <optgroup label="SSC Positions">
+                        {sscPositions.map((pos) => (
+                          <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </optgroup>
+
+                      <optgroup label="ISC Positions">
+                        {iscPositions.map((pos) => (
+                          <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                    {confirmModalError && (
+                      <p className="text-red-600 text-sm mt-1">{confirmModalError}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="px-4 py-2 text-white rounded-lg font-medium bg-gray-500 hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    disabled={isConfirming}
+                    onClick={async () => {
+                      if (isConfirming) return;
+
+                      if (confirmAction?.action === 'passed' && !selectedPosition) {
+                        setConfirmModalError("Please select a position.");
+                        return;
                       }
 
-                      setShowConfirmModal(false);
-                      setMessage(`${confirmAction.action.charAt(0).toUpperCase() + confirmAction.action.slice(1)} successful.`);
-                      setTimeout(() => setMessage(''), 3000);
-                    } catch (err) {
-                      console.error(err);
-                      setMessage('Action failed.');
-                      setTimeout(() => setMessage(''), 3000);
-                    } finally {
-                      setIsConfirming(false);
-                    }
-                  }}
-                  className={`px-4 py-2 text-white rounded-lg font-medium ${
-                    confirmAction?.action === 'reject'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-green-600 hover:bg-green-700'
-                  } ${isConfirming ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isConfirming ? 'Processing…' : 'Confirm'}
-                </button>
+                      setIsConfirming(true);
+
+                      try {
+                        if (confirmAction.type === 'candidacy') {
+                          await updateApplicationStatus(
+                            confirmAction.uid,
+                            confirmAction.appId,
+                            confirmAction.action === 'review'
+                              ? 'reviewed'
+                              : confirmAction.action === 'approve'
+                              ? 'approved'
+                              : confirmAction.action === 'passed'
+                              ? 'passed'
+                              : confirmAction.action === 'failed'
+                              ? 'failed'
+                              : 'rejected',
+                            selectedPosition // ⭐ PASS POSITION TO UPDATE FUNCTION
+                          );
+                        } else if (confirmAction.type === 'appointment') {
+                          await decideAppointment(
+                            confirmAction.uid,
+                            confirmAction.appId,
+                            confirmAction.action === 'approve' ? 'approved' : 'declined',
+                            confirmAction.appointment
+                          );
+                        }
+
+                        setSelectedPosition(""); // reset
+                        setShowConfirmModal(false);
+                        setMessage(
+                          `${confirmAction.action.charAt(0).toUpperCase() + confirmAction.action.slice(1)} successful.`
+                        );
+                        setTimeout(() => setMessage(""), 3000);
+                      } catch (err) {
+                        console.error(err);
+                        setMessage("Action failed.");
+                        setTimeout(() => setMessage(""), 3000);
+                      } finally {
+                        setIsConfirming(false);
+                      }
+                    }}
+                    className={`px-4 py-2 text-white rounded-lg font-medium ${
+                      confirmAction?.action === 'reject'
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                    } ${isConfirming ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isConfirming ? "Processing…" : "Confirm"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
     </div>
   )
 }
